@@ -1,0 +1,48 @@
+/* ============================================================
+   UTILIDADES — PRO PREMIUM
+   Archivo ligero, modular y sin conflictos
+============================================================ */
+
+/* Animación fade-in */
+.fade-in {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity .6s ease-out, transform .6s ease-out;
+}
+
+.fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Alineación de texto */
+.text-center { text-align: center; }
+.text-left   { text-align: left; }
+.text-right  { text-align: right; }
+
+/* Espaciados verticales */
+.mt-10 { margin-top: 10px; }
+.mt-20 { margin-top: 20px; }
+.mt-40 { margin-top: 40px; }
+
+.mb-10 { margin-bottom: 10px; }
+.mb-20 { margin-bottom: 20px; }
+.mb-40 { margin-bottom: 40px; }
+
+/* Flex utilities */
+.flex        { display: flex; }
+.flex-center { display: flex; justify-content: center; align-items: center; }
+.flex-between { display: flex; justify-content: space-between; }
+
+/* Grid utilities */
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+
+/* Bordes y sombras */
+.radius-sm { border-radius: 6px; }
+.radius-md { border-radius: 10px; }
+.radius-lg { border-radius: 16px; }
+
+.shadow-sm { box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+.shadow-md { box-shadow: 0 6px 18px rgba(0,0,0,0.12); }
+.shadow-lg { box-shadow: 0 12px 30px rgba(0,0,0,0.15); }

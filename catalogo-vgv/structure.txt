@@ -1,0 +1,46 @@
+src/
+ ├─ routes/
+ │   ├─ +layout.svelte
+ │   ├─ +layout.js
+ │   ├─ +page.svelte
+ │   │
+ │   ├─ catalogo/
+ │   │   ├─ +page.svelte
+ │   │   └─ +page.js
+ │   │
+ │   ├─ producto/
+ │   │   └─ [id]/
+ │   │       ├─ +page.svelte
+ │   │       └─ +page.js
+ │   │
+ │   ├─ carrito/
+ │   │   └─ +page.svelte
+ │   │
+ │   └─ api/
+ │       └─ productos/
+ │           └─ +server.js   (opcional)
+ │
+ ├─ lib/
+ │   ├─ components/
+ │   │   ├─ Navbar.svelte
+ │   │   ├─ Footer.svelte
+ │   │   ├─ ProductCard.svelte
+ │   │   ├─ ProductGrid.svelte
+ │   │   └─ Loader.svelte
+ │   │
+ │   ├─ stores/
+ │   │   └─ carrito.js
+ │   │
+ │   ├─ utils/
+ │   │   ├─ fetchProductos.js
+ │   │   ├─ format.js
+ │   │   └─ whatsapp.js
+ │   │
+ │   └─ styles/
+ │       ├─ variables.css
+ │       ├─ global.css
+ │       └─ catalogo.css
+ │
+ └─ static/
+     ├─ logo.png
+     └─ images/

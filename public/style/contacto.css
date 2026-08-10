@@ -1,0 +1,361 @@
+/* ============================================================
+   HERO — Profesional, limpio y corporativo
+============================================================ */
+.contacto-hero {
+  background: linear-gradient(135deg, var(--azul), var(--azul-claro));
+  padding: 110px 20px;
+  text-align: center;
+  color: white;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.contacto-hero h1 {
+  font-size: 44px;
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
+.contacto-hero p {
+  font-size: 20px;
+  opacity: 0.95;
+}
+
+
+/* ============================================================
+   TARJETAS DE CONTACTO
+============================================================ */
+.contacto-container {
+  max-width: 1200px;
+  margin: 60px auto;
+  padding: 0 20px;
+  text-align: center;
+}
+
+.contacto-container h2 {
+  font-size: 34px;
+  font-weight: 800;
+  color: var(--azul);
+  margin-bottom: 40px;
+}
+
+.contacto-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 30px;
+}
+
+.contact-card {
+  background: #fff;
+  padding: 35px;
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+  border: 1px solid #eaeaea;
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+
+.contact-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+}
+
+.contact-card h3 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--azul);
+  margin-bottom: 10px;
+}
+
+.contact-card p {
+  color: #555;
+  margin-bottom: 20px;
+  font-size: 15px;
+}
+
+.btn-contacto {
+  display: inline-block;
+  background: var(--azul-claro);
+  color: white;
+  padding: 12px 22px;
+  border-radius: 8px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background .25s ease, transform .15s ease;
+}
+
+.btn-contacto:hover {
+  background: #005fa3;
+  transform: translateY(-2px);
+}
+
+
+/* ============================================================
+   FORMULARIO + MAPA
+============================================================ */
+.contacto-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 50px;
+  max-width: 1200px;
+  margin: 60px auto;
+  padding: 0 20px;
+  align-items: start;
+}
+
+
+/* ============================================================
+   FORMULARIO
+============================================================ */
+.contacto-form {
+  background: #fff;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+  border: 1px solid #e6e6e6;
+}
+
+.contacto-form h2 {
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--azul);
+  margin-bottom: 25px;
+}
+
+.form-intro {
+  margin-top: -10px;
+  margin-bottom: 22px;
+  color: #5a5a5a;
+  font-size: 14px;
+}
+
+/* Inputs */
+.form-group {
+  margin-bottom: 22px;
+}
+
+.form-group label {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #333;
+  font-size: 15px;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid #cfcfcf;
+  background: #fafafa;
+  font-size: 16px;
+  transition: all .25s ease;
+}
+
+.form-group input:focus {
+  border-color: var(--azul-claro);
+  background: #fff;
+  box-shadow: 0 0 8px rgba(0, 123, 255, 0.25);
+  outline: none;
+}
+
+.form-group input.input-error,
+.floating textarea.input-error {
+  border-color: #d84040;
+  box-shadow: 0 0 0 3px rgba(216, 64, 64, 0.12);
+}
+
+.field-error {
+  display: block;
+  min-height: 18px;
+  margin-top: 6px;
+  color: #b3261e;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+
+/* ============================================================
+   TEXTAREA — Floating Label PRO (único, sin duplicados)
+============================================================ */
+.floating {
+  position: relative;
+  margin-bottom: 22px;
+}
+
+.floating textarea {
+  width: 100%;
+  height: 190px;
+  padding: 22px 20px 10px;
+  border-radius: 14px;
+  border: 1px solid #d4d4d4;
+  background: #ffffff;
+  font-size: 16px;
+  line-height: 1.5;
+  resize: none;
+  transition: all .25s ease;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+
+.floating label {
+  position: absolute;
+  top: 18px;
+  left: 20px;
+  color: #777;
+  font-size: 16px;
+  pointer-events: none;
+  transition: .2s ease;
+}
+
+.floating textarea:focus + label,
+.floating textarea:not(:placeholder-shown) + label {
+  top: -10px;
+  left: 16px;
+  font-size: 12px;
+  color: var(--azul);
+  background: #fff;
+  padding: 0 6px;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.char-counter {
+  display: block;
+  margin-top: 8px;
+  text-align: right;
+  color: #666;
+  font-size: 12px;
+}
+
+
+/* ============================================================
+   BOTÓN ENVIAR — Verde, grande y corporativo
+============================================================ */
+.btn-enviar {
+  display: block;
+  background: var(--verde);
+  color: #fff;
+  padding: 18px 26px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 18px;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.10);
+  transition: background .25s ease, transform .15s ease, box-shadow .25s ease;
+}
+
+.btn-enviar:hover {
+  background: #1f8a4d;
+  transform: translateY(-3px);
+  box-shadow: 0 10px 28px rgba(0,0,0,0.15);
+}
+
+.btn-enviar:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.10);
+}
+
+.btn-enviar[disabled] {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.form-status {
+  min-height: 22px;
+  margin-top: 14px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.form-status.is-info {
+  color: #0c63e7;
+}
+
+.form-status.is-success {
+  color: #1f8a4d;
+}
+
+.form-status.is-error {
+  color: #b3261e;
+}
+
+
+/* ============================================================
+   MAPA
+============================================================ */
+.contacto-mapa h2 {
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--azul);
+  margin-bottom: 20px;
+}
+
+.map-container {
+  width: 100%;
+  height: 380px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+  border: 1px solid #e6e6e6;
+}
+
+
+/* ============================================================
+   RESPONSIVE
+============================================================ */
+@media (max-width: 900px) {
+  .contacto-wrapper {
+    grid-template-columns: 1fr;
+  }
+
+  .contacto-form,
+  .contacto-mapa {
+    width: 100%;
+  }
+}
+/* ============================================================
+   TOAST DE RESPUESTA
+============================================================ */
+.toast-contacto {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  max-width: 360px;
+  width: calc(100% - 40px);
+  padding: 14px 16px;
+  border-radius: 12px;
+  color: #fff;
+  background: #1f8a4d;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.2);
+  opacity: 0;
+  transform: translateY(12px);
+  pointer-events: none;
+  z-index: 9999;
+  transition: opacity .28s ease, transform .28s ease;
+}
+
+.toast-contacto.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.toast-contacto.toast-info {
+  background: #0c63e7;
+}
+
+.toast-contacto.toast-success {
+  background: #1f8a4d;
+}
+
+.toast-contacto.toast-error {
+  background: #b3261e;
+}
+
+@media (max-width: 600px) {
+  .toast-contacto {
+    right: 12px;
+    bottom: 12px;
+    width: calc(100% - 24px);
+  }
+}

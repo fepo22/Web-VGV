@@ -1,0 +1,30 @@
+# Desactivar listado de directorios
+Options -Indexes
+
+# Bloquear acceso directo a contacto.php para bots
+<Files "contacto.php">
+  <RequireAll>
+    Require all granted
+    Require not env bad_bot
+  </RequireAll>
+</Files>
+
+# Bloquear bots comunes
+SetEnvIfNoCase User-Agent "curl" bad_bot
+SetEnvIfNoCase User-Agent "wget" bad_bot
+SetEnvIfNoCase User-Agent "python" bad_bot
+SetEnvIfNoCase User-Agent "bot" bad_bot
+SetEnvIfNoCase User-Agent "spider" bad_bot
+
+# Cabeceras de seguridad
+Header set X-XSS-Protection "1; mode=block"
+Header always append X-Frame-Options SAMEORIGIN
+Header set X-Content-Type-Options nosniff
+
+# Limitar peticiones POST de bots
+<Limit POST>
+  <RequireAll>
+    Require all granted
+    Require not env bad_bot
+  </RequireAll>
+</Limit>

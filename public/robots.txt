@@ -1,0 +1,11 @@
+# Permitir a todos los bots indexar el sitio
+User-agent: *
+Allow: /
+
+# Bloquear carpetas internas que no deben indexarse
+Disallow: /admin/
+Disallow: /backend/
+Disallow: /tmp/
+
+# Indicar la ubicación del sitemap
+Sitemap: https://www.vgv.cl/sitemap.xml

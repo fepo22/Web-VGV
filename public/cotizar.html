@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cotizador - VGV SPA</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="style/base.css">
+    <link rel="stylesheet" href="style/layout.css">
+    <link rel="stylesheet" href="style/utils.css">
+</head>
+<body>
+  <main class="cotizador-container">
+    <h2>🧾 Cotizador de Productos</h2>
+
+    <!-- 🛒 Lista de productos -->
+    <div id="cart-list" class="cart-list"></div>
+
+    <!-- 👤 Datos del cliente -->
+    <form id="form-cotizacion" class="form-cotizacion">
+      <h3>Datos del cliente</h3>
+      <input type="text" id="nombre" placeholder="Nombre completo" required />
+      <input type="email" id="correo" placeholder="Correo electrónico" required />
+      <input type="text" id="empresa" placeholder="Empresa (opcional)" />
+      <button type="submit" id="btn-send" class="btn-send">Enviar cotización</button>
+    </form>
+    <table>
+  <tbody id="lista-cotizacion"></tbody>
+</table>
+
+<span id="contador-carrito"></span>
+
+<button onclick="vaciarCarrito()">Vaciar carrito</button>
+
+
+    <!-- ✅ Mensaje de confirmación -->
+    <div id="msg-status" class="msg-status"></div>
+  </main>
+  <div id="cart-list"></div>
+  <tbody id="lista-cotizacion"></tbody>
+
+  <script src="script.js"></script>
+</body>
+</html>

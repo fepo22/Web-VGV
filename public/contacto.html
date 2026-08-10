@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- CSS GLOBAL -->
+  <link rel="stylesheet" href="style/base.css">
+  <link rel="stylesheet" href="style/layout.css">
+  <link rel="stylesheet" href="style/utils.css">
+
+  <!-- CSS ESPECÍFICO -->
+  <link rel="stylesheet" href="style/contacto.css">
+
+  <title>Contacto | VGV SPA</title>
+  <meta name="description" content="Contáctanos por correo, teléfono o WhatsApp para cotizaciones rápidas. Atención personalizada en Talcahuano.">
+
+  <link rel="canonical" href="https://www.vgv.cl/contacto.html">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Contacto | VGV SPA">
+  <meta property="og:description" content="Comunícate con VGV SPA para cotizaciones y consultas técnicas.">
+  <meta property="og:image" content="https://www.vgv.cl/assets/images/banner-og.jpg">
+  <meta property="og:url" content="https://www.vgv.cl/contacto.html">
+
+  <!-- Favicon -->
+  <link rel="icon" href="assets/Logo-preview.png" type="image/png">
+</head>
+
+<body>
+
+  <!-- Header -->
+  <header>
+    <nav class="container">
+      <div class="logo">
+        <a href="index.html">
+          <img src="assets/Logo-preview.png" alt="Logo VGV SPA">
+        </a>
+      </div>
+
+      <ul>
+        <li><a href="ofertas.html">Ofertas</a></li>
+        <li><a href="index.html#catalogo-grid">Catálogo</a></li>
+        <li><a href="quienes.html">Quiénes somos</a></li>
+        <li><a href="contacto.html" class="active">Contacto</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Hero -->
+  <section class="contacto-hero">
+    <h1>Contáctanos</h1>
+    <p>Estamos disponibles para atender tus consultas y cotizaciones.</p>
+  </section>
+
+  <!-- Tarjetas de contacto -->
+  <section class="contacto-container">
+    <h2>Comunícate con nosotros</h2>
+
+    <div class="contacto-grid">
+
+      <div class="contact-card">
+        <h3>Correo electrónico</h3>
+        <p>Envíanos tus consultas o cotizaciones directamente por correo.</p>
+        <a href="mailto:ventas@vgv.cl" class="btn-contacto">Enviar correo</a>
+      </div>
+
+    <!-- <div class="contact-card"> 
+            <h3>Teléfono</h3>
+        <p>Comunícate con nuestro equipo de ventas.</p>
+        <a href="tel:+569XXXXXXXX" class="btn-contacto">Llamar ahora</a>
+      </div>--> 
+
+      <div class="contact-card">
+        <h3>WhatsApp</h3>
+        <p>Escríbenos directamente para cotizaciones rápidas.</p>
+        <a href="https://wa.me/56934052194" class="btn-contacto">Abrir WhatsApp</a>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Formulario + Mapa -->
+  <section class="contacto-wrapper container">
+
+    <!-- FORMULARIO -->
+    <form id="form-contacto" action="/api/contacto" method="POST" class="contacto-form" novalidate>
+
+      <h2>Envíanos un mensaje</h2>
+      <p class="form-intro">Completa tus datos y te responderemos dentro de 24 horas hábiles.</p>
+
+      <!-- Honeypot -->
+      <input type="text" id="empresa" name="empresa" style="display:none">
+
+      <!-- Token -->
+      <input type="hidden" id="token" name="token">
+
+      <div class="form-group">
+        <label for="nombre">Nombre</label>
+        <input id="nombre" name="nombre" type="text" autocomplete="name" minlength="3" maxlength="100" required aria-describedby="error-nombre">
+        <small id="error-nombre" class="field-error" aria-live="polite"></small>
+      </div>
+
+      <div class="form-group">
+        <label for="correo">Correo</label>
+        <input id="correo" name="correo" type="email" autocomplete="email" required aria-describedby="error-correo">
+        <small id="error-correo" class="field-error" aria-live="polite"></small>
+      </div>
+
+      <div class="floating">
+        <textarea id="mensaje" name="mensaje" placeholder=" " minlength="10" maxlength="2000" required aria-describedby="error-mensaje contador-mensaje"></textarea>
+        <label for="mensaje">Mensaje</label>
+        <small id="error-mensaje" class="field-error" aria-live="polite"></small>
+        <small id="contador-mensaje" class="char-counter" aria-live="polite">0 / 2000</small>
+      </div>
+
+      <button type="submit" class="btn-enviar" id="btn-enviar-contacto">Enviar</button>
+      <p id="form-status" class="form-status" role="status" aria-live="polite"></p>
+
+    </form>
+
+    <!-- MAPA -->
+    <div class="contacto-mapa">
+      <h2>Ubicación</h2>
+
+      <div class="map-container">
+        <iframe
+          width="100%"
+          height="100%"
+          style="border:0"
+          loading="lazy"
+          allowfullscreen
+          referrerpolicy="no-referrer-when-downgrade"
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3323.497308353788!2d-73.116948!3d-36.777650!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9669b5c1b6c3b4e3%3A0x7f1b8c1a3f9f0b7!2sAlonso%20de%20Ojeda%20215%2C%20Talcahuano%2C%20Biob%C3%ADo!5e0!3m2!1ses!2scl!4v1716400000000">
+        </iframe>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>© 2016 VGV SPA — Comercializadora y distribuidora, Talcahuano</p>
+  </footer>
+
+  <script src="script.js"></script>
+
+  <div id="toast-contacto" class="toast-contacto" role="status" aria-live="polite" aria-atomic="true"></div>
+
+</body>
+</html>
