@@ -10,6 +10,16 @@ const contactSchema = Joi.object({
   token: Joi.string().allow("")
 });
 
+const transporter = nodemailer.createTransport({
+  host: process.env.CONTACT_HOST,
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.CONTACT_USER,
+    pass: process.env.CONTACT_PASS
+  }
+});
+
 // CONTROLADOR PRINCIPAL
 export const sendContact = async (req, res) => {
   const payload = {
@@ -35,23 +45,13 @@ export const sendContact = async (req, res) => {
       return res.status(500).json({ error: "Configuracion de correo incompleta en el servidor" });
     }
 
-    const transporter = nodemailer.createTransport({
-      host: process.env.CONTACT_HOST,
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.CONTACT_USER,
-        pass: process.env.CONTACT_PASS
-      }
-    });
-
     const mailOptions = {
       from: `"VGV SPA Web" <${process.env.CONTACT_USER}>`,
       to: process.env.CONTACT_EMAIL,
       subject: `Nueva consulta de ${value.nombre}`,
       text: `
 Nombre: ${value.nombre}
-    Correo: ${value.correo}
+Correo: ${value.correo}
 
 Mensaje:
 ${value.mensaje}

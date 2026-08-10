@@ -3,15 +3,19 @@
   const { titulo = "Catálogo VGV" } = $props();
   import { resolve } from '$app/paths';
 
+  function getVgvHomeUrl() {
+    const configured = (import.meta.env.VITE_VGV_HOME_URL || '').trim();
+    if (configured) return configured;
+
+    const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+    if (isLocal) return 'http://localhost:4000/index.html';
+
+    return 'https://www.vgv.cl/index.html';
+  }
+
   function volverAlInicio() {
     if (!browser) return;
-
-    if (window.history.length > 1) {
-      window.history.back();
-      return;
-    }
-
-    window.location.href = '/index.html';
+    window.location.href = getVgvHomeUrl();
   }
 </script>
 

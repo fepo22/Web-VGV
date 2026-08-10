@@ -96,6 +96,7 @@ const nombreInput = document.getElementById("nombre");
 const correoInput = document.getElementById("correo");
 const mensajeInput = document.getElementById("mensaje");
 const mensajeCounter = document.getElementById("contador-mensaje");
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const errorNodes = {
   nombre: document.getElementById("error-nombre"),
@@ -203,9 +204,8 @@ function validateNombre(value) {
 }
 
 function validateCorreo(value) {
-  const correoRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!value) return "El correo es obligatorio.";
-  if (!correoRegex.test(value)) return "Ingresa un correo valido.";
+  if (!emailRegex.test(value)) return "Ingresa un correo valido.";
   return "";
 }
 

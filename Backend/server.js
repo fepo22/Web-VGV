@@ -20,7 +20,8 @@ const __dirname = path.dirname(__filename);
 // ===============================
 const app = express();
 const PORT = process.env.PORT || 4000;
-const CATALOG_URL = process.env.CATALOG_URL || "http://localhost:5173";
+const isProduction = process.env.NODE_ENV === "production";
+const CATALOG_URL = process.env.CATALOG_URL || (isProduction ? "" : "http://localhost:5173");
 
 // Middleware global
 app.use(express.json({ limit: "10kb" }));
@@ -34,6 +35,10 @@ app.use(express.static(path.join(__dirname, "../public")));
 
 // Redirige rutas de catalogo al frontend Svelte en desarrollo
 app.get("/catalogo*", (req, res) => {
+  if (!CATALOG_URL) {
+    return res.status(503).send("Catalogo no configurado. Define CATALOG_URL en el servidor.");
+  }
+
   res.redirect(`${CATALOG_URL}${req.originalUrl}`);
 });
 
@@ -44,9 +49,9 @@ app.use("/api/productos", productsRoutes);
 app.use("/api/contacto", contactRoutes);
 app.use("/api/cotizar", cotizarRoutes);
 
-// Ruta base
-app.get("/", (req, res) => {
-  res.json({ message: "API VGV SPA funcionando" });
+// Healthcheck explicito para monitoreo
+app.get("/health", (req, res) => {
+  res.json({ ok: true, service: "vgv-backend" });
 });
 
 // ===============================
