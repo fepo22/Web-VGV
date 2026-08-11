@@ -307,11 +307,59 @@
 @media (max-width: 900px) {
   .contacto-wrapper {
     grid-template-columns: 1fr;
+    gap: 24px;
   }
 
   .contacto-form,
   .contacto-mapa {
     width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .contacto-hero {
+    padding: 84px 14px;
+  }
+
+  .contacto-hero h1 {
+    font-size: 1.95rem;
+  }
+
+  .contacto-hero p {
+    font-size: 1rem;
+  }
+
+  .contacto-container {
+    margin: 40px auto;
+    padding: 0 14px;
+  }
+
+  .contacto-container h2,
+  .contacto-form h2,
+  .contacto-mapa h2 {
+    font-size: 1.55rem;
+  }
+
+  .contacto-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .contact-card {
+    padding: 22px;
+  }
+
+  .contacto-wrapper {
+    margin: 36px auto;
+    padding: 0 14px;
+  }
+
+  .contacto-form {
+    padding: 22px 16px;
+  }
+
+  .map-container {
+    height: 280px;
   }
 }
 /* ============================================================

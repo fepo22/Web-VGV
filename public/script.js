@@ -2,6 +2,33 @@
 // VGV SPA - Script Frontend Optimizado
 // ===============================
 
+function optimizeLegacyImages() {
+  const images = Array.from(document.querySelectorAll("img"));
+
+  images.forEach((img, index) => {
+    const inTopBar = Boolean(img.closest("header, nav"));
+    const eager = inTopBar || index < 2;
+
+    if (!img.hasAttribute("loading")) {
+      img.setAttribute("loading", eager ? "eager" : "lazy");
+    }
+
+    if (!img.hasAttribute("decoding")) {
+      img.setAttribute("decoding", "async");
+    }
+
+    if (!img.hasAttribute("fetchpriority")) {
+      img.setAttribute("fetchpriority", eager ? "high" : "low");
+    }
+  });
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", optimizeLegacyImages);
+} else {
+  optimizeLegacyImages();
+}
+
 // ===============================
 // NAVBAR STICKY
 // ===============================
@@ -68,11 +95,22 @@ if (track && btnLeft && btnRight && track.children.length) {
   const items = Array.from(track.children);
   items.forEach(item => track.appendChild(item.cloneNode(true)));
 
-  const itemWidth = items[0].offsetWidth + 20;
-  const originalWidth = items.length * itemWidth;
+  const getStep = () => {
+    const first = track.children[0];
+    if (!first) return 0;
+    const styles = window.getComputedStyle(track);
+    const gap = Number.parseFloat(styles.gap || styles.columnGap || "0") || 0;
+    return first.getBoundingClientRect().width + gap;
+  };
+
+  const getOriginalWidth = () => items.length * getStep();
 
   const move = dir => {
-    track.scrollBy({ left: dir * itemWidth, behavior: "smooth" });
+    const step = getStep();
+    const originalWidth = getOriginalWidth();
+    if (!step || !originalWidth) return;
+
+    track.scrollBy({ left: dir * step, behavior: "smooth" });
     setTimeout(() => {
       if (track.scrollLeft >= originalWidth) track.scrollLeft = 0;
       if (track.scrollLeft <= 0) track.scrollLeft = originalWidth;

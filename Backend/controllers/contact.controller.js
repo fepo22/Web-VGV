@@ -20,6 +20,8 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+const CONTACT_EMAIL = "ventas@vgv.cl";
+
 // CONTROLADOR PRINCIPAL
 export const sendContact = async (req, res) => {
   const payload = {
@@ -41,13 +43,13 @@ export const sendContact = async (req, res) => {
   }
 
   try {
-    if (!process.env.CONTACT_HOST || !process.env.CONTACT_USER || !process.env.CONTACT_PASS || !process.env.CONTACT_EMAIL) {
+    if (!process.env.CONTACT_HOST || !process.env.CONTACT_USER || !process.env.CONTACT_PASS) {
       return res.status(500).json({ error: "Configuracion de correo incompleta en el servidor" });
     }
 
     const mailOptions = {
       from: `"VGV SPA Web" <${process.env.CONTACT_USER}>`,
-      to: process.env.CONTACT_EMAIL,
+      to: CONTACT_EMAIL,
       subject: `Nueva consulta de ${value.nombre}`,
       text: `
 Nombre: ${value.nombre}

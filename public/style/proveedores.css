@@ -92,3 +92,47 @@
 .quienes-contacto a:hover {
   text-decoration: underline;
 }
+
+@media (max-width: 900px) {
+  .proveedores-hero {
+    padding: 80px 18px;
+  }
+
+  .proveedores-hero h1 {
+    font-size: 2rem;
+  }
+
+  .proveedores-hero p {
+    font-size: 1rem;
+  }
+
+  .slide {
+    padding: 0 22px;
+  }
+
+  .slide img {
+    width: 190px;
+  }
+
+  .quienes-contacto {
+    padding: 24px 16px;
+  }
+}
+
+@media (max-width: 600px) {
+  .slide {
+    padding: 0 12px;
+  }
+
+  .slide img {
+    width: 150px;
+  }
+
+  .quienes-contacto h3 {
+    font-size: 1.4rem;
+  }
+
+  .quienes-contacto p {
+    font-size: 1rem;
+  }
+}

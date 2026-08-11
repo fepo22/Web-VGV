@@ -1,9 +1,14 @@
-import { productos } from '$lib/data/productos.js';
+export async function load({ params, fetch }) {
+  try {
+    const respuesta = await fetch(`/api/productos/${params.id}`);
+    if (!respuesta.ok) {
+      return { producto: null };
+    }
 
-export function load({ params }) {
-  const producto = productos.find(item => item.id === params.id) ?? null;
-
-  return {
-    producto
-  };
+    const producto = await respuesta.json();
+    return { producto };
+  } catch (error) {
+    console.error('Error cargando detalle de producto:', error);
+    return { producto: null };
+  }
 }

@@ -25,6 +25,8 @@
   <meta name="twitter:description" content="Equipos, repuestos y soluciones técnicas para calefacción y canalización.">
   <meta name="twitter:image" content="https://www.vgv.cl/assets/images/banner-og.jpg">
 
+  <link rel="preload" as="image" href="assets/Banners/banner1.png" fetchpriority="high">
+
   <!-- Favicons -->
   <link rel="icon" href="assets/Logo-preview.png" type="image/png">
   <link rel="apple-touch-icon" href="assets/Logo-preview.png">
@@ -60,7 +62,17 @@
 
   <!-- Hero / Banner rotativo -->
   <section class="banner-slider">
-    <div class="slide active" style="background-image: url('assets/Banners/banner1.png');">
+    <div class="slide slide--1 active">
+      <img
+        class="slide-bg"
+        src="assets/Banners/banner1.png"
+        alt="Fachada VGV con marcas de proveedores"
+        width="1920"
+        height="760"
+        loading="eager"
+        decoding="async"
+        fetchpriority="high"
+      >
       <div class="banner-content">
         <h1>Materiales de construcción para proyectos que duran</h1>
         <p>+9 años de experiencia en Talcahuano</p>
@@ -69,14 +81,32 @@
       </div>
     </div>
     <!-- FIX: slides 2 y 3 con contenido mínimo para que el banner tenga sentido visual -->
-    <div class="slide" style="background-image: url('assets/Banners/banner2.png');">
+    <div class="slide slide--2">
+      <img
+        class="slide-bg"
+        src="assets/Banners/banner2.jpg"
+        alt="Calefactores y radiadores para el hogar"
+        width="1920"
+        height="760"
+        loading="lazy"
+        decoding="async"
+      >
       <div class="banner-content">
-        <h1>Canalización y griferías de primera calidad</h1>
-        <p>Stock permanente para obras y proyectos</p>
-        <a href="canalizacion.html" class="btn">Ver canalización</a>
+        <h1>Calefactores y radiadores de alto rendimiento</h1>
+        <p>Soluciones de calefacción para hogar y proyecto.</p>
+        <a href="calefaccion.html" class="btn">Ver calefacción</a>
       </div>
     </div>
-    <div class="slide" style="background-image: url('assets/Banners/banner3.png');">
+    <div class="slide slide--3">
+      <img
+        class="slide-bg"
+        src="assets/Banners/banner3.png"
+        alt="Línea de calefacción y accesorios VGV"
+        width="1920"
+        height="760"
+        loading="lazy"
+        decoding="async"
+      >
       <div class="banner-content">
         <h1>Calefont, radiadores y accesorios de instalación</h1>
         <p>Asesoría técnica especializada</p>
@@ -206,14 +236,14 @@
         </div>
 
         <div class="product-card">
-          <img src="assets/Carousel/peg_montaje.png" alt="Adhesivo de Montaje">
+          <img src="assets/Carousel/Peg_montaje.png" alt="Adhesivo de Montaje">
           <h3>Sin clavos ni tornillos</h3>
           <!-- FIX: typo "adeshivo" → "adhesivo" -->
           <p>Adhesivo de montaje Soudal</p>
           <button class="btn-cotizar"
             data-nombre="Adhesivo de Montaje"
             data-categoria="Adhesivos y Aditivos"
-            data-imagen="assets/Carousel/peg_montaje.png">
+            data-imagen="assets/Carousel/Peg_montaje.png">
             Cotizar
           </button>
         </div>
@@ -232,14 +262,14 @@
         </div>
 
         <div class="product-card">
-          <img src="assets/Carousel/silirub_ac.png" alt="Silirub AC">
+          <img src="assets/Carousel/Silirub_ac.png" alt="Silirub AC">
           <h3>Silirub AC</h3>
           <!-- FIX: "acetica" → "acética" -->
           <p>Silicona acética</p>
           <button class="btn-cotizar"
             data-nombre="Silirub AC"
             data-categoria="Adhesivos y Aditivos"
-            data-imagen="assets/Carousel/silirub_ac.png">
+            data-imagen="assets/Carousel/Silirub_ac.png">
             Cotizar
           </button>
         </div>
