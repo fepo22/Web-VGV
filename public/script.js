@@ -364,7 +364,7 @@ if (formContacto) {
 // ===============================
 // COTIZADOR — LÓGICA PRINCIPAL
 // ===============================
-const CART_KEY = "vgv_cart";
+const CART_KEY = "vgv_carrito_v1";
 const CART_RESET_MINUTES = 10;
 
 function updateCartCounter() {
