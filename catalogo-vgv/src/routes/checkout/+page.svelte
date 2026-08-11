@@ -3,6 +3,8 @@
 
   let items = $state([]);
   let enviado = $state(false);
+  let enviando = $state(false);
+  let errorEnvio = $state('');
 
   const datosBancarios = {
     banco: 'Banco de Chile',
@@ -25,9 +27,62 @@
     return items.reduce((acc, item) => acc + item.precio * item.cantidad, 0);
   }
 
-  function enviarFormulario(event) {
+  async function enviarFormulario(event) {
     event.preventDefault();
-    enviado = true;
+    enviado = false;
+    errorEnvio = '';
+    enviando = true;
+
+    const formData = new FormData(event.currentTarget);
+    const nombre = String(formData.get('nombreApellido') || '').trim();
+    const empresa = String(formData.get('empresa') || '').trim();
+    const correo = String(formData.get('mail') || '').trim();
+    const contacto = String(formData.get('contacto') || '').trim();
+    const rut = String(formData.get('rut') || '').trim();
+    const direccion = String(formData.get('direccion') || '').trim();
+
+    const detalle = items
+      .map(item => `- ${item.nombre} x ${item.cantidad} ($${(item.precio * item.cantidad).toLocaleString('es-CL')})`)
+      .join('\n');
+
+    const mensaje = [
+      'Solicitud de compra desde checkout VGV',
+      `Cliente: ${nombre}`,
+      `Empresa: ${empresa}`,
+      `RUT: ${rut}`,
+      `Telefono: ${contacto}`,
+      `Direccion despacho: ${direccion}`,
+      '',
+      'Detalle:',
+      detalle || '- Sin productos',
+      '',
+      `Total referencial: $${total().toLocaleString('es-CL')}`
+    ].join('\n');
+
+    try {
+      const res = await fetch('/api/contacto', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json'
+        },
+        body: JSON.stringify({ nombre, correo, mensaje, empresa: '', token: '' })
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok || !data?.ok) {
+        errorEnvio = data?.detail || data?.error || 'No se pudo enviar la solicitud.';
+        return;
+      }
+
+      enviado = true;
+      event.currentTarget.reset();
+    } catch (error) {
+      console.error('Error enviando checkout a contacto:', error);
+      errorEnvio = 'No hay conexion con el servidor para enviar la solicitud.';
+    } finally {
+      enviando = false;
+    }
   }
 </script>
 
@@ -59,10 +114,16 @@
       <label for="mail">Mail</label>
       <input id="mail" name="mail" type="email" required />
 
-      <button class="btn-submit" type="submit">Enviar solicitud de compra</button>
+      <button class="btn-submit" type="submit" disabled={enviando}>
+        {enviando ? 'Enviando...' : 'Enviar solicitud de compra'}
+      </button>
 
       {#if enviado}
-        <p class="ok">Solicitud enviada. En breve el equipo VGV te contactara para confirmar stock y despacho.</p>
+        <p class="ok">Solicitud enviada a ventas@vgv.cl. En breve el equipo VGV te contactara para confirmar stock y despacho.</p>
+      {/if}
+
+      {#if errorEnvio}
+        <p class="error">{errorEnvio}</p>
       {/if}
     </form>
 
@@ -165,6 +226,15 @@
     background: #ecfdf3;
     color: #166534;
     border: 1px solid #bbf7d0;
+    border-radius: 10px;
+    padding: 0.7rem;
+  }
+
+  .error {
+    margin-top: 0.8rem;
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
     border-radius: 10px;
     padding: 0.7rem;
   }

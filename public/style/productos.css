@@ -283,3 +283,62 @@
     padding: 30px 20px;
   }
 }
+
+@media (max-width: 600px) {
+  .hero {
+    padding: 90px 14px;
+  }
+
+  .hero h1 {
+    font-size: 1.9rem;
+    line-height: 1.2;
+  }
+
+  .hero p {
+    font-size: 1rem;
+  }
+
+  .hero .btn {
+    padding: 10px 16px;
+  }
+
+  .detalle {
+    margin: 40px auto;
+    padding: 0 14px;
+  }
+
+  .detalle h2,
+  .ventajas h2,
+  #contacto h2 {
+    font-size: 1.6rem;
+  }
+
+  .detalle .grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .detalle .card {
+    max-width: 100%;
+  }
+
+  .detalle .card .img-box {
+    width: min(160px, 70vw);
+    height: min(140px, 48vw);
+  }
+
+  .ventajas li {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  #contacto {
+    margin: 40px 14px;
+    padding: 24px 14px;
+  }
+
+  #contacto a.btn {
+    display: block;
+    margin: 10px 0;
+  }
+}

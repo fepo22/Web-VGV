@@ -15,26 +15,38 @@ function mapProduct(producto) {
   };
 }
 
-export async function GET() {
+export async function GET({ params }) {
+  const id = String(params.id);
+
   try {
-    const respuesta = await fetch(`${BACKEND_URL}/api/productos`, {
+    const respuesta = await fetch(`${BACKEND_URL}/api/productos/${id}`, {
       headers: { accept: 'application/json' }
     });
 
     if (!respuesta.ok) {
-      throw new Error(`Backend respondio ${respuesta.status}`);
+      return new Response(JSON.stringify({ error: 'Producto no encontrado' }), {
+        status: 404,
+        headers: { 'content-type': 'application/json' }
+      });
     }
 
     const data = await respuesta.json();
-    const productos = Array.isArray(data) ? data.map(mapProduct) : [];
 
-    return new Response(JSON.stringify(productos), {
+    return new Response(JSON.stringify(mapProduct(data)), {
       headers: { 'content-type': 'application/json' }
     });
   } catch (error) {
-    console.error('No se pudo consultar backend de productos:', error);
+    console.error('No se pudo consultar detalle de producto en backend:', error);
+    const producto = productosFallback.find(item => item.id === id) ?? null;
 
-    return new Response(JSON.stringify(productosFallback), {
+    if (!producto) {
+      return new Response(JSON.stringify({ error: 'Producto no encontrado' }), {
+        status: 404,
+        headers: { 'content-type': 'application/json' }
+      });
+    }
+
+    return new Response(JSON.stringify(producto), {
       headers: { 'content-type': 'application/json' }
     });
   }
