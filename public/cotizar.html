@@ -3,42 +3,39 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cotizador - VGV SPA</title>
-    <link rel="stylesheet" href="style.css" />
-    <link rel="stylesheet" href="style/base.css">
-    <link rel="stylesheet" href="style/layout.css">
-    <link rel="stylesheet" href="style/utils.css">
+  <title>Redirigiendo al catálogo | VGV SPA</title>
+  <meta http-equiv="refresh" content="0; url=/catalogo" />
+  <link rel="canonical" href="/catalogo" />
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      font-family: Arial, sans-serif;
+      background: #f6f8fb;
+      color: #17324d;
+    }
+
+    .wrap {
+      text-align: center;
+      background: #fff;
+      border: 1px solid #dce6f2;
+      border-radius: 12px;
+      padding: 1.5rem;
+      max-width: 420px;
+    }
+
+    a {
+      color: #0057a0;
+      font-weight: 700;
+    }
+  </style>
 </head>
 <body>
-  <main class="cotizador-container">
-    <h2>🧾 Cotizador de Productos</h2>
-
-    <!-- 🛒 Lista de productos -->
-    <div id="cart-list" class="cart-list"></div>
-
-    <!-- 👤 Datos del cliente -->
-    <form id="form-cotizacion" class="form-cotizacion">
-      <h3>Datos del cliente</h3>
-      <input type="text" id="nombre" placeholder="Nombre completo" required />
-      <input type="email" id="correo" placeholder="Correo electrónico" required />
-      <input type="text" id="empresa" placeholder="Empresa (opcional)" />
-      <button type="submit" id="btn-send" class="btn-send">Enviar cotización</button>
-    </form>
-    <table>
-  <tbody id="lista-cotizacion"></tbody>
-</table>
-
-<span id="contador-carrito"></span>
-
-<button onclick="vaciarCarrito()">Vaciar carrito</button>
-
-
-    <!-- ✅ Mensaje de confirmación -->
-    <div id="msg-status" class="msg-status"></div>
+  <main class="wrap">
+    <h1>Estamos moviendo tu compra al catálogo unificado</h1>
+    <p>Si no redirige automáticamente, continúa en <a href="/catalogo">/catalogo</a>.</p>
   </main>
-  <div id="cart-list"></div>
-  <tbody id="lista-cotizacion"></tbody>
-
-  <script src="script.js"></script>
 </body>
 </html>

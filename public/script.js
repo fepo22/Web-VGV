@@ -400,78 +400,10 @@ if (formContacto) {
 }
 
 // ===============================
-// COTIZADOR — LÓGICA PRINCIPAL
+// CARRITO ÚNICO EN CATÁLOGO
 // ===============================
-const CART_KEY = "vgv_carrito_v1";
-const CART_RESET_MINUTES = 10;
-
-function updateCartCounter() {
-  try {
-    const cart = JSON.parse(localStorage.getItem(CART_KEY)) || [];
-    const counter = document.getElementById("cart-counter");
-    if (counter) counter.textContent = cart.length;
-  } catch (error) {
-    console.warn("No fue posible leer el carrito:", error);
-  }
-}
-
-function checkCartExpiration() {
-  try {
-    const lastTime = localStorage.getItem(`${CART_KEY}_time`);
-    if (!lastTime) {
-      localStorage.setItem(`${CART_KEY}_time`, Date.now());
-      return;
-    }
-
-    const diffMinutes = (Date.now() - lastTime) / 1000 / 60;
-    if (diffMinutes >= CART_RESET_MINUTES) {
-      localStorage.removeItem(CART_KEY);
-      localStorage.removeItem(`${CART_KEY}_time`);
-      updateCartCounter();
-    }
-  } catch (error) {
-    console.warn("No fue posible validar la expiración del carrito:", error);
-  }
-}
-
-checkCartExpiration();
-updateCartCounter();
-
-// ===============================
-// AGREGAR AL CARRITO (botones estáticos)
-// ===============================
-document.addEventListener("click", e => {
-  const btn = e.target.closest(".btn-agregar");
-  if (!btn) return;
-
-  const nombre = btn.dataset.nombre || "Producto";
-  const precio = parseFloat(btn.dataset.precio) || 0;
-  const imagen = btn.dataset.imagen || "";
-  const id = "static-" + nombre.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-
-  try {
-    const cart = JSON.parse(localStorage.getItem(CART_KEY)) || [];
-    const existente = cart.find(p => p.id === id);
-    if (existente) {
-      existente.cantidad += 1;
-    } else {
-      cart.push({ id, nombre, precio, imagen, cantidad: 1 });
-    }
-    localStorage.setItem(CART_KEY, JSON.stringify(cart));
-    localStorage.setItem(`${CART_KEY}_time`, Date.now());
-    updateCartCounter();
-
-    const original = btn.textContent.trim();
-    btn.textContent = "✓ Agregado";
-    btn.disabled = true;
-    setTimeout(() => {
-      btn.textContent = original;
-      btn.disabled = false;
-    }, 1200);
-  } catch (err) {
-    console.warn("No fue posible agregar al carrito:", err);
-  }
-});
+// El frontend estático no mantiene carrito propio.
+// Las acciones comerciales deben navegar al catálogo SvelteKit.
 
 // ===============================
 // BANNER ROTATIVO
