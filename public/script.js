@@ -400,6 +400,42 @@ checkCartExpiration();
 updateCartCounter();
 
 // ===============================
+// AGREGAR AL CARRITO (botones estáticos)
+// ===============================
+document.addEventListener("click", e => {
+  const btn = e.target.closest(".btn-agregar");
+  if (!btn) return;
+
+  const nombre = btn.dataset.nombre || "Producto";
+  const precio = parseFloat(btn.dataset.precio) || 0;
+  const imagen = btn.dataset.imagen || "";
+  const id = "static-" + nombre.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+
+  try {
+    const cart = JSON.parse(localStorage.getItem(CART_KEY)) || [];
+    const existente = cart.find(p => p.id === id);
+    if (existente) {
+      existente.cantidad += 1;
+    } else {
+      cart.push({ id, nombre, precio, imagen, cantidad: 1 });
+    }
+    localStorage.setItem(CART_KEY, JSON.stringify(cart));
+    localStorage.setItem(`${CART_KEY}_time`, Date.now());
+    updateCartCounter();
+
+    const original = btn.textContent.trim();
+    btn.textContent = "✓ Agregado";
+    btn.disabled = true;
+    setTimeout(() => {
+      btn.textContent = original;
+      btn.disabled = false;
+    }, 1200);
+  } catch (err) {
+    console.warn("No fue posible agregar al carrito:", err);
+  }
+});
+
+// ===============================
 // BANNER ROTATIVO
 // ===============================
 let currentSlide = 0;
