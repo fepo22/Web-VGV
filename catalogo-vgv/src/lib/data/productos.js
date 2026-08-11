@@ -429,5 +429,21 @@ export const productos = [
 		imagen: '/images/sikatop.jpg',
 		categoria: 'Pegamentos y cementos',
 		categoriaSlug: 'pegamentos-cementos'
+	},
+	{
+		id: '49',
+		nombre: 'Codo 90 PVC',
+		precio: 2990,
+		descripcion: 'Codo PVC de 90 grados para cambios de dirección en instalaciones de canalización.',
+		imagen: '/images/codo_90_pvc.jpg',
+		categoria: 'Canalización',
+		categoriaSlug: 'canalizacion',
+		variantes: [
+			{ sku: 'C90-20', medida: '20mm', precio: 1490, minima: 1 },
+			{ sku: 'C90-25', medida: '25mm', precio: 1790, minima: 1 },
+			{ sku: 'C90-32', medida: '32mm', precio: 2290, minima: 1 },
+			{ sku: 'C90-50', medida: '50mm', precio: 3990, minima: 1 },
+			{ sku: 'C90-110', medida: '110mm', precio: 12990, minima: 1 }
+		]
 	}
 ];

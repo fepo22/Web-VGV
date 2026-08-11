@@ -2,6 +2,43 @@
 // VGV SPA - Script Frontend Optimizado
 // ===============================
 
+const CONTACT_INFO = {
+  email: "ventas@vgv.cl",
+  whatsapp: "56934052194",
+  phone: ""
+};
+
+function applyContactInfo() {
+  document.querySelectorAll('a[href^="mailto:"]').forEach(anchor => {
+    anchor.setAttribute("href", `mailto:${CONTACT_INFO.email}`);
+    if (!anchor.textContent.trim() || anchor.textContent.includes("@")) {
+      anchor.textContent = CONTACT_INFO.email;
+    }
+  });
+
+  document.querySelectorAll('a[href*="wa.me/"]').forEach(anchor => {
+    anchor.setAttribute("href", `https://wa.me/${CONTACT_INFO.whatsapp}`);
+  });
+
+  const hasPhone = Boolean(CONTACT_INFO.phone && CONTACT_INFO.phone.trim());
+  const telAnchors = document.querySelectorAll('a[href^="tel:"]');
+
+  telAnchors.forEach(anchor => {
+    if (hasPhone) {
+      anchor.setAttribute("href", `tel:${CONTACT_INFO.phone}`);
+      anchor.textContent = CONTACT_INFO.phone;
+      return;
+    }
+
+    const block = anchor.closest("p, .contact-card, .btn-contacto, li");
+    if (block && block !== anchor) {
+      block.style.display = "none";
+    } else {
+      anchor.style.display = "none";
+    }
+  });
+}
+
 function optimizeLegacyImages() {
   const images = Array.from(document.querySelectorAll("img"));
 
@@ -24,9 +61,13 @@ function optimizeLegacyImages() {
 }
 
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", optimizeLegacyImages);
+  document.addEventListener("DOMContentLoaded", () => {
+    optimizeLegacyImages();
+    applyContactInfo();
+  });
 } else {
   optimizeLegacyImages();
+  applyContactInfo();
 }
 
 // ===============================
