@@ -1,14 +1,36 @@
 <script>
+	import { browser } from '$app/environment';
 	import { agregarAlCarrito } from '$lib/stores/carrito.js';
 
 	const { data } = $props();
 	const producto = $derived(data?.producto ?? null);
+	let ultimoProductoRegistrado = $state(null);
 
 	function agregar() {
 		if (producto) {
 			agregarAlCarrito(producto);
 		}
 	}
+
+	function registrarProductoVisto(id) {
+		if (!browser || !id) return;
+
+		try {
+			const raw = localStorage.getItem('vgv_recently_viewed') ?? '[]';
+			const recientes = JSON.parse(raw);
+			const lista = Array.isArray(recientes) ? recientes : [];
+			const siguiente = [id, ...lista.filter((item) => item !== id)].slice(0, 4);
+			localStorage.setItem('vgv_recently_viewed', JSON.stringify(siguiente));
+		} catch {
+			// Ignorar errores de almacenamiento local
+		}
+	}
+
+	$effect(() => {
+		if (!producto?.id || ultimoProductoRegistrado === producto.id) return;
+		registrarProductoVisto(producto.id);
+		ultimoProductoRegistrado = producto.id;
+	});
 </script>
 
 {#if producto}

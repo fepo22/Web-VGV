@@ -1,9 +1,24 @@
 <script>
+	import { browser } from '$app/environment';
 	import { resolve } from '$app/paths';
 	import { agregarAlCarrito } from '$lib/stores/carrito.js';
 
 	const { producto } = $props();
 	let added = $state(false);
+
+	function registrarProductoVisto(id) {
+		if (!browser || !id) return;
+
+		try {
+			const raw = localStorage.getItem('vgv_recently_viewed') ?? '[]';
+			const recientes = JSON.parse(raw);
+			const lista = Array.isArray(recientes) ? recientes : [];
+			const siguiente = [id, ...lista.filter((item) => item !== id)].slice(0, 4);
+			localStorage.setItem('vgv_recently_viewed', JSON.stringify(siguiente));
+		} catch {
+			// Ignorar errores de almacenamiento local
+		}
+	}
 
 	function handleAdd(e) {
 		e.stopPropagation();
@@ -18,6 +33,7 @@
 		class="card-link"
 		href={resolve(`/producto/${producto.id}`)}
 		aria-label={`Ver ${producto.nombre}`}
+		onclick={() => registrarProductoVisto(producto.id)}
 	>
 		<div class="img-wrapper">
 			<img src={producto.imagen} alt={producto.nombre} loading="lazy" />
