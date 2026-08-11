@@ -55,7 +55,7 @@ export const productos = [
 	},
 	{
 		id: '5',
-		nombre: 'Tubería de Cobre',
+		nombre: 'Cañería de Cobre',
 		precio: 39990,
 		descripcion: 'Material premium para instalaciones de agua y gas con gran confiabilidad.',
 		imagen: '/images/tubo_cobre.png',
@@ -113,35 +113,6 @@ export const productos = [
 		categoriaSlug: 'calefont-calefaccion'
 	},
 	{
-		id: '11',
-		nombre: 'Monomando Lavaplatos Flexible',
-		precio: 49990,
-		descripcion:
-			'Grifería monomando con cuello flexible para cocina, fácil de limpiar y resistente al uso diario.',
-		imagen: '/images/monomando_lavaplatos.png',
-		categoria: 'Griferías y sanitarios',
-		categoriaSlug: 'griferias-sanitarios'
-	},
-	{
-		id: '12',
-		nombre: 'WC One Piece Dual Flush',
-		precio: 139990,
-		descripcion: 'Sanitario de una pieza con descarga dual para ahorro de agua y mejor higiene.',
-		imagen: '/images/wc_one_piece.png',
-		categoria: 'Griferías y sanitarios',
-		categoriaSlug: 'griferias-sanitarios'
-	},
-	{
-		id: '13',
-		nombre: 'Lavamanos Loza Mural',
-		precio: 45990,
-		descripcion:
-			'Lavamanos mural compacto para baños residenciales y comerciales de alto tránsito.',
-		imagen: '/images/lavamanos_mural.png',
-		categoria: 'Griferías y sanitarios',
-		categoriaSlug: 'griferias-sanitarios'
-	},
-	{
 		id: '14',
 		nombre: 'Portátil 9000 BTU Frío/Calor Splendid',
 		precio: 256000,
@@ -196,5 +167,195 @@ export const productos = [
 		categoriaSlug: 'consumibles-obra',
 		oferta: true,
 		descuentoPct: 36
+	},
+	{
+		id: '20',
+		nombre: 'Acrilico Grietas Soudal',
+		precio: 5990,
+		descripcion:
+			'Sellador acrilico para rellenar grietas y fendas en hormigon, ladrillo y yeso. Pintable.',
+		imagen: '/images/acrilico_grietas.png',
+		categoria: 'Pegamentos y cementos',
+		categoriaSlug: 'pegamentos-cementos'
+	},
+	{
+		id: '21',
+		nombre: 'Acryrub Sellador Acrilico',
+		precio: 6490,
+		descripcion: 'Sellador acrilico base agua para juntas interiores y terminaciones.',
+		imagen: '/images/acryrub.png',
+		categoria: 'Pegamentos y cementos',
+		categoriaSlug: 'pegamentos-cementos'
+	},
+	{
+		id: '22',
+		nombre: 'Silicona AC',
+		precio: 6990,
+		descripcion: 'Silicona acida para sellado en superficies no porosas y juntas sanitarias.',
+		imagen: '/images/silicona_ac.png',
+		categoria: 'Pegamentos y cementos',
+		categoriaSlug: 'pegamentos-cementos'
+	},
+	{
+		id: '23',
+		nombre: 'Silirub Soudal',
+		precio: 7490,
+		descripcion: 'Sellador de silicona para juntas de dilatacion y aplicaciones generales.',
+		imagen: '/images/silirub_soudal.png',
+		categoria: 'Pegamentos y cementos',
+		categoriaSlug: 'pegamentos-cementos'
+	},
+	{
+		id: '24',
+		nombre: 'Sin Clavos 360gr',
+		precio: 8990,
+		descripcion: 'Adhesivo de montaje de alta adherencia para fijaciones sin perforar.',
+		imagen: '/images/sin_clavos_360gr.png',
+		categoria: 'Pegamentos y cementos',
+		categoriaSlug: 'pegamentos-cementos'
+	},
+	{
+		id: '25',
+		nombre: 'Soudabond',
+		precio: 9990,
+		descripcion: 'Adhesivo elastico multiproposito para pegado y sellado en obra.',
+		imagen: '/images/soudabond.png',
+		categoria: 'Pegamentos y cementos',
+		categoriaSlug: 'pegamentos-cementos'
+	},
+	{
+		id: '26',
+		nombre: 'Soudalflex',
+		precio: 10990,
+		descripcion: 'Sellador elastomerico para juntas expuestas a movimiento y vibracion.',
+		imagen: '/images/soudalflex.png',
+		categoria: 'Pegamentos y cementos',
+		categoriaSlug: 'pegamentos-cementos'
+	},
+	{
+		id: '27',
+		nombre: 'Asiento tapa PP WC Aura',
+		precio: 18990,
+		descripcion: 'Asiento y tapa para WC en polipropileno con diseño sobrio y fácil limpieza.',
+		imagen: '/images/sanitarios.png',
+		categoria: 'Griferías y sanitarios',
+		categoriaSlug: 'griferias-sanitarios'
+	},
+	{
+		id: '28',
+		nombre: 'Accesorio cortina 60-90 cm',
+		precio: 13990,
+		descripcion: 'Accesorio para cortina de ducha ajustable en medidas estándar para baño.',
+		imagen: '/images/accesorios.png',
+		categoria: 'Griferías y sanitarios',
+		categoriaSlug: 'griferias-sanitarios'
+	},
+	{
+		id: '29',
+		nombre: 'Estanque WC NER ATOS',
+		precio: 22990,
+		descripcion: 'Estanque para WC con sistema funcional y acabado moderno para instalaciones residenciales.',
+		imagen: '/images/sanitarios.png',
+		categoria: 'Griferías y sanitarios',
+		categoriaSlug: 'griferias-sanitarios'
+	},
+	{
+		id: '30',
+		nombre: 'Lavamanos Aura',
+		precio: 25990,
+		descripcion: 'Lavamanos de diseño compacto ideal para baño con estética simple y moderna.',
+		imagen: '/images/lavamanos.png',
+		categoria: 'Griferías y sanitarios',
+		categoriaSlug: 'griferias-sanitarios'
+	},
+	{
+		id: '31',
+		nombre: 'Llave angular HE 1/2 con flexible',
+		precio: 34990,
+		descripcion: 'Llave angular con flexible para instalaciones de agua con mayor comodidad y durabilidad.',
+		imagen: '/images/llaves-paso.png',
+		categoria: 'Griferías y sanitarios',
+		categoriaSlug: 'griferias-sanitarios'
+	},
+	{
+		id: '32',
+		nombre: 'Llave collar HE 3/4',
+		precio: 31990,
+		descripcion: 'Llave de collar para conexión segura y funcional en sistemas de agua y calefacción.',
+		imagen: '/images/llaves-paso.png',
+		categoria: 'Griferías y sanitarios',
+		categoriaSlug: 'griferias-sanitarios'
+	},
+	{
+		id: '33',
+		nombre: 'Monomando Ducha Oregon',
+		precio: 42990,
+		descripcion: 'Monomando para ducha con terminación elegante y control preciso del caudal.',
+		imagen: '/images/griferias.png',
+		categoria: 'Griferías y sanitarios',
+		categoriaSlug: 'griferias-sanitarios'
+	},
+	{
+		id: '34',
+		nombre: 'Monomando lavaplatos Oregon cuello corto',
+		precio: 44990,
+		descripcion: 'Monomando para lavaplatos con diseño funcional y excelente resistencia al uso diario.',
+		imagen: '/images/griferias.png',
+		categoria: 'Griferías y sanitarios',
+		categoriaSlug: 'griferias-sanitarios'
+	},
+	{
+		id: '35',
+		nombre: 'Monomando lavaplatos Vermont',
+		precio: 46990,
+		descripcion: 'Monomando para lavaplatos con diseño contemporáneo y un excelente acabado.',
+		imagen: '/images/griferias.png',
+		categoria: 'Griferías y sanitarios',
+		categoriaSlug: 'griferias-sanitarios'
+	},
+	{
+		id: '36',
+		nombre: 'Monomando lavatorio Oregon',
+		precio: 39990,
+		descripcion: 'Monomando para lavatorio de uso común con control preciso y terminación moderna.',
+		imagen: '/images/griferias.png',
+		categoria: 'Griferías y sanitarios',
+		categoriaSlug: 'griferias-sanitarios'
+	},
+	{
+		id: '37',
+		nombre: 'Monomando lavatorio Vermont',
+		precio: 41990,
+		descripcion: 'Monomando para lavatorio de estilo actualizado, práctico y estético para baño y cocina.',
+		imagen: '/images/griferias.png',
+		categoria: 'Griferías y sanitarios',
+		categoriaSlug: 'griferias-sanitarios'
+	},
+	{
+		id: '38',
+		nombre: 'Pedestal Theos',
+		precio: 23990,
+		descripcion: 'Pedestal para lavatorio con diseño limpio y soporte estable para baños modernos.',
+		imagen: '/images/lavamanos.png',
+		categoria: 'Griferías y sanitarios',
+		categoriaSlug: 'griferias-sanitarios'
+	},
+	{
+		id: '39',
+		nombre: 'Conector/sifón lavamanos Stretto 1 1/4',
+		precio: 8990,
+		descripcion: 'Conector y sifón para lavamanos con diámetro estándar y conexión práctica para instalaciones rápidas.',
+		imagen: '/images/fitting.png',
+		categoria: 'Griferías y sanitarios',
+		categoriaSlug: 'griferias-sanitarios'
+	},
+	{
+		id: '40',
+		nombre: 'Taza WC New Acres con fijaciones',
+		precio: 44990,
+		descripcion: 'Taza de WC con fijaciones y diseño versátil para baño residencial y comercial.',
+		imagen: '/images/sanitarios.png',
+		categoria: 'Griferías y sanitarios',
+		categoriaSlug: 'griferias-sanitarios'
 	}
 ];
