@@ -1,93 +1,93 @@
 <script>
-  import { agregarAlCarrito } from '$lib/stores/carrito.js';
+	import { agregarAlCarrito } from '$lib/stores/carrito.js';
 
-  const { data } = $props();
-  const producto = $derived(data?.producto ?? null);
+	const { data } = $props();
+	const producto = $derived(data?.producto ?? null);
 
-  function agregar() {
-    if (producto) {
-      agregarAlCarrito(producto);
-    }
-  }
+	function agregar() {
+		if (producto) {
+			agregarAlCarrito(producto);
+		}
+	}
 </script>
 
 {#if producto}
-  <section class="producto">
-    <div class="imagen">
-      <img src={producto.imagen} alt={producto.nombre} />
-    </div>
+	<section class="producto">
+		<div class="imagen">
+			<img src={producto.imagen} alt={producto.nombre} />
+		</div>
 
-    <div class="info">
-      <h1>{producto.nombre}</h1>
-      <p class="precio">${producto.precio.toLocaleString('es-CL')}</p>
-      <p class="descripcion">{producto.descripcion}</p>
-      <button class="btn" type="button" onclick={agregar}>Agregar al carrito</button>
-    </div>
-  </section>
+		<div class="info">
+			<h1>{producto.nombre}</h1>
+			<p class="precio">${producto.precio.toLocaleString('es-CL')}</p>
+			<p class="descripcion">{producto.descripcion}</p>
+			<button class="btn" type="button" onclick={agregar}>Agregar al carrito</button>
+		</div>
+	</section>
 {:else}
-  <p class="empty">No se encontró el producto.</p>
+	<p class="empty">No se encontró el producto.</p>
 {/if}
 
 <style>
-  .producto {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
-    margin-top: 1rem;
-  }
+	.producto {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 2rem;
+		margin-top: 1rem;
+	}
 
-  .imagen img {
-    width: 100%;
-    border-radius: 8px;
-    border: 2px solid var(--vgv-gris-claro);
-    background: var(--vgv-gris-claro);
-    object-fit: contain;
-  }
+	.imagen img {
+		width: 100%;
+		border-radius: 8px;
+		border: 2px solid var(--vgv-gris-claro);
+		background: var(--vgv-gris-claro);
+		object-fit: contain;
+	}
 
-  h1 {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--vgv-azul-oscuro);
-    margin-bottom: 1rem;
-  }
+	h1 {
+		font-size: 2rem;
+		font-weight: 700;
+		color: var(--vgv-azul-oscuro);
+		margin-bottom: 1rem;
+	}
 
-  .precio {
-    font-size: 1.6rem;
-    font-weight: 700;
-    color: var(--vgv-verde);
-    margin-bottom: 1rem;
-  }
+	.precio {
+		font-size: 1.6rem;
+		font-weight: 700;
+		color: var(--vgv-verde);
+		margin-bottom: 1rem;
+	}
 
-  .descripcion {
-    font-size: 1rem;
-    color: var(--vgv-gris);
-    margin-bottom: 2rem;
-  }
+	.descripcion {
+		font-size: 1rem;
+		color: var(--vgv-gris);
+		margin-bottom: 2rem;
+	}
 
-  .btn {
-    background: var(--vgv-azul);
-    color: var(--vgv-blanco);
-    padding: 0.9rem 1.6rem;
-    border: none;
-    border-radius: 6px;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: 0.2s ease;
-  }
+	.btn {
+		background: var(--vgv-azul);
+		color: var(--vgv-blanco);
+		padding: 0.9rem 1.6rem;
+		border: none;
+		border-radius: 6px;
+		font-size: 1rem;
+		font-weight: 700;
+		cursor: pointer;
+		transition: 0.2s ease;
+	}
 
-  .btn:hover {
-    background: var(--vgv-azul-oscuro);
-  }
+	.btn:hover {
+		background: var(--vgv-azul-oscuro);
+	}
 
-  .empty {
-    color: var(--vgv-gris);
-    padding: 2rem 0;
-  }
+	.empty {
+		color: var(--vgv-gris);
+		padding: 2rem 0;
+	}
 
-  @media (max-width: 800px) {
-    .producto {
-      grid-template-columns: 1fr;
-    }
-  }
+	@media (max-width: 800px) {
+		.producto {
+			grid-template-columns: 1fr;
+		}
+	}
 </style>

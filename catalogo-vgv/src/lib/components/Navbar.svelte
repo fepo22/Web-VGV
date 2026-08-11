@@ -1,93 +1,148 @@
 <script>
-  import { browser } from '$app/environment';
-  const { titulo = "Catálogo VGV" } = $props();
-  import { resolve } from '$app/paths';
+	import { browser } from '$app/environment';
+	import { resolve } from '$app/paths';
+	import { onDestroy } from 'svelte';
+	import { carrito } from '$lib/stores/carrito.js';
+	const { titulo = 'Catálogo VGV' } = $props();
 
-  function getVgvHomeUrl() {
-    const configured = (import.meta.env.VITE_VGV_HOME_URL || '').trim();
-    if (configured) return configured;
+	let itemsCount = $state(0);
+	let pulse = $state(false);
 
-    const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-    if (isLocal) return 'http://localhost:4000/index.html';
+	const unsubscribe = carrito.subscribe((value) => {
+		itemsCount = value.reduce((total, item) => total + (item.cantidad || 1), 0);
+	});
+	onDestroy(unsubscribe);
 
-    return 'https://www.vgv.cl/index.html';
-  }
+	$effect(() => {
+		if (!browser) return;
+		if (itemsCount > 0) {
+			pulse = true;
+			const timer = window.setTimeout(() => (pulse = false), 500);
+			return () => window.clearTimeout(timer);
+		}
+	});
 
-  function volverAlInicio() {
-    if (!browser) return;
-    window.location.href = getVgvHomeUrl();
-  }
+	function getVgvHomeUrl() {
+		const configured = (import.meta.env.VITE_VGV_HOME_URL || '').trim();
+		if (configured) return configured;
+
+		const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+		if (isLocal) return 'http://localhost:4000/index.html';
+
+		return 'https://www.vgv.cl/index.html';
+	}
+
+	function volverAlInicio() {
+		if (!browser) return;
+		window.location.href = getVgvHomeUrl();
+	}
 </script>
 
 <nav class="nav">
-  <div class="logo">{titulo}</div>
+	<div class="logo">{titulo}</div>
 
-  <div class="links">
-    <button class="link-btn" type="button" onclick={volverAlInicio}>Volver al inicio</button>
-    <a href={resolve('/catalogo')}>Catálogo</a>
-    <a href={resolve('/carrito')}>Carrito</a>
-  </div>
+	<div class="links">
+		<button class="link-btn" type="button" onclick={volverAlInicio}>Volver al inicio</button>
+		<a href={resolve('/catalogo')}>Catálogo</a>
+		<a class="cart-link" href={resolve('/carrito')}>
+			Carrito
+			<span
+				class={`cart-count ${pulse ? 'pulse' : ''}`}
+				aria-label={`${itemsCount} productos en el carrito`}
+			>
+				{itemsCount}
+			</span>
+		</a>
+	</div>
 </nav>
 
 <style>
-  .nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem 2rem;
-    background: var(--vgv-azul-oscuro);
-    color: var(--vgv-blanco);
-  }
+	.nav {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 1rem 2rem;
+		background: var(--vgv-azul-oscuro);
+		color: var(--vgv-blanco);
+	}
 
-  .logo {
-    font-size: 1.3rem;
-    font-weight: bold;
-  }
+	.logo {
+		font-size: 1.3rem;
+		font-weight: bold;
+	}
 
-  .links a {
-    margin-left: 1.5rem;
-    color: var(--vgv-blanco);
-    text-decoration: none;
-    font-weight: 600;
-  }
+	.links a {
+		margin-left: 1.5rem;
+		color: var(--vgv-blanco);
+		text-decoration: none;
+		font-weight: 600;
+	}
 
-  .link-btn {
-    margin-left: 1.5rem;
-    background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.35);
-    color: var(--vgv-blanco);
-    padding: 0.35rem 0.7rem;
-    border-radius: 999px;
-    font-weight: 600;
-    cursor: pointer;
-  }
+	.cart-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.45rem;
+	}
 
-  .link-btn:hover {
-    color: var(--vgv-verde);
-    border-color: var(--vgv-verde);
-  }
+	.cart-count {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 1.35rem;
+		height: 1.35rem;
+		padding: 0 0.3rem;
+		border-radius: 999px;
+		background: var(--vgv-verde);
+		color: var(--vgv-blanco);
+		font-size: 0.82rem;
+		font-weight: 700;
+		line-height: 1;
+		transition:
+			transform 0.2s ease,
+			box-shadow 0.2s ease;
+	}
 
-  .links a:hover {
-    color: var(--vgv-verde);
-  }
+	.cart-count.pulse {
+		transform: scale(1.14);
+		box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.16);
+	}
 
-  @media (max-width: 700px) {
-    .nav {
-      flex-direction: column;
-      gap: 0.75rem;
-      align-items: flex-start;
-    }
+	.link-btn {
+		margin-left: 1.5rem;
+		background: transparent;
+		border: 1px solid rgba(255, 255, 255, 0.35);
+		color: var(--vgv-blanco);
+		padding: 0.35rem 0.7rem;
+		border-radius: 999px;
+		font-weight: 600;
+		cursor: pointer;
+	}
 
-    .links {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.6rem;
-    }
+	.link-btn:hover {
+		color: var(--vgv-verde);
+		border-color: var(--vgv-verde);
+	}
 
-    .links a,
-    .link-btn {
-      margin-left: 0;
-    }
-  }
+	.links a:hover {
+		color: var(--vgv-verde);
+	}
+
+	@media (max-width: 700px) {
+		.nav {
+			flex-direction: column;
+			gap: 0.75rem;
+			align-items: flex-start;
+		}
+
+		.links {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 0.6rem;
+		}
+
+		.links a,
+		.link-btn {
+			margin-left: 0;
+		}
+	}
 </style>
-
