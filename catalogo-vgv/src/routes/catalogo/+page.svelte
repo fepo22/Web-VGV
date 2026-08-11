@@ -8,11 +8,17 @@
 
 	let productos = $state([]);
 
+	function ordenarConOfertasPrimero(lista) {
+		return [...lista].sort((a, b) => Number(Boolean(b.oferta)) - Number(Boolean(a.oferta)));
+	}
+
 	const categoriaActiva = $derived($page.url.searchParams.get('linea') ?? 'todas');
 	const productosFiltrados = $derived(
 		categoriaActiva === 'todas'
-			? productos
-			: productos.filter((producto) => producto.categoriaSlug === categoriaActiva)
+			? ordenarConOfertasPrimero(productos)
+			: ordenarConOfertasPrimero(
+					productos.filter((producto) => producto.categoriaSlug === categoriaActiva)
+				)
 	);
 	const tituloFiltro = $derived(
 		categorias.find((c) => c.slug === categoriaActiva)?.nombre ?? 'Todas las líneas'
