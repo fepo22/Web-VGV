@@ -33,8 +33,10 @@ applySecurity(app);
 // Servir carpeta public
 app.use(express.static(path.join(__dirname, "../public")));
 
-// Redirige rutas de catalogo al frontend Svelte en desarrollo
-app.get("/catalogo*", (req, res) => {
+// Redirige rutas del catalogo al frontend Svelte en desarrollo
+const catalogRoutes = ["/catalogo*", "/producto*", "/carrito*", "/checkout*"];
+
+app.get(catalogRoutes, (req, res) => {
   if (!CATALOG_URL) {
     return res.status(503).send("Catalogo no configurado. Define CATALOG_URL en el servidor.");
   }

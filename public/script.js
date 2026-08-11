@@ -410,14 +410,34 @@ if (formContacto) {
 // ===============================
 let currentSlide = 0;
 const slides = document.querySelectorAll(".banner-slider .slide");
+const dots = document.querySelectorAll(".banner-dots .dot");
+
+function showSlide(index) {
+  if (slides.length === 0) return;
+
+  const safeIndex = (index + slides.length) % slides.length;
+  slides[currentSlide].classList.remove("active");
+  slides[safeIndex].classList.add("active");
+
+  if (dots.length) {
+    dots.forEach(dot => dot.classList.remove("active"));
+    dots[safeIndex]?.classList.add("active");
+  }
+
+  currentSlide = safeIndex;
+}
 
 function changeSlide() {
-  if (slides.length === 0) return;
-  slides[currentSlide].classList.remove("active");
-  currentSlide = (currentSlide + 1) % slides.length;
-  slides[currentSlide].classList.add("active");
+  showSlide(currentSlide + 1);
 }
 
 if (slides.length) {
+  if (dots.length) {
+    dots.forEach((dot, index) => {
+      dot.addEventListener("click", () => showSlide(index));
+    });
+  }
+
+  showSlide(0);
   setInterval(changeSlide, 5000);
 }

@@ -72,25 +72,30 @@
 		<p class="vacio">Tu carrito está vacío.</p>
 	{:else}
 		<div class="lista">
-			{#each items as item (item.id)}
+			{#each items as item (item.cartKey)}
 				<article class="item">
 					<img src={item.imagen} alt={item.nombre} />
 
 					<div class="info">
 						<h3>{item.nombre}</h3>
+						{#if item.varianteSku}
+							<p class="meta-variante">SKU: {item.varianteSku}</p>
+						{/if}
 						<p class="precio">${item.precio.toLocaleString('es-CL')}</p>
 
 						<div class="controls">
-							<button type="button" onclick={() => actualizarCantidad(item.id, item.cantidad - 1)}
-								>-</button
+							<button
+								type="button"
+								onclick={() => actualizarCantidad(item.cartKey, item.cantidad - 1)}>-</button
 							>
 							<span>{item.cantidad}</span>
-							<button type="button" onclick={() => actualizarCantidad(item.id, item.cantidad + 1)}
-								>+</button
+							<button
+								type="button"
+								onclick={() => actualizarCantidad(item.cartKey, item.cantidad + 1)}>+</button
 							>
 						</div>
 
-						<button class="eliminar" type="button" onclick={() => eliminarDelCarrito(item.id)}>
+						<button class="eliminar" type="button" onclick={() => eliminarDelCarrito(item.cartKey)}>
 							Eliminar
 						</button>
 					</div>
@@ -177,6 +182,12 @@
 	.info h3 {
 		margin: 0;
 		color: var(--vgv-azul);
+	}
+
+	.meta-variante {
+		margin: 0.2rem 0 0;
+		font-size: 0.86rem;
+		color: var(--vgv-gris);
 	}
 
 	.precio {

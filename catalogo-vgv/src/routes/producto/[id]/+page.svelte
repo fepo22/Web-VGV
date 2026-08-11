@@ -4,11 +4,45 @@
 
 	const { data } = $props();
 	const producto = $derived(data?.producto ?? null);
+	const variantes = $derived(Array.isArray(producto?.variantes) ? producto.variantes : []);
 	let ultimoProductoRegistrado = $state(null);
+	let cantidadesPorVariante = $state({});
 
 	function agregar() {
 		if (producto) {
 			agregarAlCarrito(producto);
+		}
+	}
+
+	function actualizarCantidadVariante(sku, value) {
+		const parsed = Number(value);
+		cantidadesPorVariante = {
+			...cantidadesPorVariante,
+			[sku]: Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : 0
+		};
+	}
+
+	function agregarVariantes() {
+		if (!producto || !variantes.length) return;
+
+		for (const variante of variantes) {
+			const cantidad = Number(cantidadesPorVariante[variante.sku] ?? 0);
+			const minima = Math.max(1, Number(variante.minima ?? 1));
+			if (!Number.isFinite(cantidad) || cantidad < minima) continue;
+
+			agregarAlCarrito({
+				id: producto.id,
+				nombre: `${producto.nombre} · ${variante.medida}`,
+				precio: Number(variante.precio ?? producto.precio ?? 0),
+				descripcion: `${producto.descripcion} (SKU ${variante.sku})`,
+				imagen: producto.imagen,
+				categoria: producto.categoria,
+				categoriaSlug: producto.categoriaSlug,
+				varianteSku: variante.sku,
+				varianteMedida: variante.medida,
+				minima: minima,
+				cantidad
+			});
 		}
 	}
 
@@ -43,7 +77,40 @@
 			<h1>{producto.nombre}</h1>
 			<p class="precio">${producto.precio.toLocaleString('es-CL')}</p>
 			<p class="descripcion">{producto.descripcion}</p>
-			<button class="btn" type="button" onclick={agregar}>Agregar al carrito</button>
+
+			{#if variantes.length > 0}
+				<div class="variantes-box">
+					<h2>Medidas disponibles</h2>
+					<div class="variantes-head" aria-hidden="true">
+						<span>Medida</span>
+						<span>SKU</span>
+						<span>Precio</span>
+						<span>Cantidad</span>
+					</div>
+					{#each variantes as variante (variante.sku)}
+						<div class="variante-row">
+							<div>
+								<strong>{variante.medida}</strong>
+								<small>Cantidad minima: {variante.minima}</small>
+							</div>
+							<span class="sku">{variante.sku}</span>
+							<span class="variante-precio">${Number(variante.precio).toLocaleString('es-CL')}</span
+							>
+							<input
+								type="number"
+								min="0"
+								step="1"
+								value={cantidadesPorVariante[variante.sku] ?? 0}
+								oninput={(e) => actualizarCantidadVariante(variante.sku, e.currentTarget.value)}
+							/>
+						</div>
+					{/each}
+					<button class="btn" type="button" onclick={agregarVariantes}>Agregar seleccionadas</button
+					>
+				</div>
+			{:else}
+				<button class="btn" type="button" onclick={agregar}>Agregar al carrito</button>
+			{/if}
 		</div>
 	</section>
 {:else}
@@ -86,6 +153,69 @@
 		margin-bottom: 2rem;
 	}
 
+	.variantes-box {
+		display: flex;
+		flex-direction: column;
+		gap: 0.8rem;
+		padding: 1rem;
+		border: 1px solid var(--vgv-gris-claro);
+		border-radius: 8px;
+		background: #f9fbff;
+	}
+
+	.variantes-box h2 {
+		margin: 0;
+		font-size: 1.1rem;
+		color: var(--vgv-azul-oscuro);
+	}
+
+	.variantes-head,
+	.variante-row {
+		display: grid;
+		grid-template-columns: minmax(180px, 1fr) 110px 110px 100px;
+		gap: 0.6rem;
+		align-items: center;
+	}
+
+	.variantes-head {
+		font-weight: 700;
+		color: var(--vgv-azul-oscuro);
+		font-size: 0.9rem;
+	}
+
+	.variante-row {
+		padding: 0.6rem 0;
+		border-top: 1px solid #e6edf6;
+	}
+
+	.variante-row strong,
+	.variante-row small {
+		display: block;
+	}
+
+	.variante-row small {
+		font-size: 0.8rem;
+		color: var(--vgv-gris);
+		margin-top: 0.1rem;
+	}
+
+	.sku {
+		font-weight: 600;
+		color: var(--vgv-azul);
+	}
+
+	.variante-precio {
+		font-weight: 700;
+		color: var(--vgv-verde);
+	}
+
+	.variante-row input {
+		width: 100%;
+		padding: 0.35rem 0.45rem;
+		border: 1px solid #cddaea;
+		border-radius: 6px;
+	}
+
 	.btn {
 		background: var(--vgv-azul);
 		color: var(--vgv-blanco);
@@ -110,6 +240,15 @@
 	@media (max-width: 800px) {
 		.producto {
 			grid-template-columns: 1fr;
+		}
+
+		.variantes-head {
+			display: none;
+		}
+
+		.variante-row {
+			grid-template-columns: 1fr;
+			gap: 0.35rem;
 		}
 	}
 </style>

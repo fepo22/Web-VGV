@@ -263,6 +263,32 @@
   font-weight: 700;
 }
 
+.oferta-card .btn-agregar {
+  display: inline-block;
+  margin-top: 0.45rem;
+  background: linear-gradient(135deg, var(--azul), var(--azul-claro));
+  color: #fff;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 999px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease;
+  box-shadow: 0 8px 18px rgba(0, 87, 160, 0.16);
+}
+
+.oferta-card .btn-agregar:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(0, 87, 160, 0.22);
+}
+
+.oferta-card .btn-agregar:active {
+  transform: scale(0.97);
+}
+
 /* ============================================================
    RESPONSIVE
 ============================================================ */

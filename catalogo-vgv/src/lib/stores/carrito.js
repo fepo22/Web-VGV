@@ -27,26 +27,32 @@ function createCartStore() {
 		subscribe,
 		agregar(producto) {
 			update((items) => {
-				const existing = items.find((item) => item.id === producto.id);
+				const cartKey =
+					producto.cartKey ||
+					(producto.varianteSku ? `${producto.id}:${producto.varianteSku}` : String(producto.id));
+				const incremento = Math.max(1, Number(producto.cantidad ?? 1));
+				const existing = items.find((item) => item.cartKey === cartKey);
 
 				if (existing) {
 					return items.map((item) =>
-						item.id === producto.id ? { ...item, cantidad: item.cantidad + 1 } : item
+						item.cartKey === cartKey ? { ...item, cantidad: item.cantidad + incremento } : item
 					);
 				}
 
-				return [...items, { ...producto, cantidad: 1 }];
+				return [...items, { ...producto, cartKey, cantidad: incremento }];
 			});
 		},
 		getCount() {
 			return countItems(browser ? JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]') : []);
 		},
-		eliminar(id) {
-			update((items) => items.filter((item) => item.id !== id));
+		eliminar(cartKey) {
+			update((items) => items.filter((item) => item.cartKey !== cartKey));
 		},
-		actualizarCantidad(id, cantidad) {
+		actualizarCantidad(cartKey, cantidad) {
 			update((items) =>
-				items.map((item) => (item.id === id ? { ...item, cantidad: Math.max(1, cantidad) } : item))
+				items.map((item) =>
+					item.cartKey === cartKey ? { ...item, cantidad: Math.max(1, cantidad) } : item
+				)
 			);
 		},
 		vaciar() {

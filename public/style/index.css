@@ -94,6 +94,36 @@
   background: #1f8a4d;
 }
 
+.banner-dots {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.55rem;
+  z-index: 3;
+}
+
+.banner-dots .dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.38);
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.banner-dots .dot:hover {
+  transform: scale(1.12);
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.banner-dots .dot.active {
+  background: var(--verde);
+  border-color: var(--verde);
+}
+
 /* ============================
    ESTADÍSTICAS
 ============================ */
@@ -259,6 +289,32 @@
   margin-bottom: 10px;
 }
 
+.product-card .btn-agregar {
+  display: inline-block;
+  margin-top: 0.45rem;
+  background: linear-gradient(135deg, var(--azul), var(--azul-claro));
+  color: #fff;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 999px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease;
+  box-shadow: 0 8px 18px rgba(0, 87, 160, 0.16);
+}
+
+.product-card .btn-agregar:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(0, 87, 160, 0.22);
+}
+
+.product-card .btn-agregar:active {
+  transform: scale(0.97);
+}
+
 .btn-cotizar {
   background-color: var(--azul-claro);
   color: white;
@@ -308,6 +364,10 @@
 
   .banner-content p {
     font-size: 1.05rem;
+  }
+
+  .banner-dots {
+    bottom: 12px;
   }
 
   .stats {
@@ -360,6 +420,11 @@
     margin-right: 6px;
     margin-bottom: 6px;
     font-size: 0.9rem;
+  }
+
+  .banner-dots .dot {
+    width: 10px;
+    height: 10px;
   }
 
   .productos-titulo h2,

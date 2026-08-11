@@ -7,6 +7,17 @@ const BACKEND_URL = (env.BACKEND_URL || env.VITE_BACKEND_URL || 'http://localhos
 );
 
 function mapProduct(producto) {
+	const variantes = Array.isArray(producto.variantes)
+		? producto.variantes
+				.map((variante) => ({
+					sku: String(variante.sku || ''),
+					medida: String(variante.medida || ''),
+					precio: Number(variante.precio ?? 0),
+					minima: Math.max(1, Number(variante.minima ?? 1))
+				}))
+				.filter((variante) => variante.sku && variante.medida)
+		: [];
+
 	return {
 		id: String(producto.id),
 		nombre: producto.nombre,
@@ -14,7 +25,12 @@ function mapProduct(producto) {
 		descripcion: producto.descripcion || '',
 		imagen: producto.imagen || '/images/placeholder.png',
 		categoria: producto.categoria || producto.categoriaSlug || 'Sin categoria',
-		categoriaSlug: producto.categoriaSlug || producto.categoria || 'sin-categoria'
+		categoriaSlug: producto.categoriaSlug || producto.categoria || 'sin-categoria',
+		oferta: Boolean(producto.oferta),
+		descuentoPct: Number.isFinite(Number(producto.descuentoPct))
+			? Number(producto.descuentoPct)
+			: null,
+		variantes
 	};
 }
 

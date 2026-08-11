@@ -18,5 +18,10 @@ export const categorias = [
 		slug: 'calefont-calefaccion',
 		nombre: 'Calefont y calefacción',
 		descripcion: 'Calefont a gas, radiadores y accesorios de instalación.'
+	},
+	{
+		slug: 'consumibles-obra',
+		nombre: 'Consumibles de obra',
+		descripcion: 'Consumibles, insumos y accesorios para instalación y terminaciones en obra.'
 	}
 ];

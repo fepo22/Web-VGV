@@ -6,6 +6,16 @@
 	const { producto } = $props();
 	let added = $state(false);
 
+	function tieneVariantes() {
+		return Array.isArray(producto.variantes) && producto.variantes.length > 0;
+	}
+
+	function getDescuentoTexto() {
+		if (!producto.oferta) return 'Oferta';
+		const pct = Number(producto.descuentoPct);
+		return Number.isFinite(pct) ? `${Math.max(1, Math.round(pct))}% OFF` : 'Oferta';
+	}
+
 	function registrarProductoVisto(id) {
 		if (!browser || !id) return;
 
@@ -22,6 +32,11 @@
 
 	function handleAdd(e) {
 		e.stopPropagation();
+		if (tieneVariantes() && browser) {
+			window.location.href = resolve(`/producto/${producto.id}`);
+			return;
+		}
+
 		agregarAlCarrito(producto);
 		added = true;
 		setTimeout(() => (added = false), 1200);
@@ -36,6 +51,9 @@
 		onclick={() => registrarProductoVisto(producto.id)}
 	>
 		<div class="img-wrapper">
+			{#if producto.oferta}
+				<span class="badge-oferta">{getDescuentoTexto()}</span>
+			{/if}
 			<img src={producto.imagen} alt={producto.nombre} loading="lazy" />
 		</div>
 
@@ -50,10 +68,12 @@
 		<button
 			class="btn-agregar"
 			onclick={handleAdd}
-			aria-label={`Agregar ${producto.nombre} al carrito`}
+			aria-label={tieneVariantes()
+				? `Ver medidas de ${producto.nombre}`
+				: `Agregar ${producto.nombre} al carrito`}
 			type="button"
 		>
-			Agregar
+			{tieneVariantes() ? 'Ver medidas' : 'Agregar'}
 		</button>
 
 		{#if added}
@@ -104,6 +124,20 @@
 		background: linear-gradient(135deg, #f8fbff, #eef5fb);
 		border-radius: 14px;
 		overflow: hidden;
+		position: relative;
+	}
+
+	.badge-oferta {
+		position: absolute;
+		top: 0.55rem;
+		left: 0.55rem;
+		padding: 0.2rem 0.55rem;
+		border-radius: 999px;
+		background: #fff4d6;
+		color: #8a5a00;
+		font-size: 0.72rem;
+		font-weight: 800;
+		letter-spacing: 0.02em;
 	}
 
 	img {

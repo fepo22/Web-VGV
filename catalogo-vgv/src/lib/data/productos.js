@@ -16,7 +16,13 @@ export const productos = [
 		descripcion: 'Tubería para drenaje y evacuación con excelente resistencia y durabilidad.',
 		imagen: '/images/drenpro.png',
 		categoria: 'Canalización',
-		categoriaSlug: 'canalizacion'
+		categoriaSlug: 'canalizacion',
+		variantes: [
+			{ sku: 'DP-20', medida: '20mm x 6m', precio: 29990, minima: 25 },
+			{ sku: 'DP-25', medida: '25mm x 6m', precio: 32990, minima: 20 },
+			{ sku: 'DP-32', medida: '32mm x 6m', precio: 34990, minima: 10 },
+			{ sku: 'DP-40', medida: '40mm x 6m', precio: 39990, minima: 10 }
+		]
 	},
 	{
 		id: '3',
@@ -25,7 +31,12 @@ export const productos = [
 		descripcion: 'Tubo flexible ideal para sistemas de agua y conducción con alta resistencia.',
 		imagen: '/images/hdpe.png',
 		categoria: 'Canalización',
-		categoriaSlug: 'canalizacion'
+		categoriaSlug: 'canalizacion',
+		variantes: [
+			{ sku: 'HDPE-20', medida: '20mm x 6m', precio: 21990, minima: 25 },
+			{ sku: 'HDPE-25', medida: '25mm x 6m', precio: 22990, minima: 20 },
+			{ sku: 'HDPE-32', medida: '32mm x 6m', precio: 25990, minima: 10 }
+		]
 	},
 	{
 		id: '4',
@@ -35,7 +46,12 @@ export const productos = [
 			'Producto para instalaciones de colectores y sistemas de drenaje de alto rendimiento.',
 		imagen: '/images/colector.png',
 		categoria: 'Canalización',
-		categoriaSlug: 'canalizacion'
+		categoriaSlug: 'canalizacion',
+		variantes: [
+			{ sku: 'COL-SN4-110', medida: '110mm x 6m SN4', precio: 26990, minima: 6 },
+			{ sku: 'COL-SN8-110', medida: '110mm x 6m SN8', precio: 29990, minima: 6 },
+			{ sku: 'COL-SN8-160', medida: '160mm x 6m SN8', precio: 36990, minima: 3 }
+		]
 	},
 	{
 		id: '5',
@@ -44,7 +60,12 @@ export const productos = [
 		descripcion: 'Material premium para instalaciones de agua y gas con gran confiabilidad.',
 		imagen: '/images/tubo_cobre.png',
 		categoria: 'Canalización',
-		categoriaSlug: 'canalizacion'
+		categoriaSlug: 'canalizacion',
+		variantes: [
+			{ sku: 'COB-15', medida: '15mm x 6m', precio: 39990, minima: 5 },
+			{ sku: 'COB-22', medida: '22mm x 6m', precio: 46990, minima: 3 },
+			{ sku: 'COB-28', medida: '28mm x 6m', precio: 54990, minima: 2 }
+		]
 	},
 	{
 		id: '6',
@@ -119,5 +140,61 @@ export const productos = [
 		imagen: '/images/lavamanos_mural.png',
 		categoria: 'Griferías y sanitarios',
 		categoriaSlug: 'griferias-sanitarios'
+	},
+	{
+		id: '14',
+		nombre: 'Portátil 9000 BTU Frío/Calor Splendid',
+		precio: 256000,
+		descripcion: 'Equipo portátil frío/calor para climatización eficiente en espacios interiores.',
+		imagen: '/images/ofertas/portable_9000.jpg',
+		categoria: 'Calefont y calefacción',
+		categoriaSlug: 'calefont-calefaccion',
+		oferta: true,
+		descuentoPct: 17
+	},
+	{
+		id: '15',
+		nombre: 'Portátil 12000 BTU Frío/Calor WiFi Splendid',
+		precio: 299000,
+		descripcion:
+			'Climatizador portátil con conectividad WiFi y mayor capacidad para ambientes amplios.',
+		imagen: '/images/ofertas/portable_12000_wifi.jpg',
+		categoria: 'Calefont y calefacción',
+		categoriaSlug: 'calefont-calefaccion',
+		oferta: true,
+		descuentoPct: 36
+	},
+	{
+		id: '16',
+		nombre: 'Jarra purificadora de agua potable',
+		precio: 17000,
+		descripcion: 'Jarra de filtrado para mejorar sabor y calidad del agua de consumo diario.',
+		imagen: '/images/ofertas/jarra_purificadora.jpg',
+		categoria: 'Griferías y sanitarios',
+		categoriaSlug: 'griferias-sanitarios',
+		oferta: true,
+		descuentoPct: 37
+	},
+	{
+		id: '17',
+		nombre: 'Filtro Purificador Triple',
+		precio: 51000,
+		descripcion: 'Sistema de purificación de tres etapas para agua más limpia en el hogar.',
+		imagen: '/images/ofertas/filtro_purificador_triple.png',
+		categoria: 'Griferías y sanitarios',
+		categoriaSlug: 'griferias-sanitarios',
+		oferta: true,
+		descuentoPct: 37
+	},
+	{
+		id: '18',
+		nombre: "Pomel 1' x 104mm",
+		precio: 1200,
+		descripcion: 'Accesorio de conexión para instalaciones sanitarias y de canalización.',
+		imagen: '/images/ofertas/pomel_1x104.jpg',
+		categoria: 'Consumibles de obra',
+		categoriaSlug: 'consumibles-obra',
+		oferta: true,
+		descuentoPct: 36
 	}
 ];
