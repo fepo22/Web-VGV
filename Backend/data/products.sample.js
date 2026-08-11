@@ -82,7 +82,7 @@ export const products = [
   },
   {
     id: 7,
-    nombre: "Pegamento Cerámico y Porcelanato",
+    nombre: "Sikaceram 50",
     precio: 15990,
     descripcion: "Adhesivo especializado para cerámica y porcelanato con excelente fijación.",
     imagen: "/images/sika_ceram.png",
@@ -399,6 +399,76 @@ export const products = [
     categoria: "Griferías y sanitarios",
     categoriaSlug: "griferias-sanitarios",
     stock: 24
+  },
+  {
+    id: 42,
+    nombre: "Prese 110 Maquillaje",
+    precio: 12990,
+    descripcion: "Pasta base para terminaciones finas y nivelación en superficies interiores.",
+    imagen: "/images/prese_110_maquillaje.jpg",
+    categoria: "Pegamentos y cementos",
+    categoriaSlug: "pegamentos-cementos",
+    stock: 36
+  },
+  {
+    id: 43,
+    nombre: "Presec 01 Albañilería",
+    precio: 13990,
+    descripcion: "Mortero para albañilería con buena adherencia y rendimiento en obra.",
+    imagen: "/images/presec_01_albanileria.jpg",
+    categoria: "Pegamentos y cementos",
+    categoriaSlug: "pegamentos-cementos",
+    stock: 32
+  },
+  {
+    id: 44,
+    nombre: "Sikaceram 100",
+    precio: 15990,
+    descripcion: "Adhesivo cementicio para cerámicas en aplicaciones residenciales y comerciales.",
+    imagen: "/images/sikaceram_100.jpg",
+    categoria: "Pegamentos y cementos",
+    categoriaSlug: "pegamentos-cementos",
+    stock: 40
+  },
+  {
+    id: 45,
+    nombre: "Sikaceram 200Flex",
+    precio: 19990,
+    descripcion: "Adhesivo flexible para porcelanato y revestimientos de mayor exigencia.",
+    imagen: "/images/sikaceram_200flex.jpg",
+    categoria: "Pegamentos y cementos",
+    categoriaSlug: "pegamentos-cementos",
+    stock: 28
+  },
+  {
+    id: 46,
+    nombre: "SikaChapdur",
+    precio: 17990,
+    descripcion: "Endurecedor superficial para pisos de hormigón de alto tránsito.",
+    imagen: "/images/sikachapdur.jpg",
+    categoria: "Pegamentos y cementos",
+    categoriaSlug: "pegamentos-cementos",
+    stock: 22
+  },
+  {
+    id: 47,
+    nombre: "Sikadur 31hmg",
+    precio: 24990,
+    descripcion: "Adhesivo epóxico estructural para anclajes, uniones y reparaciones.",
+    imagen: "/images/sikadur_31hmg.jpg",
+    categoria: "Pegamentos y cementos",
+    categoriaSlug: "pegamentos-cementos",
+    stock: 18
+  },
+  {
+    id: 48,
+    nombre: "Sikatop",
+    precio: 18990,
+    descripcion: "Mortero de reparación para hormigón con buena trabajabilidad y adherencia.",
+    imagen: "/images/sikatop.jpg",
+    categoria: "Pegamentos y cementos",
+    categoriaSlug: "pegamentos-cementos",
+    stock: 26
   }
 ];
 /* Luego esto lo migras a MongoDB cuando quieras */

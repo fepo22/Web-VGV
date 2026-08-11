@@ -27,8 +27,7 @@
 
 		for (const variante of variantes) {
 			const cantidad = Number(cantidadesPorVariante[variante.sku] ?? 0);
-			const minima = Math.max(1, Number(variante.minima ?? 1));
-			if (!Number.isFinite(cantidad) || cantidad < minima) continue;
+			if (!Number.isFinite(cantidad) || cantidad <= 0) continue;
 
 			agregarAlCarrito({
 				id: producto.id,
@@ -40,7 +39,7 @@
 				categoriaSlug: producto.categoriaSlug,
 				varianteSku: variante.sku,
 				varianteMedida: variante.medida,
-				minima: minima,
+				minima: Math.max(1, Number(variante.minima ?? 1)),
 				cantidad
 			});
 		}
