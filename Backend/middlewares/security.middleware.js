@@ -14,7 +14,9 @@ export const applySecurity = app => {
       contentSecurityPolicy: {
         useDefaults: true,
         directives: {
-          "frame-src": ["'self'", "https://www.google.com", "https://maps.google.com"]
+          "frame-src": ["'self'", "https://www.google.com", "https://maps.google.com"],
+          // SvelteKit static injecta un script inline minimo para bootstrapping/hidratacion.
+          "script-src": ["'self'", "'unsafe-inline'"]
         }
       }
     })
