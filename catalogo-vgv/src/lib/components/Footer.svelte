@@ -1,9 +1,10 @@
 <script>
+	const { admin = false } = $props();
 	const year = new Date().getFullYear();
 </script>
 
 <footer class="footer">
-	<p>VGV SpA © {year} — Catálogo 2025</p>
+	<p>{admin ? `VGV Admin © ${year} — Panel de control` : `VGV SpA © ${year} — Catálogo 2025`}</p>
 </footer>
 
 <style>

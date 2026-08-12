@@ -1,0 +1,95 @@
+@import './variables.css';
+
+* {
+	box-sizing: border-box;
+}
+
+html {
+	scroll-behavior: smooth;
+	overflow-x: hidden;
+}
+
+body {
+	margin: 0;
+	font-family: var(--font-sans);
+	line-height: 1.6;
+	color: var(--color-text);
+	background: linear-gradient(180deg, var(--color-background) 0%, var(--color-surface-alt) 100%);
+	-webkit-font-smoothing: antialiased;
+	overflow-x: hidden;
+}
+
+img {
+	max-width: 100%;
+	height: auto;
+}
+
+main {
+	min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+h4 {
+	font-family: var(--font-heading);
+	font-weight: 800;
+	color: var(--color-primary);
+}
+
+p {
+	color: var(--color-text-muted);
+}
+
+.btn {
+	display: inline-block;
+	padding: 12px 22px;
+	border-radius: var(--radius-md);
+	font-weight: 700;
+	text-decoration: none;
+	transition: var(--transition);
+	cursor: pointer;
+	background: var(--color-secondary);
+	color: var(--color-surface);
+	border: none;
+}
+
+.btn:hover {
+	background: var(--color-secondary-strong);
+	transform: translateY(-2px);
+}
+
+.card {
+	border: 1px solid var(--color-border-soft);
+	border-radius: var(--radius-lg);
+	background: var(--color-surface);
+	padding: 1rem;
+	transition:
+		transform 0.2s ease,
+		box-shadow 0.2s ease,
+		border-color 0.2s ease;
+}
+
+.card:hover {
+	transform: translateY(-4px);
+	box-shadow: var(--shadow-soft);
+	border-color: var(--color-primary);
+}
+
+input,
+textarea,
+select {
+	font: inherit;
+	padding: 0.7rem;
+	border: 2px solid var(--color-border);
+	border-radius: 10px;
+	background: var(--color-surface);
+	outline: none;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+	border-color: var(--color-primary);
+	box-shadow: 0 0 0 3px rgba(0, 87, 160, 0.12);
+}

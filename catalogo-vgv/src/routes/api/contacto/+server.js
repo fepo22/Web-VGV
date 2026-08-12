@@ -1,6 +1,6 @@
 import { env } from '$env/dynamic/private';
 
-const BACKEND_URL = (env.BACKEND_URL || env.VITE_BACKEND_URL || 'http://localhost:4000').replace(
+const BACKEND_URL = (env.BACKEND_URL || env.VITE_BACKEND_URL || 'http://localhost:3000').replace(
 	/\/$/,
 	''
 );

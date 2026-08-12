@@ -1,9 +1,12 @@
 <script>
 	import { browser } from '$app/environment';
+	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { onDestroy } from 'svelte';
 	import { carrito } from '$lib/stores/carrito.js';
-	const { titulo = 'Catálogo VGV' } = $props();
+	const { titulo = 'Catálogo VGV', admin = false } = $props();
+
+	const STORAGE_KEY = 'vgv_admin_token';
 
 	let itemsCount = $state(0);
 	let pulse = $state(false);
@@ -27,7 +30,7 @@
 		if (configured) return configured;
 
 		const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-		if (isLocal) return 'http://localhost:4000/index.html';
+		if (isLocal) return 'http://localhost:3000/index.html';
 
 		return 'https://www.vgv.cl/index.html';
 	}
@@ -36,23 +39,35 @@
 		if (!browser) return;
 		window.location.href = getVgvHomeUrl();
 	}
+
+	async function cerrarSesionAdmin() {
+		if (!browser) return;
+		localStorage.removeItem(STORAGE_KEY);
+		await goto(resolve('/admin/login'));
+	}
 </script>
 
 <nav class="nav">
 	<div class="logo">{titulo}</div>
 
 	<div class="links">
-		<button class="link-btn" type="button" onclick={volverAlInicio}>Volver al inicio</button>
-		<a href={resolve('/catalogo')}>Catálogo</a>
-		<a class="cart-link" href={resolve('/carrito')}>
-			Carrito
-			<span
-				class={`cart-count ${pulse ? 'pulse' : ''}`}
-				aria-label={`${itemsCount} productos en el carrito`}
-			>
-				{itemsCount}
-			</span>
-		</a>
+		{#if admin}
+			<a href={resolve('/admin/dashboard')}>Dashboard</a>
+			<a href={resolve('/catalogo')}>Ver catálogo</a>
+			<button class="link-btn" type="button" onclick={cerrarSesionAdmin}>Cerrar sesión</button>
+		{:else}
+			<button class="link-btn" type="button" onclick={volverAlInicio}>Volver al inicio</button>
+			<a href={resolve('/catalogo')}>Catálogo</a>
+			<a class="cart-link" href={resolve('/carrito')}>
+				Carrito
+				<span
+					class={`cart-count ${pulse ? 'pulse' : ''}`}
+					aria-label={`${itemsCount} productos en el carrito`}
+				>
+					{itemsCount}
+				</span>
+			</a>
+		{/if}
 	</div>
 </nav>
 
@@ -104,13 +119,13 @@
 
 	.cart-count.pulse {
 		transform: scale(1.14);
-		box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.16);
+		box-shadow: 0 0 0 4px var(--vgv-overlay-soft);
 	}
 
 	.link-btn {
 		margin-left: 1.5rem;
 		background: transparent;
-		border: 1px solid rgba(255, 255, 255, 0.35);
+		border: 1px solid var(--vgv-overlay-muted);
 		color: var(--vgv-blanco);
 		padding: 0.35rem 0.7rem;
 		border-radius: 999px;

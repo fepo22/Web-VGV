@@ -1,0 +1,19 @@
+{
+	"name": "web-vgv",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "npm run dev:mongo && npm run dev:smoke && concurrently -n backend,frontend -c blue,green \"npm run dev:backend\" \"npm run dev:frontend\"",
+		"dev:backend": "npm --prefix Backend run dev",
+		"dev:frontend": "npm --prefix catalogo-vgv run dev",
+		"dev:mongo": "docker compose up -d --wait mongo",
+		"dev:smoke": "node scripts/smoke-dev.mjs",
+		"dev:down": "docker compose down",
+		"build": "cd catalogo-vgv && npm run build",
+		"postbuild": "rm -rf public_html/catalogo/dist && mkdir -p public_html/catalogo && cp -R catalogo-vgv/dist public_html/catalogo/dist",
+		"start": "node Backend/server.js"
+	},
+	"devDependencies": {
+		"concurrently": "^10.0.4"
+	}
+}

@@ -1,160 +1,140 @@
-/* ============================================================
-   RESET GLOBAL — Profesional
-============================================================ */
+@import url('./variables.css');
+
 * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
 }
 
 html {
-  scroll-behavior: smooth;
-  overflow-x: hidden;
+	scroll-behavior: smooth;
+	overflow-x: hidden;
 }
 
 body {
-  font-family: "Inter", Arial, Helvetica, sans-serif;
-  line-height: 1.6;
-  color: #333;
-  background: #fff;
-  -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+	font-family: var(--font-base);
+	line-height: 1.6;
+	color: var(--color-text);
+	background: var(--color-background);
+	-webkit-font-smoothing: antialiased;
+	overflow-x: hidden;
 }
 
 img {
-  max-width: 100%;
-  height: auto;
-}
-/* ============================================================
-   VARIABLES DE DISEÑO — Sistema Premium
-============================================================ */
-:root {
-  /* Colores corporativos */
-  --azul: #0a3d62;
-  --azul-claro: #1e90ff;
-  --azul-oscuro: #062845;
-
-  --verde: #28a745;
-  :root {
-  --verde: #28a745; /* tono corporativo */
-}
-  --verde-oscuro: #28a745;
-
-  --gris: #f9f9f9;
-  --gris-medio: #dcdcdc;
-  --gris-oscuro: #555;
-
-  --rojo: #d32f2f;
-
-  /* Sombras premium */
-  --shadow-sm: 0 2px 6px rgba(0,0,0,0.08);
-  --shadow-md: 0 6px 18px rgba(0,0,0,0.12);
-  --shadow-lg: 0 12px 30px rgba(0,0,0,0.15);
-
-  /* Bordes */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-
-  /* Espaciado */
-  --space-xs: 6px;
-  --space-sm: 12px;
-  --space-md: 20px;
-  --space-lg: 40px;
-  --space-xl: 60px;
-
-  /* Transiciones */
-  --transition: 0.25s ease;
+	max-width: 100%;
+	height: auto;
 }
 
-
-/* ============================================================
-   TIPOGRAFÍA GLOBAL
-============================================================ */
-h1, h2, h3, h4 {
-  font-weight: 800;
-  color: var(--azul);
+h1,
+h2,
+h3,
+h4 {
+	font-family: var(--font-heading);
+	font-weight: 800;
+	color: var(--azul);
 }
 
 p {
-  color: #444;
-  font-size: 16px;
+	color: var(--color-text-muted);
+	font-size: 16px;
 }
 
-
-/* ============================================================
-   CONTENEDOR GLOBAL
-============================================================ */
 .container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 0 20px;
 }
 
-
-/* ============================================================
-   BOTONES — Estilo Premium
-============================================================ */
 .btn {
-  display: inline-block;
-  padding: 12px 22px;
-  border-radius: var(--radius-md);
-  font-weight: 700;
-  text-decoration: none;
-  transition: var(--transition);
-  cursor: pointer;
+	display: inline-block;
+	padding: 12px 22px;
+	border-radius: var(--radius-md);
+	font-weight: 700;
+	text-decoration: none;
+	transition: var(--transition);
+	cursor: pointer;
+	border: none;
 }
 
 .btn-azul {
-  background: var(--azul-claro);
-  color: white;
+	background: var(--azul-claro);
+	color: var(--blanco);
 }
 
 .btn-azul:hover {
-  background: #005fa3;
-  transform: translateY(-2px);
+	background: var(--azul-claro);
+	transform: translateY(-2px);
 }
 
 .btn-verde {
-  background: var(--verde);
-  color: white;
+	background: var(--verde);
+	color: var(--blanco);
 }
 
 .btn-verde:hover {
-  background: var(--verde-oscuro);
-  transform: translateY(-2px);
+	background: var(--verde-oscuro);
+	transform: translateY(-2px);
 }
 
+.shadow-sm {
+	box-shadow: var(--shadow-sm);
+}
 
-/* ============================================================
-   UTILIDADES
-============================================================ */
-.shadow-sm { box-shadow: var(--shadow-sm); }
-.shadow-md { box-shadow: var(--shadow-md); }
-.shadow-lg { box-shadow: var(--shadow-lg); }
+.shadow-md {
+	box-shadow: var(--shadow-md);
+}
 
-.radius-sm { border-radius: var(--radius-sm); }
-.radius-md { border-radius: var(--radius-md); }
-.radius-lg { border-radius: var(--radius-lg); }
+.shadow-lg {
+	box-shadow: var(--shadow-lg);
+}
 
-.text-center { text-align: center; }
-.text-left { text-align: left; }
-.text-right { text-align: right; }
+.radius-sm {
+	border-radius: var(--radius-sm);
+}
 
-.mt-md { margin-top: var(--space-md); }
-.mb-md { margin-bottom: var(--space-md); }
-.mt-lg { margin-top: var(--space-lg); }
-.mb-lg { margin-bottom: var(--space-lg); }
+.radius-md {
+	border-radius: var(--radius-md);
+}
 
+.radius-lg {
+	border-radius: var(--radius-lg);
+}
 
-/* ============================================================
-   ANIMACIONES SUAVES
-============================================================ */
+.text-center {
+	text-align: center;
+}
+
+.text-left {
+	text-align: left;
+}
+
+.text-right {
+	text-align: right;
+}
+
+.mt-md {
+	margin-top: var(--space-md);
+}
+
+.mb-md {
+	margin-bottom: var(--space-md);
+}
+
+.mt-lg {
+	margin-top: var(--space-lg);
+}
+
+.mb-lg {
+	margin-bottom: var(--space-lg);
+}
+
 .fade-in {
-  animation: fadeIn .6s ease forwards;
-  opacity: 0;
+	animation: fadeIn 0.6s ease forwards;
+	opacity: 0;
 }
 
 @keyframes fadeIn {
-  to { opacity: 1; }
+	to {
+		opacity: 1;
+	}
 }

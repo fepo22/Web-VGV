@@ -1,6 +1,6 @@
 export async function load({ params, fetch }) {
 	try {
-		const respuesta = await fetch(`/api/productos/${params.id}`);
+		const respuesta = await fetch(`/api/products/${params.id}`);
 		if (!respuesta.ok) {
 			return { producto: null };
 		}

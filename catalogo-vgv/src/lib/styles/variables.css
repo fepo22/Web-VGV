@@ -1,0 +1,66 @@
+:root {
+	--font-sans: 'Inter', 'Segoe UI', Arial, Helvetica, sans-serif;
+	--font-heading: 'Inter', 'Segoe UI', Arial, Helvetica, sans-serif;
+	--font-body: var(--font-sans);
+
+	--color-primary: #0057a0;
+	--color-primary-strong: #003b66;
+	--color-primary-soft: #e7eef6;
+	--color-secondary: #4caf50;
+	--color-secondary-strong: #2e7d32;
+	--color-danger: #d32f2f;
+	--color-surface: #ffffff;
+	--color-surface-alt: #f3f6fb;
+	--color-surface-tint: #f8fbff;
+	--color-surface-tint-2: #eef5fb;
+	--color-background: #f8fbff;
+	--color-text: #0f172a;
+	--color-text-muted: #475569;
+	--color-border: #dce7f2;
+	--color-border-soft: #e7eef6;
+	--color-warning-bg: #fff4d6;
+	--color-warning-text: #8a5a00;
+
+	--shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.08);
+	--shadow-md: 0 6px 18px rgba(0, 0, 0, 0.12);
+	--shadow-lg: 0 12px 30px rgba(0, 0, 0, 0.15);
+	--shadow-soft: 0 10px 30px rgba(0, 87, 160, 0.12);
+
+	--radius-sm: 6px;
+	--radius-md: 10px;
+	--radius-lg: 18px;
+
+	--space-xs: 6px;
+	--space-sm: 12px;
+	--space-md: 20px;
+	--space-lg: 40px;
+	--space-xl: 60px;
+
+	--transition: 0.25s ease;
+
+	--vgv-azul: var(--color-primary);
+	--vgv-azul-oscuro: var(--color-primary-strong);
+	--vgv-verde: var(--color-secondary);
+	--vgv-verde-oscuro: var(--color-secondary-strong);
+	--vgv-danger: var(--color-danger);
+	--vgv-negro: var(--color-text);
+	--vgv-gris-oscuro: #1a1a1a;
+	--vgv-gris: var(--color-text-muted);
+	--vgv-gris-claro: var(--color-surface-alt);
+	--vgv-blanco: var(--color-surface);
+	--vgv-border: var(--color-border);
+	--vgv-border-soft: var(--color-border-soft);
+	--vgv-surface: var(--color-surface);
+	--vgv-surface-alt: var(--color-surface-alt);
+	--vgv-warning-bg: var(--color-warning-bg);
+	--vgv-warning-text: var(--color-warning-text);
+	--vgv-shadow-sm: var(--shadow-sm);
+	--vgv-shadow-md: var(--shadow-md);
+	--vgv-shadow-lg: var(--shadow-lg);
+	--vgv-shadow-soft: var(--shadow-soft);
+	--vgv-radius-sm: var(--radius-sm);
+	--vgv-radius-md: var(--radius-md);
+	--vgv-radius-lg: var(--radius-lg);
+	--vgv-font-base: var(--font-sans);
+	--vgv-font-heading: var(--font-heading);
+}

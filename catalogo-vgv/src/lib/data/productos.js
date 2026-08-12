@@ -254,7 +254,8 @@ export const productos = [
 		id: '29',
 		nombre: 'Estanque WC NER ATOS',
 		precio: 22990,
-		descripcion: 'Estanque para WC con sistema funcional y acabado moderno para instalaciones residenciales.',
+		descripcion:
+			'Estanque para WC con sistema funcional y acabado moderno para instalaciones residenciales.',
 		imagen: '/images/estanque_wc_ner_atos.jpg',
 		categoria: 'Griferías y sanitarios',
 		categoriaSlug: 'griferias-sanitarios'
@@ -272,7 +273,8 @@ export const productos = [
 		id: '31',
 		nombre: 'Llave angular HE 1/2 New con flexible',
 		precio: 34990,
-		descripcion: 'Llave angular con flexible para instalaciones de agua con mayor comodidad y durabilidad.',
+		descripcion:
+			'Llave angular con flexible para instalaciones de agua con mayor comodidad y durabilidad.',
 		imagen: '/images/llave_angular_he_1_2_new_con_flexible.jpg',
 		categoria: 'Griferías y sanitarios',
 		categoriaSlug: 'griferias-sanitarios'
@@ -281,7 +283,8 @@ export const productos = [
 		id: '32',
 		nombre: 'Llave collar HE-HE 3/4',
 		precio: 31990,
-		descripcion: 'Llave de collar para conexión segura y funcional en sistemas de agua y calefacción.',
+		descripcion:
+			'Llave de collar para conexión segura y funcional en sistemas de agua y calefacción.',
 		imagen: '/images/llave_collar_he_he_3_4.jpg',
 		categoria: 'Griferías y sanitarios',
 		categoriaSlug: 'griferias-sanitarios'
@@ -299,7 +302,8 @@ export const productos = [
 		id: '34',
 		nombre: 'Monomando lavaplatos Oregon cuello cisne',
 		precio: 44990,
-		descripcion: 'Monomando para lavaplatos con diseño funcional y excelente resistencia al uso diario.',
+		descripcion:
+			'Monomando para lavaplatos con diseño funcional y excelente resistencia al uso diario.',
 		imagen: '/images/monomando_lavaplatos_oregon_cuello_cisne.jpg',
 		categoria: 'Griferías y sanitarios',
 		categoriaSlug: 'griferias-sanitarios'
@@ -326,7 +330,8 @@ export const productos = [
 		id: '37',
 		nombre: 'Monomando Lavatorio Vermontt',
 		precio: 41990,
-		descripcion: 'Monomando para lavatorio de estilo actualizado, práctico y estético para baño y cocina.',
+		descripcion:
+			'Monomando para lavatorio de estilo actualizado, práctico y estético para baño y cocina.',
 		imagen: '/images/monomando_lavatorio_vermontt.jpg',
 		categoria: 'Griferías y sanitarios',
 		categoriaSlug: 'griferias-sanitarios'
@@ -344,7 +349,8 @@ export const productos = [
 		id: '39',
 		nombre: 'Sifón lavamanos Stretto 1 1/4',
 		precio: 8990,
-		descripcion: 'Conector y sifón para lavamanos con diámetro estándar y conexión práctica para instalaciones rápidas.',
+		descripcion:
+			'Conector y sifón para lavamanos con diámetro estándar y conexión práctica para instalaciones rápidas.',
 		imagen: '/images/sifon_lavamanos_stretto_1_1_4.jpg',
 		categoria: 'Griferías y sanitarios',
 		categoriaSlug: 'griferias-sanitarios'
@@ -434,7 +440,8 @@ export const productos = [
 		id: '49',
 		nombre: 'Codo 90 PVC',
 		precio: 2990,
-		descripcion: 'Codo PVC de 90 grados para cambios de dirección en instalaciones de canalización.',
+		descripcion:
+			'Codo PVC de 90 grados para cambios de dirección en instalaciones de canalización.',
 		imagen: '/images/codo_90_pvc.jpg',
 		categoria: 'Canalización',
 		categoriaSlug: 'canalizacion',

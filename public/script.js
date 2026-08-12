@@ -8,6 +8,53 @@ const CONTACT_INFO = {
   phone: ""
 };
 
+const LOCAL_HOSTNAMES = ["localhost", "127.0.0.1"];
+const CATALOG_ROUTE_PREFIXES = ["/catalogo", "/producto", "/carrito", "/checkout", "/admin"];
+
+const DEPRECATED_SECTION_LINKS = {
+  "calefactore.html": "/catalogo?linea=calefont-calefaccion",
+  "calefactores.html": "/catalogo?linea=calefont-calefaccion",
+  "calefaccion.html": "/catalogo?linea=calefont-calefaccion",
+  "canalizacion.html": "/catalogo?linea=canalizacion",
+  "pegamentos.html": "/catalogo?linea=pegamentos-cementos",
+  "griferias.html": "/catalogo?linea=griferias-sanitarios"
+};
+
+function normalizeDeprecatedLegacyLinks() {
+  document.querySelectorAll("a[href]").forEach(anchor => {
+    const href = (anchor.getAttribute("href") || "").trim();
+    if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) {
+      return;
+    }
+
+    const baseHref = href.split(/[?#]/)[0].toLowerCase();
+    const normalizedBase = baseHref.startsWith("/") ? baseHref.slice(1) : baseHref;
+    const replacement = DEPRECATED_SECTION_LINKS[normalizedBase];
+
+    if (replacement) {
+      anchor.setAttribute("href", replacement);
+    }
+  });
+}
+
+function getCatalogAppBaseUrl() {
+  if (!LOCAL_HOSTNAMES.includes(window.location.hostname)) return "";
+  if (window.location.port === "5173") return "";
+  return "http://localhost:5173";
+}
+
+function normalizeCatalogLinksForLocal() {
+  const baseUrl = getCatalogAppBaseUrl();
+  if (!baseUrl) return;
+
+  document.querySelectorAll('a[href^="/"]').forEach(anchor => {
+    const href = anchor.getAttribute("href") || "";
+    if (!CATALOG_ROUTE_PREFIXES.some(prefix => href.startsWith(prefix))) return;
+
+    anchor.setAttribute("href", `${baseUrl}${href}`);
+  });
+}
+
 function applyContactInfo() {
   document.querySelectorAll('a[href^="mailto:"]').forEach(anchor => {
     anchor.setAttribute("href", `mailto:${CONTACT_INFO.email}`);
@@ -62,10 +109,14 @@ function optimizeLegacyImages() {
 
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", () => {
+    normalizeDeprecatedLegacyLinks();
+    normalizeCatalogLinksForLocal();
     optimizeLegacyImages();
     applyContactInfo();
   });
 } else {
+  normalizeDeprecatedLegacyLinks();
+  normalizeCatalogLinksForLocal();
   optimizeLegacyImages();
   applyContactInfo();
 }
@@ -186,9 +237,9 @@ const errorNodes = {
 let toastTimeout;
 
 function getContactApiUrl() {
-  const isLocalPreview = ["localhost", "127.0.0.1"].includes(window.location.hostname);
-  if (isLocalPreview && window.location.port && window.location.port !== "4000") {
-    return "http://localhost:4000/api/contacto";
+  const isLocalPreview = LOCAL_HOSTNAMES.includes(window.location.hostname);
+  if (isLocalPreview && window.location.port && window.location.port !== "3000") {
+    return "http://localhost:3000/api/contacto";
   }
 
   return "/api/contacto";
@@ -432,8 +483,8 @@ if (formContacto) {
       }
     } catch (error) {
       console.error("Error al enviar el formulario:", error);
-      setFormStatus("No se pudo enviar el mensaje. Verifica que el backend este corriendo en puerto 4000.", "error");
-      showToast("Sin conexion con API. Levanta Backend en localhost:4000.", "error");
+      setFormStatus("No se pudo enviar el mensaje. Verifica que el backend este corriendo en puerto 3000.", "error");
+      showToast("Sin conexion con API. Levanta Backend en localhost:3000.", "error");
     } finally {
       setSubmitState(false);
     }

@@ -1,46 +1,129 @@
-src/
- ├─ routes/
- │   ├─ +layout.svelte
- │   ├─ +layout.js
- │   ├─ +page.svelte
- │   │
- │   ├─ catalogo/
- │   │   ├─ +page.svelte
- │   │   └─ +page.js
- │   │
- │   ├─ producto/
- │   │   └─ [id]/
- │   │       ├─ +page.svelte
- │   │       └─ +page.js
- │   │
- │   ├─ carrito/
- │   │   └─ +page.svelte
- │   │
- │   └─ api/
- │       └─ productos/
- │           └─ +server.js   (opcional)
- │
- ├─ lib/
- │   ├─ components/
- │   │   ├─ Navbar.svelte
- │   │   ├─ Footer.svelte
- │   │   ├─ ProductCard.svelte
- │   │   ├─ ProductGrid.svelte
- │   │   └─ Loader.svelte
- │   │
- │   ├─ stores/
- │   │   └─ carrito.js
- │   │
- │   ├─ utils/
- │   │   ├─ fetchProductos.js
- │   │   ├─ format.js
- │   │   └─ whatsapp.js
- │   │
- │   └─ styles/
- │       ├─ variables.css
- │       ├─ global.css
- │       └─ catalogo.css
- │
- └─ static/
-     ├─ logo.png
-     └─ images/
+Web-VGV/
+├─ .github/
+│  └─ agents/
+│     └─ vgv-web.agent.md
+├─ Backend/
+│  ├─ controllers/
+│  │  ├─ contact.controller.js
+│  │  ├─ cotizar.controller.js
+│  │  └─ products.controller.js
+│  ├─ data/
+│  │  └─ products.sample.js
+│  ├─ middlewares/
+│  │  ├─ auth.js
+│  │  ├─ rateLimit.js
+│  │  ├─ sanitize.js
+│  │  ├─ security.controller.js
+│  │  └─ security.middleware.js
+│  ├─ routes/
+│  │  ├─ contact.routes.js
+│  │  ├─ cotizar.routes.js
+│  │  └─ products.routes.js
+│  ├─ package.json
+│  ├─ package-lock.json
+│  └─ server.js
+├─ catalogo-vgv/
+│  ├─ README.md
+│  ├─ eslint.config.js
+│  ├─ jsconfig.json
+│  ├─ package.json
+│  ├─ package-lock.json
+│  ├─ src/
+│  │  ├─ app.css
+│  │  ├─ app.html
+│  │  ├─ lib/
+│  │  │  ├─ assets/
+│  │  │  │  └─ favicon.svg
+│  │  │  ├─ components/
+│  │  │  │  ├─ Footer.svelte
+│  │  │  │  ├─ Loader.svelte
+│  │  │  │  ├─ Navbar.svelte
+│  │  │  │  ├─ ProductCard.svelte
+│  │  │  │  └─ ProductGrid.svelte
+│  │  │  ├─ data/
+│  │  │  │  ├─ categorias.js
+│  │  │  │  └─ productos.js
+│  │  │  ├─ stores/
+│  │  │  │  └─ carrito.js
+│  │  │  ├─ styles/
+│  │  │  │  ├─ catalogo.css
+│  │  │  │  ├─ global.css
+│  │  │  │  └─ variables.css
+│  │  │  ├─ utils/
+│  │  │  │  ├─ fetchproductos.js
+│  │  │  │  ├─ format.js
+│  │  │  │  └─ whatsapp.js
+│  │  │  └─ index.js
+│  │  └─ routes/
+│  │     ├─ +layout.js
+│  │     ├─ +layout.svelte
+│  │     ├─ +page.svelte
+│  │     ├─ api/
+│  │     │  ├─ contacto/
+│  │     │  │  └─ +server.js
+│  │     │  └─ productos/
+│  │     │     ├─ +server.js
+│  │     │     └─ [id]/
+│  │     │        └─ +server.js
+│  │     ├─ carrito/
+│  │     │  ├─ +page.svelte
+│  │     │  └─ carrito.js
+│  │     ├─ catalogo/
+│  │     │  ├─ +page.js
+│  │     │  └─ +page.svelte
+│  │     ├─ checkout/
+│  │     │  └─ +page.svelte
+│  │     └─ producto/
+│  │        └─ [id]/
+│  │           ├─ +page.js
+│  │           └─ +page.svelte
+│  ├─ static/
+│  │  ├─ logo.png
+│  │  ├─ robots.txt
+│  │  └─ images/
+│  │     ├─ ... imágenes del catálogo y ofertas ...
+│  └─ vite.config.js
+├─ public/
+│  ├─ .htaccess
+│  ├─ calefaccion.html
+│  ├─ canalizacion.html
+│  ├─ contacto.html
+│  ├─ contacto.php
+│  ├─ cotizar.html
+│  ├─ favicon.ico
+│  ├─ griferias.html
+│  ├─ index.html
+│  ├─ ofertas.html
+│  ├─ pegamentos.html
+│  ├─ quienes.html
+│  ├─ robots.txt
+│  ├─ script.js
+│  ├─ sitemap.xml
+│  ├─ assets/
+│  │  ├─ Banners/
+│  │  ├─ Carousel/
+│  │  ├─ Logo-preview.png
+│  │  ├─ icons/
+│  │  ├─ images/
+│  │  ├─ ofertas/
+│  │  │  ├─ prod1/
+│  │  │  ├─ prod2/
+│  │  │  ├─ prod3/
+│  │  │  ├─ prod4/
+│  │  │  └─ prod5/
+│  │  └─ proveedores/
+│  └─ style/
+│     ├─ base.css
+│     ├─ contacto.css
+│     ├─ grid.css
+│     ├─ index.css
+│     ├─ layout.css
+│     ├─ productos.css
+│     ├─ proveedores.css
+│     ├─ quienes.css
+│     └─ utils.css
+├─ .gitignore
+├─ package-lock.json
+├─ public.zip
+├─ robots.txt
+└─ sitemap.xml

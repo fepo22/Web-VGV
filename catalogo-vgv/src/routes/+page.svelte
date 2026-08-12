@@ -25,7 +25,7 @@
 	);
 
 	onMount(async () => {
-		const res = await fetch('/api/productos');
+		const res = await fetch('/api/products');
 		productos = await res.json();
 	});
 </script>
