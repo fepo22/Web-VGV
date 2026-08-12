@@ -9,6 +9,7 @@
 				<th>Codigo</th>
 				<th>Nombre</th>
 				<th>Precio</th>
+				<th>Oferta</th>
 				<th>Stock</th>
 				<th>Estado</th>
 				<th>Acciones</th>
@@ -24,7 +25,19 @@
 						<strong>{product.nombre}</strong>
 						<small>ID {product.id}</small>
 					</td>
-					<td>${Number(product.precio ?? 0).toLocaleString('es-CL')}</td>
+					<td>
+						<strong>${Number(product.precio ?? 0).toLocaleString('es-CL')}</strong>
+						{#if Number.isFinite(Number(product.precioDescuento)) && Number(product.precioDescuento) > 0}
+							<small>Oferta: ${Number(product.precioDescuento).toLocaleString('es-CL')}</small>
+						{/if}
+					</td>
+					<td>
+						{#if Boolean(product.oferta) || (Number(product.precioDescuento) > 0 && Number(product.precioDescuento) < Number(product.precio ?? 0))}
+							<span class="status-pill offer">En oferta</span>
+						{:else}
+							<span class="status-pill">Sin oferta</span>
+						{/if}
+					</td>
 					<td>{Number(product.stock ?? 0)}</td>
 					<td>
 						<span class={`status-pill ${product.estado === 'disponible' ? 'available' : 'out'}`}>
@@ -130,6 +143,11 @@
 	.status-pill.out {
 		background: rgba(216, 64, 64, 0.12);
 		color: var(--vgv-danger);
+	}
+
+	.status-pill.offer {
+		background: rgba(255, 167, 38, 0.2);
+		color: #9a4a00;
 	}
 
 	.actions {

@@ -6,6 +6,7 @@
 	let nombre = $state('');
 	let codigo = $state('');
 	let precio = $state('');
+	let precioDescuento = $state('');
 	let descripcion = $state('');
 	let categoriaSlug = $state('sin-categoria');
 	let categoria = $state('Sin categoria');
@@ -31,6 +32,10 @@
 		nombre = product?.nombre ?? '';
 		codigo = product?.codigo ?? '';
 		precio = product?.precio ?? '';
+		precioDescuento =
+			product?.precioDescuento == null || product?.precioDescuento === ''
+				? ''
+				: String(product.precioDescuento);
 		descripcion = product?.descripcion ?? '';
 		categoriaSlug =
 			(product?.categoriaSlug ?? slugify(product?.categoria || '')) || 'sin-categoria';
@@ -74,6 +79,7 @@
 			nombre: nombre.trim(),
 			codigo: codigo.trim(),
 			precio: Number(precio),
+			precioDescuento: precioDescuento === '' ? null : Number(precioDescuento),
 			descripcion: descripcion.trim(),
 			categoria: categoria.trim() || categoriaDesdeSlug(categoriaSlug),
 			categoriaSlug: categoriaSlug.trim() || slugify(categoria),
@@ -122,6 +128,11 @@
 		<label>
 			Precio
 			<input bind:value={precio} type="number" min="0" step="1" placeholder="0" required />
+		</label>
+
+		<label>
+			Precio descuento (opcional)
+			<input bind:value={precioDescuento} type="number" min="0" step="1" placeholder="Ej: 19990" />
 		</label>
 
 		<label>

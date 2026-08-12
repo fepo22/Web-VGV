@@ -155,14 +155,37 @@
 			return;
 		}
 
-		const headers = ['codigo', 'id', 'nombre', 'precio', 'stock', 'estado', 'categoria'];
+		const headers = [
+			'codigo',
+			'id',
+			'nombre',
+			'precio',
+			'precio_descuento',
+			'oferta',
+			'descuento_pct',
+			'stock',
+			'estado',
+			'categoria'
+		];
 		const rows = products.map((product) => {
 			const fallbackCode = `VGV-${String(product.id ?? '').padStart(4, '0')}`;
+			const precio = Number(product.precio ?? 0);
+			const precioDescuento = Number(product.precioDescuento);
+			const isOffer =
+				Boolean(product.oferta) ||
+				(Number.isFinite(precioDescuento) && precioDescuento > 0 && precioDescuento < precio);
+			const descuentoPct = isOffer
+				? Math.max(1, Math.round(((precio - precioDescuento) / precio) * 100))
+				: '';
+
 			return [
 				product.codigo || fallbackCode,
 				product.id,
 				product.nombre,
-				Number(product.precio ?? 0),
+				precio,
+				isOffer ? precioDescuento : '',
+				isOffer ? 'si' : 'no',
+				descuentoPct,
 				Number(product.stock ?? 0),
 				product.estado || (Number(product.stock ?? 0) > 0 ? 'disponible' : 'sin stock'),
 				product.categoria || ''

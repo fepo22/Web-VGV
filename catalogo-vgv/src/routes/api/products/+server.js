@@ -23,6 +23,9 @@ function mapProduct(producto) {
 		codigo: String(producto.codigo || `VGV-${String(producto.id).padStart(4, '0')}`),
 		nombre: producto.nombre,
 		precio: Number(producto.precio ?? 0),
+		precioDescuento: Number.isFinite(Number(producto.precioDescuento))
+			? Number(producto.precioDescuento)
+			: null,
 		descripcion: producto.descripcion || '',
 		imagen: producto.imagen || '/images/placeholder.png',
 		categoria: producto.categoria || producto.categoriaSlug || 'Sin categoria',
@@ -31,7 +34,11 @@ function mapProduct(producto) {
 		estado: String(
 			producto.estado || (Number(producto.stock ?? 0) > 0 ? 'disponible' : 'sin stock')
 		),
-		oferta: Boolean(producto.oferta),
+		oferta:
+			Boolean(producto.oferta) ||
+			(Number.isFinite(Number(producto.precioDescuento)) &&
+				Number(producto.precioDescuento) > 0 &&
+				Number(producto.precioDescuento) < Number(producto.precio ?? 0)),
 		descuentoPct: Number.isFinite(Number(producto.descuentoPct))
 			? Number(producto.descuentoPct)
 			: null,

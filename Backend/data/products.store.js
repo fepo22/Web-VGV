@@ -14,6 +14,9 @@ const productSchema = new mongoose.Schema(
 		codigo: { type: String, required: true },
 		nombre: { type: String, required: true },
 		precio: { type: Number, required: true },
+		precioDescuento: { type: Number, default: null },
+		oferta: { type: Boolean, default: false },
+		descuentoPct: { type: Number, default: null },
 		descripcion: { type: String, default: "" },
 		imagen: { type: String, required: true },
 		categoria: { type: String, default: "Sin categoria" },
@@ -91,13 +94,34 @@ function normalizeEstado(producto) {
 	const stock = Number(producto.stock ?? 0);
 	const estado = String(producto.estado || (stock > 0 ? "disponible" : "sin stock")).toLowerCase();
 	const id = String(producto.id);
+	const precio = Number(producto.precio ?? 0);
+	const precioDescuentoRaw = Number(producto.precioDescuento);
+	const hasDiscountPrice = Number.isFinite(precioDescuentoRaw) && precioDescuentoRaw > 0;
+	let precioDescuento = hasDiscountPrice ? precioDescuentoRaw : null;
+
+	if (!precioDescuento && Number.isFinite(Number(producto.descuentoPct)) && Number(producto.descuentoPct) > 0) {
+		const pct = Number(producto.descuentoPct);
+		precioDescuento = Math.max(0, Math.round(precio * (1 - pct / 100)));
+	}
+
+	if (Number.isFinite(precioDescuento) && precioDescuento >= precio) {
+		precioDescuento = null;
+	}
+
+	const oferta = Number.isFinite(precioDescuento) && precioDescuento > 0 && precioDescuento < precio;
+	const descuentoPct = oferta
+		? Math.max(1, Math.round(((precio - precioDescuento) / precio) * 100))
+		: null;
 
 	return {
 		...producto,
 		id,
 		codigo: buildProductCode({ ...producto, id }),
 		nombre: String(producto.nombre ?? "").trim(),
-		precio: Number.isFinite(Number(producto.precio ?? 0)) ? Number(producto.precio ?? 0) : 0,
+		precio: Number.isFinite(precio) ? precio : 0,
+		precioDescuento,
+		oferta,
+		descuentoPct,
 		descripcion: String(producto.descripcion ?? ""),
 		imagen: String(producto.imagen ?? ""),
 		categoria: String(producto.categoria ?? "Sin categoria"),

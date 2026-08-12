@@ -5,6 +5,12 @@
 	const { data } = $props();
 	const producto = $derived(data?.producto ?? null);
 	const variantes = $derived(Array.isArray(producto?.variantes) ? producto.variantes : []);
+	const precioDescuento = $derived(
+		Number(producto?.precioDescuento ?? 0) > 0 &&
+			Number(producto?.precioDescuento ?? 0) < Number(producto?.precio ?? 0)
+			? Number(producto?.precioDescuento)
+			: null
+	);
 	let ultimoProductoRegistrado = $state(null);
 	let cantidadesPorVariante = $state({});
 
@@ -74,7 +80,12 @@
 
 		<div class="info">
 			<h1>{producto.nombre}</h1>
-			<p class="precio">${producto.precio.toLocaleString('es-CL')}</p>
+			{#if precioDescuento}
+				<p class="precio">${Number(precioDescuento).toLocaleString('es-CL')}</p>
+				<p class="precio-original">${Number(producto.precio).toLocaleString('es-CL')}</p>
+			{:else}
+				<p class="precio">${producto.precio.toLocaleString('es-CL')}</p>
+			{/if}
 			<p class="descripcion">{producto.descripcion}</p>
 
 			{#if variantes.length > 0}
@@ -150,6 +161,14 @@
 		font-size: 1rem;
 		color: var(--vgv-gris);
 		margin-bottom: 2rem;
+	}
+
+	.precio-original {
+		font-size: 1rem;
+		color: var(--vgv-gris);
+		margin-top: -0.55rem;
+		margin-bottom: 1rem;
+		text-decoration: line-through;
 	}
 
 	.variantes-box {

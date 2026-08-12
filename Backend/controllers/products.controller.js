@@ -39,6 +39,36 @@ function parsePositiveNumber(value, fieldName) {
   return parsed;
 }
 
+function parseOptionalDiscountNumber(value, precioBase) {
+  if (value == null || value === "") {
+    return null;
+  }
+
+  const descuento = Number(value);
+  if (!Number.isFinite(descuento) || descuento < 0) {
+    throw new Error("El campo precioDescuento debe ser un número válido mayor o igual a 0.");
+  }
+
+  if (descuento > 0 && descuento >= precioBase) {
+    throw new Error("El precio de descuento debe ser menor al precio base.");
+  }
+
+  return descuento;
+}
+
+function buildOfferFields(precio, precioDescuento) {
+  const isOffer = Number.isFinite(precioDescuento) && precioDescuento > 0 && precioDescuento < precio;
+  const descuentoPct = isOffer
+    ? Math.max(1, Math.round(((precio - precioDescuento) / precio) * 100))
+    : null;
+
+  return {
+    precioDescuento: isOffer ? precioDescuento : null,
+    oferta: isOffer,
+    descuentoPct
+  };
+}
+
 function slugify(value) {
   return String(value ?? "")
     .normalize("NFD")
@@ -78,9 +108,11 @@ function buildCreatePayload(body = {}) {
   const categoria = String(body.categoria ?? "").trim() || "Sin categoria";
   const categoriaSlug = String(body.categoriaSlug ?? "").trim() || slugify(categoria) || "sin-categoria";
   const imagen = String(body.imagen ?? body.image ?? "").trim();
+  const precioDescuento = parseOptionalDiscountNumber(body.precioDescuento, precio);
   const stock = parsePositiveNumber(body.stock, "stock");
   const estado = normalizeEstado(body.estado);
   const variantes = normalizeVariantesInput(body.variantes);
+  const offerFields = buildOfferFields(precio, precioDescuento);
 
   if (!nombre) {
     throw new Error("El nombre es obligatorio.");
@@ -98,6 +130,7 @@ function buildCreatePayload(body = {}) {
     codigo,
     nombre,
     precio,
+    ...offerFields,
     descripcion,
     categoria,
     categoriaSlug,
@@ -117,6 +150,9 @@ function buildUpdatePayload(body = {}, currentProduct) {
   const hasPrecio = Object.prototype.hasOwnProperty.call(body, "precio") || Object.prototype.hasOwnProperty.call(body, "price");
   const hasImagen = Object.prototype.hasOwnProperty.call(body, "imagen") || Object.prototype.hasOwnProperty.call(body, "image");
   const hasStock = Object.prototype.hasOwnProperty.call(body, "stock");
+  const hasPrecioDescuento =
+    Object.prototype.hasOwnProperty.call(body, "precioDescuento") ||
+    Object.prototype.hasOwnProperty.call(body, "discountPrice");
   const hasEstado = Object.prototype.hasOwnProperty.call(body, "estado");
   const hasVariantes = Object.prototype.hasOwnProperty.call(body, "variantes");
   const hasDescripcion = Object.prototype.hasOwnProperty.call(body, "descripcion");
@@ -129,6 +165,7 @@ function buildUpdatePayload(body = {}, currentProduct) {
     hasPrecio ||
     hasImagen ||
     hasStock ||
+    hasPrecioDescuento ||
     hasEstado ||
     hasVariantes ||
     hasDescripcion ||
@@ -155,6 +192,14 @@ function buildUpdatePayload(body = {}, currentProduct) {
 
   if (hasPrecio) {
     patch.precio = parsePositiveNumber(body.precio ?? body.price, "precio");
+  }
+
+  if (hasPrecioDescuento) {
+    const precioBase = Number.isFinite(patch.precio) ? patch.precio : Number(currentProduct.precio ?? 0);
+    patch.precioDescuento = parseOptionalDiscountNumber(
+      body.precioDescuento ?? body.discountPrice,
+      precioBase
+    );
   }
 
   if (hasImagen) {
@@ -204,6 +249,13 @@ function buildUpdatePayload(body = {}, currentProduct) {
   if (!hasStock && hasEstado && patch.estado === "disponible") {
     patch.stock = currentProduct.stock > 0 ? currentProduct.stock : 1;
   }
+
+  const precioFinal = Number.isFinite(patch.precio) ? patch.precio : Number(currentProduct.precio ?? 0);
+  const descuentoFinal = Object.prototype.hasOwnProperty.call(patch, "precioDescuento")
+    ? patch.precioDescuento
+    : parseOptionalDiscountNumber(currentProduct.precioDescuento, precioFinal);
+
+  Object.assign(patch, buildOfferFields(precioFinal, descuentoFinal));
 
   return patch;
 }
