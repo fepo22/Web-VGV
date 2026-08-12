@@ -24,3 +24,8 @@ Thumbs.db
 # Temporary
 *.tmp
 *.temp
+
+# Runtime artifacts
+Backend/logs/
+Backend/data/products.sqlite
+public_html/
