@@ -29,10 +29,8 @@
 		const configured = (import.meta.env.VITE_VGV_HOME_URL || '').trim();
 		if (configured) return configured;
 
-		const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-		if (isLocal) return 'http://localhost:3000/index.html';
-
-		return 'https://www.vgv.cl/index.html';
+		// Si no hay override, usar el origen actual para evitar depender de dominios legacy.
+		return `${window.location.origin}/`;
 	}
 
 	function volverAlInicio() {
