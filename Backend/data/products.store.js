@@ -18,6 +18,14 @@ const productSchema = new mongoose.Schema(
 		imagen: { type: String, required: true },
 		categoria: { type: String, default: "Sin categoria" },
 		categoriaSlug: { type: String, default: "sin-categoria" },
+		variantes: [
+			{
+				sku: { type: String, default: "" },
+				medida: { type: String, default: "" },
+				precio: { type: Number, default: 0 },
+				minima: { type: Number, default: 1 }
+			}
+		],
 		stock: { type: Number, default: 0 },
 		estado: { type: String, enum: ["disponible", "sin stock"], default: "disponible" }
 	},
@@ -28,6 +36,12 @@ const productSchema = new mongoose.Schema(
 );
 
 const ProductModel = mongoose.models.Product || mongoose.model("Product", productSchema);
+
+const seedVariantsById = new Map(
+	seedProducts
+		.filter((product) => Array.isArray(product.variantes) && product.variantes.length > 0)
+		.map((product) => [String(product.id), product.variantes])
+);
 
 function normalizeCode(value = "") {
 	return String(value)
@@ -52,6 +66,27 @@ function buildProductCode(producto = {}) {
 	return `VGV-${Date.now()}`;
 }
 
+function normalizeVariantes(variantes, fallbackId = "") {
+	const source = Array.isArray(variantes) && variantes.length > 0 ? variantes : seedVariantsById.get(String(fallbackId));
+	if (!Array.isArray(source)) return [];
+
+	return source
+		.map((variante, index) => {
+			const sku = String(variante?.sku || `${String(fallbackId)}-${index + 1}`).trim();
+			const medida = String(variante?.medida || "").trim();
+			const precio = Number(variante?.precio ?? 0);
+			const minima = Number(variante?.minima ?? 1);
+
+			return {
+				sku,
+				medida,
+				precio: Number.isFinite(precio) && precio >= 0 ? precio : 0,
+				minima: Number.isFinite(minima) && minima > 0 ? Math.floor(minima) : 1
+			};
+		})
+		.filter((variante) => variante.sku && variante.medida);
+}
+
 function normalizeEstado(producto) {
 	const stock = Number(producto.stock ?? 0);
 	const estado = String(producto.estado || (stock > 0 ? "disponible" : "sin stock")).toLowerCase();
@@ -67,6 +102,7 @@ function normalizeEstado(producto) {
 		imagen: String(producto.imagen ?? ""),
 		categoria: String(producto.categoria ?? "Sin categoria"),
 		categoriaSlug: String(producto.categoriaSlug ?? "sin-categoria"),
+		variantes: normalizeVariantes(producto.variantes, id),
 		stock: Number.isFinite(stock) && stock >= 0 ? stock : 0,
 		estado: estado === "sin stock" ? "sin stock" : "disponible",
 		createdAt: producto.createdAt ?? null,

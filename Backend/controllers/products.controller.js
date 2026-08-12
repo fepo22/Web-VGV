@@ -39,6 +39,28 @@ function parsePositiveNumber(value, fieldName) {
   return parsed;
 }
 
+function normalizeVariantesInput(value) {
+  if (value == null) return undefined;
+  if (!Array.isArray(value)) {
+    throw new Error("El campo variantes debe ser un arreglo.");
+  }
+
+  return value
+    .map((variante, index) => {
+      const sku = String(variante?.sku ?? `VAR-${index + 1}`).trim();
+      const medida = String(variante?.medida ?? "").trim();
+      const precio = parsePositiveNumber(variante?.precio ?? 0, `variantes[${index}].precio`);
+      const minima = Math.max(1, Math.floor(parsePositiveNumber(variante?.minima ?? 1, `variantes[${index}].minima`)));
+
+      if (!medida) {
+        throw new Error(`La variante ${index + 1} debe incluir una medida.`);
+      }
+
+      return { sku, medida, precio, minima };
+    })
+    .filter((variante) => variante.sku && variante.medida);
+}
+
 function buildCreatePayload(body = {}) {
   const nombre = String(body.nombre ?? body.name ?? "").trim();
   const codigo = normalizeCodigo(body.codigo ?? body.code ?? body.sku ?? body.id ?? nombre);
@@ -46,6 +68,7 @@ function buildCreatePayload(body = {}) {
   const imagen = String(body.imagen ?? body.image ?? "").trim();
   const stock = parsePositiveNumber(body.stock, "stock");
   const estado = normalizeEstado(body.estado);
+  const variantes = normalizeVariantesInput(body.variantes);
 
   if (!nombre) {
     throw new Error("El nombre es obligatorio.");
@@ -64,6 +87,7 @@ function buildCreatePayload(body = {}) {
     nombre,
     precio,
     imagen,
+    ...(variantes ? { variantes } : {}),
     stock: estado === "sin stock" ? 0 : stock,
     estado
   };
@@ -79,6 +103,7 @@ function buildUpdatePayload(body = {}, currentProduct) {
   const hasImagen = Object.prototype.hasOwnProperty.call(body, "imagen") || Object.prototype.hasOwnProperty.call(body, "image");
   const hasStock = Object.prototype.hasOwnProperty.call(body, "stock");
   const hasEstado = Object.prototype.hasOwnProperty.call(body, "estado");
+  const hasVariantes = Object.prototype.hasOwnProperty.call(body, "variantes");
   const hasDescripcion = Object.prototype.hasOwnProperty.call(body, "descripcion");
   const hasCategoria = Object.prototype.hasOwnProperty.call(body, "categoria");
   const hasCategoriaSlug = Object.prototype.hasOwnProperty.call(body, "categoriaSlug");
@@ -90,6 +115,7 @@ function buildUpdatePayload(body = {}, currentProduct) {
     hasImagen ||
     hasStock ||
     hasEstado ||
+    hasVariantes ||
     hasDescripcion ||
     hasCategoria ||
     hasCategoriaSlug;
@@ -126,6 +152,10 @@ function buildUpdatePayload(body = {}, currentProduct) {
 
   if (hasDescripcion) {
     patch.descripcion = String(body.descripcion ?? "");
+  }
+
+  if (hasVariantes) {
+    patch.variantes = normalizeVariantesInput(body.variantes) ?? currentProduct.variantes;
   }
 
   if (hasCategoria) {
