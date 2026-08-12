@@ -22,7 +22,7 @@
 			ctaText: 'Ver calefacción'
 		},
 		{
-			image: '/assets/Banners/Banner3.png',
+			image: '/assets/Banners/Banner3.jpg',
 			alt: 'Línea de calefacción y accesorios VGV',
 			title: 'Calefont, radiadores y accesorios de instalación',
 			description: 'Asesoría técnica especializada',
@@ -108,7 +108,14 @@
 	<nav>
 		<div class="logo">
 			<a href={resolve('/')}>
-				<img src="/assets/Logo-preview.png" alt="Logo VGV SPA" />
+				<img
+					src="/assets/Logo-preview.png"
+					alt="Logo VGV SPA"
+					width="220"
+					height="72"
+					decoding="async"
+					fetchpriority="high"
+				/>
 			</a>
 		</div>
 		<ul>
@@ -131,6 +138,7 @@
 				height="760"
 				loading={index === 0 ? 'eager' : 'lazy'}
 				decoding="async"
+				fetchpriority={index === 0 ? 'high' : 'low'}
 			/>
 			<div class="banner-content">
 				<h1>{slide.title}</h1>
@@ -176,22 +184,54 @@
 <section id="catalogo" class="catalogo">
 	<div class="grid">
 		<a href={resolve('/catalogo?linea=canalizacion')} class="card">
-			<img src="/assets/icons/canalizacion.png" alt="Canalización de aguas" />
+			<img
+				src="/assets/icons/canalizacion.png"
+				alt="Canalización de aguas"
+				width="96"
+				height="96"
+				loading="lazy"
+				decoding="async"
+				fetchpriority="low"
+			/>
 			<h3>Canalización</h3>
 			<p>Tuberías, codos, uniones y accesorios PVC y HDPE.</p>
 		</a>
 		<a href={resolve('/catalogo?linea=pegamentos-cementos')} class="card">
-			<img src="/assets/icons/pegamentos.png" alt="Pegamentos y cementos" />
+			<img
+				src="/assets/icons/pegamentos.png"
+				alt="Pegamentos y cementos"
+				width="96"
+				height="96"
+				loading="lazy"
+				decoding="async"
+				fetchpriority="low"
+			/>
 			<h3>Pegamentos y cementos</h3>
 			<p>Adhesivos industriales, cementos de contacto y sellantes.</p>
 		</a>
 		<a href={resolve('/catalogo?linea=griferias-sanitarios')} class="card">
-			<img src="/assets/icons/griferias.png" alt="Griferías y sanitarios" />
+			<img
+				src="/assets/icons/griferias.png"
+				alt="Griferías y sanitarios"
+				width="96"
+				height="96"
+				loading="lazy"
+				decoding="async"
+				fetchpriority="low"
+			/>
 			<h3>Griferías y sanitarios</h3>
 			<p>Llaves, grifos, WC y lavamanos.</p>
 		</a>
 		<a href={resolve('/catalogo?linea=calefont-calefaccion')} class="card">
-			<img src="/assets/icons/calefaccion.png" alt="Calefont y calefacción" />
+			<img
+				src="/assets/icons/calefaccion.png"
+				alt="Calefont y calefacción"
+				width="96"
+				height="96"
+				loading="lazy"
+				decoding="async"
+				fetchpriority="low"
+			/>
 			<h3>Calefont y calefacción</h3>
 			<p>Calefont a gas, radiadores y accesorios de instalación.</p>
 		</a>
@@ -205,61 +245,141 @@
 		>
 		<div class="carousel-track" bind:this={carouselTrack}>
 			<div class="product-card">
-				<img src="/assets/Carousel/canaleta_blanca.png" alt="Canaleta PVC Blanca" />
+				<img
+					src="/assets/Carousel/canaleta_blanca.png"
+					alt="Canaleta PVC Blanca"
+					width="240"
+					height="240"
+					loading="lazy"
+					decoding="async"
+					fetchpriority="low"
+				/>
 				<h3>Canaleta PVC Blanca</h3>
 				<p>&nbsp;</p>
 				<a class="btn-agregar" href={resolve('/producto/1')}>Ver producto</a>
 			</div>
 			<div class="product-card">
-				<img src="/assets/Carousel/drenpro.png" alt="Tubería DrenPro" />
+				<img
+					src="/assets/Carousel/drenpro.png"
+					alt="Tubería DrenPro"
+					width="240"
+					height="240"
+					loading="lazy"
+					decoding="async"
+					fetchpriority="low"
+				/>
 				<h3>Tubería DrenPro</h3>
 				<p>6Mts x 250mm (consultar otras medidas)</p>
 				<a class="btn-agregar" href={resolve('/producto/2')}>Ver producto</a>
 			</div>
 			<div class="product-card">
-				<img src="/assets/Carousel/hdpe.png" alt="Tubo HDPE" />
+				<img
+					src="/assets/Carousel/hdpe.png"
+					alt="Tubo HDPE"
+					width="240"
+					height="240"
+					loading="lazy"
+					decoding="async"
+					fetchpriority="low"
+				/>
 				<h3>Tubo HDPE</h3>
 				<p>Consultar medidas disponibles</p>
 				<a class="btn-agregar" href={resolve('/producto/3')}>Ver producto</a>
 			</div>
 			<div class="product-card">
-				<img src="/assets/Carousel/colector.png" alt="Tubo Colector" />
+				<img
+					src="/assets/Carousel/colector.png"
+					alt="Tubo Colector"
+					width="240"
+					height="240"
+					loading="lazy"
+					decoding="async"
+					fetchpriority="low"
+				/>
 				<h3>Tubo Colector</h3>
 				<p>Sn4-Sn8 (consultar medidas disponibles)</p>
 				<a class="btn-agregar" href={resolve('/producto/4')}>Ver producto</a>
 			</div>
 			<div class="product-card">
-				<img src="/assets/Carousel/tubo_cobre.png" alt="Cañería de Cobre" />
+				<img
+					src="/assets/Carousel/tubo_cobre.png"
+					alt="Cañería de Cobre"
+					width="240"
+					height="240"
+					loading="lazy"
+					decoding="async"
+					fetchpriority="low"
+				/>
 				<h3>Cañería de Cobre</h3>
 				<p>Consulte stock y medidas</p>
 				<a class="btn-agregar" href={resolve('/producto/5')}>Ver producto</a>
 			</div>
 			<div class="product-card">
-				<img src="/assets/Carousel/Peg_montaje.png" alt="Adhesivo de Montaje" />
+				<img
+					src="/assets/Carousel/Peg_montaje.png"
+					alt="Adhesivo de Montaje"
+					width="240"
+					height="240"
+					loading="lazy"
+					decoding="async"
+					fetchpriority="low"
+				/>
 				<h3>Sin clavos ni tornillos</h3>
 				<p>Adhesivo de montaje Soudal</p>
 				<a class="btn-agregar" href={resolve('/producto/6')}>Ver producto</a>
 			</div>
 			<div class="product-card">
-				<img src="/assets/Carousel/sika_ceram.png" alt="Pegamento Cerámico" />
+				<img
+					src="/assets/Carousel/sika_ceram.png"
+					alt="Pegamento Cerámico"
+					width="240"
+					height="240"
+					loading="lazy"
+					decoding="async"
+					fetchpriority="low"
+				/>
 				<h3>Pegamento cerámico y porcelanato</h3>
 				<p>Adhesivo para cerámica y porcelanato</p>
 				<a class="btn-agregar" href={resolve('/producto/7')}>Ver producto</a>
 			</div>
 			<div class="product-card">
-				<img src="/assets/Carousel/Silirub_ac.png" alt="Silirub AC" />
+				<img
+					src="/assets/Carousel/Silirub_ac.png"
+					alt="Silirub AC"
+					width="240"
+					height="240"
+					loading="lazy"
+					decoding="async"
+					fetchpriority="low"
+				/>
 				<h3>Silirub AC</h3>
 				<p>Silicona acética</p>
 				<a class="btn-agregar" href={resolve('/producto/8')}>Ver producto</a>
 			</div>
 			<div class="product-card">
-				<img src="/assets/Carousel/adesilex.png" alt="Adesilex P9" />
+				<img
+					src="/assets/Carousel/adesilex.png"
+					alt="Adesilex P9"
+					width="240"
+					height="240"
+					loading="lazy"
+					decoding="async"
+					fetchpriority="low"
+				/>
 				<h3>Adesilex P9</h3>
 				<p>Aditivo para concreto</p>
 				<a class="btn-agregar" href={resolve('/producto/9')}>Ver producto</a>
 			</div>
 			<div class="product-card">
-				<img src="/assets/Carousel/termo.png" alt="Termo Eléctrico Muro" />
+				<img
+					src="/assets/Carousel/termo.png"
+					alt="Termo Eléctrico Muro"
+					width="240"
+					height="240"
+					loading="lazy"
+					decoding="async"
+					fetchpriority="low"
+				/>
 				<h3>Termo eléctrico muro</h3>
 				<p>Termo eléctrico para muros</p>
 				<a class="btn-agregar" href={resolve('/producto/10')}>Ver producto</a>
@@ -284,7 +404,15 @@
 		{#each [0, 1] as copyIdx (`copy-${copyIdx}`)}
 			{#each [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as n (`${copyIdx}-${n}`)}
 				<div class="slide">
-					<img src={`/assets/proveedores/proveedor${n}.png`} alt={`Proveedor ${n}`} />
+					<img
+						src={`/assets/proveedores/proveedor${n}.png`}
+						alt={`Proveedor ${n}`}
+						width="180"
+						height="80"
+						loading="lazy"
+						decoding="async"
+						fetchpriority="low"
+					/>
 				</div>
 			{/each}
 		{/each}

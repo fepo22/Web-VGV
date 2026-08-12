@@ -67,7 +67,15 @@
 			{#if producto.oferta}
 				<span class="badge-oferta">{getDescuentoTexto()}</span>
 			{/if}
-			<img src={producto.imagen} alt={producto.nombre} loading="lazy" />
+			<img
+				src={producto.imagen}
+				alt={producto.nombre}
+				loading="lazy"
+				decoding="async"
+				fetchpriority="low"
+				width="400"
+				height="300"
+			/>
 		</div>
 
 		<div class="content">

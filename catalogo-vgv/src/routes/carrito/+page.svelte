@@ -74,7 +74,15 @@
 		<div class="lista">
 			{#each items as item (item.cartKey)}
 				<article class="item">
-					<img src={item.imagen} alt={item.nombre} />
+					<img
+						src={item.imagen}
+						alt={item.nombre}
+						width="120"
+						height="120"
+						loading="lazy"
+						decoding="async"
+						fetchpriority="low"
+					/>
 
 					<div class="info">
 						<h3>{item.nombre}</h3>
@@ -118,7 +126,15 @@
 							{#if productosVistosRecientemente.some((item) => item.id === producto.id)}
 								<span class="badge">Visto recientemente</span>
 							{/if}
-							<img src={producto.imagen} alt={producto.nombre} />
+							<img
+								src={producto.imagen}
+								alt={producto.nombre}
+								width="120"
+								height="120"
+								loading="lazy"
+								decoding="async"
+								fetchpriority="low"
+							/>
 							<div class="relacionado-info">
 								<h3>{producto.nombre}</h3>
 								<p class="precio">${producto.precio.toLocaleString('es-CL')}</p>

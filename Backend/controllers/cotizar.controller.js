@@ -1,4 +1,4 @@
-import nodemailer from "nodemailer";
+import { createMailTransport, getMailConfig, hasMailConfig } from "../config/mail.js";
 
 export const sendQuotation = async (req, res) => {
   const { nombre, correo, empresa, productos } = req.body;
@@ -16,17 +16,16 @@ export const sendQuotation = async (req, res) => {
     .join("\n");
 
   try {
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.MAIL_USER,
-        pass: process.env.MAIL_PASS
-      }
-    });
+    const mailConfig = getMailConfig();
+    if (!hasMailConfig(mailConfig)) {
+      return res.status(500).json({ error: "Configuracion de correo incompleta en el servidor" });
+    }
+
+    const transporter = createMailTransport(mailConfig);
 
     await transporter.sendMail({
-      from: `"VGV SPA Web" <${process.env.MAIL_USER}>`,
-      to: process.env.MAIL_RECEIVER,
+      from: `"${mailConfig.fromName}" <${mailConfig.fromEmail}>`,
+      to: mailConfig.toQuotes,
       subject: "Nueva cotización desde la web",
       text: `Cotización solicitada por:
 Nombre: ${nombre}

@@ -75,7 +75,15 @@
 {#if producto}
 	<section class="producto">
 		<div class="imagen">
-			<img src={producto.imagen} alt={producto.nombre} />
+			<img
+				src={producto.imagen}
+				alt={producto.nombre}
+				width="800"
+				height="800"
+				loading="eager"
+				decoding="async"
+				fetchpriority="high"
+			/>
 		</div>
 
 		<div class="info">

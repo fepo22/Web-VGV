@@ -1,5 +1,5 @@
 import Joi from "joi";
-import nodemailer from "nodemailer";
+import { createMailTransport, getMailConfig, hasMailConfig } from "../config/mail.js";
 
 // VALIDACIÓN DEL FORMULARIO
 const contactSchema = Joi.object({
@@ -9,18 +9,6 @@ const contactSchema = Joi.object({
   empresa: Joi.string().allow(""), // honeypot
   token: Joi.string().allow("")
 });
-
-const transporter = nodemailer.createTransport({
-  host: process.env.CONTACT_HOST,
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.CONTACT_USER,
-    pass: process.env.CONTACT_PASS
-  }
-});
-
-const CONTACT_EMAIL = "ventas@vgv.cl";
 
 // CONTROLADOR PRINCIPAL
 export const sendContact = async (req, res) => {
@@ -43,13 +31,16 @@ export const sendContact = async (req, res) => {
   }
 
   try {
-    if (!process.env.CONTACT_HOST || !process.env.CONTACT_USER || !process.env.CONTACT_PASS) {
+    const mailConfig = getMailConfig();
+    if (!hasMailConfig(mailConfig)) {
       return res.status(500).json({ error: "Configuracion de correo incompleta en el servidor" });
     }
 
+    const transporter = createMailTransport(mailConfig);
+
     const mailOptions = {
-      from: `"VGV SPA Web" <${process.env.CONTACT_USER}>`,
-      to: CONTACT_EMAIL,
+      from: `"${mailConfig.fromName}" <${mailConfig.fromEmail}>`,
+      to: mailConfig.toContact,
       subject: `Nueva consulta de ${value.nombre}`,
       text: `
 Nombre: ${value.nombre}

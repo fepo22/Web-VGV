@@ -15,11 +15,11 @@
 	});
 
 	const datosBancarios = {
-		banco: 'Banco de Chile',
-		tipoCuenta: 'Cuenta Corriente',
-		numeroCuenta: '00000000',
-		rut: '00.000.000-0',
-		razonSocial: 'VGV SPA',
+		banco: 'BCI Credito e inversiones',
+		tipoCuenta: 'Cuenta corriente',
+		numeroCuenta: '78384578',
+		rut: '76.420.074-8',
+		razonSocial: 'Comercial y distribuidora VGV SPA',
 		correo: 'ventas@vgv.cl'
 	};
 
@@ -37,6 +37,7 @@
 
 	async function enviarFormulario(event) {
 		event.preventDefault();
+		const form = event.currentTarget;
 		enviado = false;
 		errorEnvio = '';
 		enviando = true;
@@ -105,7 +106,7 @@
 				contacto: '',
 				mail: ''
 			};
-			event.currentTarget.reset();
+			form?.reset?.();
 		} catch (error) {
 			console.error('Error enviando checkout a contacto:', error);
 			errorEnvio =
