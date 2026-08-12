@@ -7,17 +7,18 @@
 
 	const { children } = $props();
 	const isAdminRoute = $derived(page.url.pathname.startsWith('/admin'));
+	const isLegacyPage = $derived(page.url.pathname === '/' || page.url.pathname === '/contacto');
 </script>
 
-{#if !isAdminRoute}
+{#if !isAdminRoute && !isLegacyPage}
 	<Navbar titulo="Catálogo VGV" />
 {/if}
 
-<main class="contenido">
+<main class:contenido={!isLegacyPage}>
 	{@render children()}
 </main>
 
-{#if !isAdminRoute}
+{#if !isAdminRoute && !isLegacyPage}
 	<Footer />
 {/if}
 

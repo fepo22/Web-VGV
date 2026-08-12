@@ -1,152 +1,302 @@
 <script>
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
-	import { page } from '$app/stores';
-	import Loader from '$lib/components/Loader.svelte';
-	import ProductGrid from '$lib/components/ProductGrid.svelte';
-	import { categorias } from '$lib/data/categorias.js';
 
-	let productos = $state([]);
+	const slides = [
+		{
+			image: '/assets/Banners/banner1.jpg',
+			alt: 'Fachada VGV con marcas de proveedores',
+			title: 'Materiales de construcción para proyectos que duran',
+			description: '+9 años de experiencia en Talcahuano',
+			ctaHref: '/catalogo',
+			ctaText: 'Ver catálogo',
+			secondaryHref: 'mailto:ventas@vgv.cl',
+			secondaryText: 'Cotizar ahora'
+		},
+		{
+			image: '/assets/Banners/banner2.jpg',
+			alt: 'Calefactores y radiadores para el hogar',
+			title: 'Calefactores y radiadores de alto rendimiento',
+			description: 'Soluciones de calefacción para hogar y proyecto.',
+			ctaHref: '/catalogo?linea=calefont-calefaccion',
+			ctaText: 'Ver calefacción'
+		},
+		{
+			image: '/assets/Banners/Banner3.png',
+			alt: 'Línea de calefacción y accesorios VGV',
+			title: 'Calefont, radiadores y accesorios de instalación',
+			description: 'Asesoría técnica especializada',
+			ctaHref: '/catalogo?linea=calefont-calefaccion',
+			ctaText: 'Ver calefacción'
+		}
+	];
 
-	function ordenarConOfertasPrimero(lista) {
-		return [...lista].sort((a, b) => Number(Boolean(b.oferta)) - Number(Boolean(a.oferta)));
+	let activeSlide = $state(0);
+	let carouselTrack;
+	let btnTopVisible = $state(false);
+	let autoSlideInterval;
+	let autoCarouselInterval;
+
+	function showSlide(index) {
+		activeSlide = (index + slides.length) % slides.length;
 	}
 
-	function productoDisponible(producto) {
-		return (
-			Number(producto?.stock ?? 0) > 0 && String(producto?.estado ?? 'disponible') !== 'sin stock'
+	function nextSlide() {
+		showSlide(activeSlide + 1);
+	}
+
+	function moveCarousel(direction) {
+		if (!carouselTrack || !carouselTrack.children.length) return;
+		const first = carouselTrack.children[0];
+		const styles = getComputedStyle(carouselTrack);
+		const gap = Number.parseFloat(styles.gap || styles.columnGap || '0') || 0;
+		const step = first.getBoundingClientRect().width + gap;
+		if (!step) return;
+		carouselTrack.scrollBy({ left: direction * step, behavior: 'smooth' });
+	}
+
+	onMount(() => {
+		const onScroll = () => {
+			btnTopVisible = window.scrollY > 300;
+		};
+
+		window.addEventListener('scroll', onScroll);
+		autoSlideInterval = setInterval(nextSlide, 5000);
+		autoCarouselInterval = setInterval(() => moveCarousel(1), 3000);
+
+		const observer = new IntersectionObserver(
+			(entries) => {
+				entries.forEach((entry) => {
+					if (entry.isIntersecting) entry.target.classList.add('visible');
+				});
+			},
+			{ threshold: 0.2 }
 		);
-	}
 
-	const categoriaActiva = $derived($page.url.searchParams.get('linea') ?? 'todas');
-	const soloOfertas = $derived($page.url.searchParams.get('ofertas') === '1');
-	const productosDisponibles = $derived(productos.filter(productoDisponible));
-	const productosPorCategoria = $derived(
-		categoriaActiva === 'todas'
-			? productosDisponibles
-			: productosDisponibles.filter((producto) => producto.categoriaSlug === categoriaActiva)
-	);
-	const productosFiltrados = $derived(
-		soloOfertas
-			? ordenarConOfertasPrimero(
-					productosPorCategoria.filter((producto) => Boolean(producto.oferta))
-				)
-			: ordenarConOfertasPrimero(productosPorCategoria)
-	);
-	const tituloCategoria = $derived(
-		categorias.find((c) => c.slug === categoriaActiva)?.nombre ?? 'Todas las líneas'
-	);
-	const tituloFiltro = $derived(soloOfertas ? `${tituloCategoria} en oferta` : tituloCategoria);
+		document.querySelectorAll('section, .card, .stat').forEach((el) => {
+			el.classList.add('fade-in');
+			observer.observe(el);
+		});
 
-	onMount(async () => {
-		const res = await fetch('/api/products');
-		productos = await res.json();
+		return () => {
+			window.removeEventListener('scroll', onScroll);
+			clearInterval(autoSlideInterval);
+			clearInterval(autoCarouselInterval);
+			observer.disconnect();
+		};
 	});
 </script>
 
-<section class="catalogo">
-	<h1>Catálogo de Productos</h1>
-	<p class="intro">Navega por las líneas de producto de VGV y cotiza en minutos.</p>
+<svelte:head>
+	<title
+		>VGV SPA | Calefacción, Canalización y Materiales de construccion en Talcahuano, bio bio
+		Concepcion</title
+	>
+	<meta
+		name="description"
+		content="VGV SPA ofrece calefont, radiadores, tuberías, griferías, accesorios y soluciones técnicas en Talcahuano. Cotiza rápido por WhatsApp o correo."
+	/>
+	<link rel="canonical" href="https://www.vgv.cl/" />
+	<link rel="stylesheet" href="/style/base.css" />
+	<link rel="stylesheet" href="/style/layout.css" />
+	<link rel="stylesheet" href="/style/utils.css" />
+	<link rel="stylesheet" href="/style/index.css" />
+	<link rel="stylesheet" href="/style/proveedores.css" />
+</svelte:head>
 
-	<section class="lineas" aria-label="Líneas de producto">
-		<a class="linea-card" href={resolve('/catalogo?linea=todas')}>
-			<h2>Todas</h2>
-			<p>Ver catálogo completo</p>
-		</a>
-		<a class="linea-card oferta" href={resolve('/catalogo?linea=todas&ofertas=1')}>
-			<h2>Ofertas</h2>
-			<p>Ver solo productos en oferta</p>
-		</a>
-		{#each categorias as categoria (categoria.slug)}
-			<a class="linea-card" href={resolve(`/catalogo?linea=${categoria.slug}`)}>
-				<h2>{categoria.nombre}</h2>
-				<p>{categoria.descripcion}</p>
+<header>
+	<nav>
+		<div class="logo">
+			<a href={resolve('/')}>
+				<img src="/assets/Logo-preview.png" alt="Logo VGV SPA" />
 			</a>
+		</div>
+		<ul>
+			<li><a href={resolve('/catalogo?linea=todas&ofertas=1')}>Ofertas</a></li>
+			<li><a href={resolve('/catalogo')}>Catálogo</a></li>
+			<li><a href={resolve('/catalogo')}>Quiénes somos</a></li>
+			<li><a href={resolve('/contacto')}>Contacto</a></li>
+		</ul>
+	</nav>
+</header>
+
+<section class="banner-slider">
+	{#each slides as slide, index (slide.image)}
+		<div class="slide slide--{index + 1} {activeSlide === index ? 'active' : ''}">
+			<img
+				class="slide-bg"
+				src={slide.image}
+				alt={slide.alt}
+				width="1920"
+				height="760"
+				loading={index === 0 ? 'eager' : 'lazy'}
+				decoding="async"
+			/>
+			<div class="banner-content">
+				<h1>{slide.title}</h1>
+				<p>{slide.description}</p>
+				<a href={resolve(slide.ctaHref)} class="btn">{slide.ctaText}</a>
+				{#if slide.secondaryHref}
+					<a href="mailto:ventas@vgv.cl" class="btn">{slide.secondaryText}</a>
+				{/if}
+			</div>
+		</div>
+	{/each}
+	<div class="banner-dots" aria-label="Navegación del banner">
+		{#each slides as slide, index (slide.image)}
+			<button
+				class="dot {activeSlide === index ? 'active' : ''}"
+				type="button"
+				aria-label={`Ir al banner ${index + 1}`}
+				onclick={() => showSlide(index)}
+			></button>
 		{/each}
-	</section>
-
-	<p class="estado-filtro">Mostrando: <strong>{tituloFiltro}</strong></p>
-
-	{#if productos.length === 0}
-		<Loader />
-	{:else if productosFiltrados.length === 0}
-		<p class="sin-resultados">Aun no hay productos cargados para esta linea.</p>
-	{:else}
-		<ProductGrid productos={productosFiltrados} />
-	{/if}
+	</div>
 </section>
 
-<style>
-	.catalogo {
-		padding: 1rem 0 2rem;
-	}
+<section class="stats">
+	<div class="stat">
+		<strong>+9</strong>
+		<p>Años en el mercado</p>
+	</div>
+	<div class="stat">
+		<strong>+500</strong>
+		<p>Clientes atendidos</p>
+	</div>
+	<div class="stat">
+		<strong>+200</strong>
+		<p>Obras fidelizadas</p>
+	</div>
+</section>
 
-	.lineas {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-		gap: 1rem;
-		margin: 1.2rem 0 1rem;
-	}
+<section class="productos-titulo">
+	<h2>Nuestras líneas de producto</h2>
+</section>
 
-	.linea-card {
-		text-decoration: none;
-		color: inherit;
-		background: white;
-		border: 1px solid #e7eef6;
-		border-radius: 14px;
-		padding: 1rem;
-		transition:
-			transform 0.2s ease,
-			box-shadow 0.2s ease,
-			border-color 0.2s ease;
-	}
+<section id="catalogo" class="catalogo">
+	<div class="grid">
+		<a href={resolve('/catalogo?linea=canalizacion')} class="card">
+			<img src="/assets/icons/canalizacion.png" alt="Canalización de aguas" />
+			<h3>Canalización</h3>
+			<p>Tuberías, codos, uniones y accesorios PVC y HDPE.</p>
+		</a>
+		<a href={resolve('/catalogo?linea=pegamentos-cementos')} class="card">
+			<img src="/assets/icons/pegamentos.png" alt="Pegamentos y cementos" />
+			<h3>Pegamentos y cementos</h3>
+			<p>Adhesivos industriales, cementos de contacto y sellantes.</p>
+		</a>
+		<a href={resolve('/catalogo?linea=griferias-sanitarios')} class="card">
+			<img src="/assets/icons/griferias.png" alt="Griferías y sanitarios" />
+			<h3>Griferías y sanitarios</h3>
+			<p>Llaves, grifos, WC y lavamanos.</p>
+		</a>
+		<a href={resolve('/catalogo?linea=calefont-calefaccion')} class="card">
+			<img src="/assets/icons/calefaccion.png" alt="Calefont y calefacción" />
+			<h3>Calefont y calefacción</h3>
+			<p>Calefont a gas, radiadores y accesorios de instalación.</p>
+		</a>
+	</div>
+</section>
 
-	.linea-card:hover {
-		transform: translateY(-3px);
-		border-color: var(--vgv-azul);
-		box-shadow: 0 10px 24px rgba(0, 87, 160, 0.12);
-	}
+<section class="carrusel-productos">
+	<h2>Productos Destacados</h2>
+	<div class="carousel-container">
+		<button class="carousel-btn left" type="button" onclick={() => moveCarousel(-1)}>&#8249;</button
+		>
+		<div class="carousel-track" bind:this={carouselTrack}>
+			<div class="product-card">
+				<img src="/assets/Carousel/canaleta_blanca.png" alt="Canaleta PVC Blanca" />
+				<h3>Canaleta PVC Blanca</h3>
+				<p>&nbsp;</p>
+				<a class="btn-agregar" href={resolve('/producto/1')}>Ver producto</a>
+			</div>
+			<div class="product-card">
+				<img src="/assets/Carousel/drenpro.png" alt="Tubería DrenPro" />
+				<h3>Tubería DrenPro</h3>
+				<p>6Mts x 250mm (consultar otras medidas)</p>
+				<a class="btn-agregar" href={resolve('/producto/2')}>Ver producto</a>
+			</div>
+			<div class="product-card">
+				<img src="/assets/Carousel/hdpe.png" alt="Tubo HDPE" />
+				<h3>Tubo HDPE</h3>
+				<p>Consultar medidas disponibles</p>
+				<a class="btn-agregar" href={resolve('/producto/3')}>Ver producto</a>
+			</div>
+			<div class="product-card">
+				<img src="/assets/Carousel/colector.png" alt="Tubo Colector" />
+				<h3>Tubo Colector</h3>
+				<p>Sn4-Sn8 (consultar medidas disponibles)</p>
+				<a class="btn-agregar" href={resolve('/producto/4')}>Ver producto</a>
+			</div>
+			<div class="product-card">
+				<img src="/assets/Carousel/tubo_cobre.png" alt="Cañería de Cobre" />
+				<h3>Cañería de Cobre</h3>
+				<p>Consulte stock y medidas</p>
+				<a class="btn-agregar" href={resolve('/producto/5')}>Ver producto</a>
+			</div>
+			<div class="product-card">
+				<img src="/assets/Carousel/Peg_montaje.png" alt="Adhesivo de Montaje" />
+				<h3>Sin clavos ni tornillos</h3>
+				<p>Adhesivo de montaje Soudal</p>
+				<a class="btn-agregar" href={resolve('/producto/6')}>Ver producto</a>
+			</div>
+			<div class="product-card">
+				<img src="/assets/Carousel/sika_ceram.png" alt="Pegamento Cerámico" />
+				<h3>Pegamento cerámico y porcelanato</h3>
+				<p>Adhesivo para cerámica y porcelanato</p>
+				<a class="btn-agregar" href={resolve('/producto/7')}>Ver producto</a>
+			</div>
+			<div class="product-card">
+				<img src="/assets/Carousel/Silirub_ac.png" alt="Silirub AC" />
+				<h3>Silirub AC</h3>
+				<p>Silicona acética</p>
+				<a class="btn-agregar" href={resolve('/producto/8')}>Ver producto</a>
+			</div>
+			<div class="product-card">
+				<img src="/assets/Carousel/adesilex.png" alt="Adesilex P9" />
+				<h3>Adesilex P9</h3>
+				<p>Aditivo para concreto</p>
+				<a class="btn-agregar" href={resolve('/producto/9')}>Ver producto</a>
+			</div>
+			<div class="product-card">
+				<img src="/assets/Carousel/termo.png" alt="Termo Eléctrico Muro" />
+				<h3>Termo eléctrico muro</h3>
+				<p>Termo eléctrico para muros</p>
+				<a class="btn-agregar" href={resolve('/producto/10')}>Ver producto</a>
+			</div>
+		</div>
+		<button class="carousel-btn right" type="button" onclick={() => moveCarousel(1)}>&#8250;</button
+		>
+	</div>
+</section>
 
-	.linea-card.oferta {
-		border-color: rgba(46, 125, 50, 0.35);
-		background: linear-gradient(135deg, rgba(46, 125, 50, 0.08), rgba(255, 255, 255, 0.98));
-	}
+<section class="ventajas">
+	<h2>Por qué elegir VGV</h2>
+	<ul>
+		<li><strong>Calidad garantizada:</strong> Proveedores certificados y marcas líderes.</li>
+		<li><strong>Entrega rápida:</strong> Despacho en la Región del Biobío.</li>
+		<li><strong>Asesoría técnica:</strong> Te ayudamos a elegir el material correcto.</li>
+	</ul>
+</section>
 
-	.linea-card h2 {
-		margin: 0 0 0.35rem;
-		font-size: 1.1rem;
-		color: var(--vgv-azul-oscuro);
-	}
+<section class="proveedores-slider">
+	<div class="slider-track">
+		{#each [0, 1] as copyIdx (`copy-${copyIdx}`)}
+			{#each [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as n (`${copyIdx}-${n}`)}
+				<div class="slide">
+					<img src={`/assets/proveedores/proveedor${n}.png`} alt={`Proveedor ${n}`} />
+				</div>
+			{/each}
+		{/each}
+	</div>
+</section>
 
-	.linea-card p {
-		margin: 0;
-		color: var(--vgv-gris);
-		line-height: 1.35;
-		font-size: 0.92rem;
-	}
+<footer>
+	<p>© 2016 VGV SPA — Comercializadora y distribuidora, Talcahuano</p>
+</footer>
 
-	h1 {
-		font-size: 1.8rem;
-		font-weight: 700;
-		color: var(--vgv-azul-oscuro);
-		margin-bottom: 0.5rem;
-	}
-
-	.intro {
-		color: var(--vgv-gris);
-		margin-bottom: 0.8rem;
-	}
-
-	.estado-filtro {
-		color: var(--vgv-gris);
-		margin-bottom: 0.8rem;
-	}
-
-	.sin-resultados {
-		background: white;
-		border: 1px dashed #c8d8eb;
-		color: var(--vgv-gris);
-		border-radius: 12px;
-		padding: 1rem;
-	}
-</style>
+{#if btnTopVisible}
+	<button id="btnTop" type="button" onclick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+		>↑</button
+	>
+{/if}

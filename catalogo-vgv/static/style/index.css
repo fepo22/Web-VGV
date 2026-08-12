@@ -1,0 +1,627 @@
+@import url('./variables.css');
+
+/* ============================
+   HERO / BANNER ROTATIVO
+============================ */
+.banner-slider {
+  position: relative;
+  width: 100%;
+  height: clamp(260px, 37vw, 460px);
+  overflow: hidden;
+  background: #0b2f4d;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.banner-slider .slide {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 1s ease-in-out;
+}
+
+.banner-slider .slide.active {
+  opacity: 1;
+}
+
+.banner-slider .slide-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 44%;
+  display: block;
+}
+
+.slide--1 .slide-bg {
+  object-position: center 42%;
+}
+
+.slide--2 .slide-bg {
+  object-position: center 50%;
+}
+
+.slide--3 .slide-bg {
+  object-position: center 48%;
+}
+
+.banner-slider .slide::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(6, 40, 69, 0.52) 0%, rgba(6, 40, 69, 0.15) 50%, rgba(6, 40, 69, 0.05) 100%);
+}
+
+.banner-content {
+  position: absolute;
+  bottom: 50px;
+  left: 60px;
+  right: 20px;
+  z-index: 2;
+  color: #fff;
+  max-width: 500px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+.banner-content h1 {
+  font-size: 2.6rem;
+  margin-bottom: 10px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.banner-content p {
+  font-size: 1.3rem;
+  margin-bottom: 20px;
+  color: #ffffff;
+}
+
+.banner-content .btn {
+  background: var(--verde);
+  color: white;
+  display: inline-block;
+  padding: 10px 20px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: bold;
+  margin-right: 10px;
+  transition: background .25s ease;
+}
+
+.banner-content .btn:hover {
+  background: #1f8a4d;
+}
+
+.banner-dots {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.55rem;
+  z-index: 3;
+}
+
+.banner-dots .dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.38);
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.banner-dots .dot:hover {
+  transform: scale(1.12);
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.banner-dots .dot.active {
+  background: var(--verde);
+  border-color: var(--verde);
+}
+
+/* ============================
+   ESTADÍSTICAS
+============================ */
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2rem;
+  padding: 3rem 2rem;
+  background: var(--gris);
+  text-align: center;
+}
+
+.stat {
+  background: #fff;
+  border-radius: 10px;
+  padding: 1.8rem;
+  max-width: 260px;
+  flex: 1 1 200px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+  transition: transform .3s ease;
+}
+
+.stat:hover {
+  transform: translateY(-6px);
+}
+
+.stat strong {
+  display: block;
+  font-size: 2.4rem;
+  color: var(--azul);
+  margin-bottom: 0.5rem;
+}
+
+/* ============================
+   TÍTULO DE PRODUCTOS
+============================ */
+.productos-titulo {
+  text-align: center;
+  padding: 2.5rem 1rem;
+}
+
+.productos-titulo h2 {
+  font-size: 2.2rem;
+  color: var(--azul);
+  font-weight: 700;
+}
+
+/* ============================
+   CATÁLOGO PRINCIPAL
+============================ */
+.catalogo .grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2rem;
+  padding: 0 20px;
+}
+
+.catalogo .card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.8rem;
+  text-align: center;
+  width: 260px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+  transition: transform .3s ease, box-shadow .3s ease;
+  text-decoration: none;
+  color: inherit;
+}
+
+.catalogo .card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+}
+
+.catalogo .card img {
+  width: 110px;
+  margin-bottom: 1rem;
+}
+
+.catalogo .card h3 {
+  color: var(--azul);
+  margin-bottom: 0.5rem;
+  font-size: 1.3rem;
+}
+.reveal-item {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: all 0.7s ease-out;
+}
+
+.reveal-item.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ============================
+   CARRUSEL DE PRODUCTOS DESTACADOS
+============================ */
+.carrusel-productos {
+  padding: 50px 20px;
+  text-align: center;
+}
+
+.carrusel-productos h2 {
+  font-size: 2rem;
+  margin-bottom: 25px;
+  color: var(--azul);
+}
+
+.carousel-container {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  max-width: 1240px;
+  margin: 0 auto;
+}
+
+.carousel-ofertas {
+  padding: 2rem;
+  text-align: center;
+}
+
+.carousel-track {
+  display: flex;
+  align-items: stretch;
+  gap: 20px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 10px;
+  scroll-behavior: smooth;
+  padding: 20px 10px;
+  transition: transform 0.5s ease;
+}
+
+.carousel-track::-webkit-scrollbar {
+  display: none;
+}
+
+.product-card {
+  flex: 0 0 clamp(220px, 24vw, 260px);
+  width: auto;
+  min-height: 320px;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  background: #fff;
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+  transition: transform .3s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-6px);
+}
+
+.product-card img {
+  width: 160px;
+  height: 160px;
+  object-fit: contain;
+  margin-bottom: 10px;
+}
+
+.product-card .btn-agregar {
+  display: inline-block;
+  margin-top: 0.45rem;
+  background: linear-gradient(135deg, var(--azul), var(--azul-claro));
+  color: #fff;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 999px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease;
+  box-shadow: 0 8px 18px rgba(0, 87, 160, 0.16);
+}
+
+.product-card .btn-agregar:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(0, 87, 160, 0.22);
+}
+
+.product-card .btn-agregar:active {
+  transform: scale(0.97);
+}
+
+.btn-cotizar {
+  background-color: var(--azul-claro);
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background .25s ease;
+}
+
+.btn-cotizar:hover {
+  background-color: #005fa3;
+}
+
+.carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #00000080;
+  color: white;
+  border: none;
+  font-size: 30px;
+  padding: 5px 12px;
+  cursor: pointer;
+  z-index: 10;
+  border-radius: 5px;
+}
+
+.carousel-btn.left { left: 0; }
+.carousel-btn.right { right: 0; }
+
+@media (max-width: 900px) {
+  .banner-slider {
+    height: clamp(240px, 52vw, 360px);
+  }
+
+  .banner-content {
+    left: 24px;
+    bottom: 26px;
+    max-width: min(500px, calc(100% - 48px));
+  }
+
+  .banner-content h1 {
+    font-size: 2rem;
+  }
+
+  .banner-content p {
+    font-size: 1.05rem;
+  }
+
+  .banner-dots {
+    bottom: 12px;
+  }
+
+  .stats {
+    padding: 2rem 1rem;
+    gap: 1rem;
+  }
+
+  .carousel-btn {
+    font-size: 24px;
+    padding: 4px 10px;
+  }
+}
+
+@media (max-width: 600px) {
+  .banner-slider {
+    height: clamp(220px, 64vw, 320px);
+  }
+
+  .banner-content {
+    left: 14px;
+    right: 14px;
+    bottom: 16px;
+    max-width: calc(100% - 28px);
+  }
+
+  .banner-content h1 {
+    font-size: 1.35rem;
+    line-height: 1.2;
+  }
+
+  .slide--1 .slide-bg {
+    object-position: 64% 40%;
+  }
+
+  .slide--2 .slide-bg {
+    object-position: 58% 48%;
+  }
+
+  .slide--3 .slide-bg {
+    object-position: 62% 50%;
+  }
+
+  .banner-content p {
+    font-size: 0.95rem;
+    margin-bottom: 12px;
+  }
+
+  .banner-content .btn {
+    padding: 9px 12px;
+    margin-right: 6px;
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+  }
+
+  .banner-dots .dot {
+    width: 10px;
+    height: 10px;
+  }
+
+  .productos-titulo h2,
+  .carrusel-productos h2,
+  .ventajas h2 {
+    font-size: 1.55rem;
+  }
+
+  .catalogo .card {
+    width: min(100%, 300px);
+    padding: 1.2rem;
+  }
+
+  .product-card {
+    flex-basis: 220px;
+    min-height: 300px;
+  }
+
+  .carousel-track {
+    gap: 14px;
+    padding: 16px 8px;
+    scroll-padding-inline: 8px;
+  }
+
+  .carousel-btn {
+    display: none;
+  }
+
+  .product-card img {
+    width: 130px;
+    height: 130px;
+  }
+}
+
+/* ============================
+   VENTAJAS
+============================ */
+.ventajas {
+  background: var(--gris);
+  padding: 3rem 2rem;
+  text-align: center;
+}
+
+.ventajas h2 {
+  font-size: 2rem;
+  color: var(--azul);
+  margin-bottom: 20px;
+}
+
+.ventajas ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.5rem;
+  list-style: none;
+}
+
+.ventajas li {
+  background: #fff;
+  border-radius: 10px;
+  padding: 1.2rem 1.5rem;
+  max-width: 300px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+  transition: transform .3s ease;
+}
+
+.ventajas li:hover {
+  transform: translateY(-6px);
+}
+.product-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* distribuye contenido */
+  align-items: center;
+  text-align: center;
+  flex: 0 0 clamp(220px, 24vw, 260px);
+  width: auto;
+  min-height: 320px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+
+.product-card h3 {
+  margin-bottom: 8px;
+}
+
+.product-card p {
+  min-height: 40px; /* asegura altura uniforme */
+  margin-bottom: 10px;
+}
+
+.btn-cotizar {
+  margin-top: auto; /* empuja el botón hacia abajo */
+  background-color: var(--azul-claro);
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background .25s ease;
+}
+/* ============================
+   HERO
+============================ */
+.proveedores-hero {
+  background: linear-gradient(135deg, var(--azul), var(--azul-claro));
+  padding: 100px 20px;
+  text-align: center;
+  color: rgb(0, 0, 0);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.proveedores-hero h1 {
+  font-size: 42px;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.proveedores-hero p {
+  font-size: 20px;
+  opacity: 0.9;
+}
+
+/* ============================
+   CARRUSEL INFINITO
+============================ */
+.proveedores-slider {
+  width: 100%;
+  overflow: hidden;
+  padding: 40px 0;
+  background: #ffffff;
+}
+
+.slider-track {
+  display: flex;
+  width: max-content;
+  animation: scroll 28s linear infinite;
+}
+
+.slide {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 40px;
+}
+
+.slide img {
+  width: 260px;
+  height: auto;
+  filter: grayscale(20%);
+  transition: transform 0.3s ease;
+}
+
+.slide img:hover {
+  transform: scale(1.15);
+  filter: grayscale(0%);
+}
+
+@keyframes scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+/* ============================
+   BLOQUE DE CONTACTO
+============================ */
+.quienes-contacto {
+  margin-top: 50px;
+  padding: 40px;
+  background: var(--azul);
+  color: rgb(0, 0, 0);
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.quienes-contacto h3 {
+  font-size: 28px;
+  margin-bottom: 15px;
+  font-weight: 700;
+}
+
+.quienes-contacto p {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.quienes-contacto a {
+  color: #f1c40f;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.quienes-contacto a:hover {
+  text-decoration: underline;
+}

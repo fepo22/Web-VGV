@@ -1,0 +1,58 @@
+:root {
+	--font-sans: 'Inter', 'Segoe UI', Arial, Helvetica, sans-serif;
+	--font-heading: 'Inter', 'Segoe UI', Arial, Helvetica, sans-serif;
+	--font-body: var(--font-sans);
+
+	--color-primary: #0a3d62;
+	--color-primary-strong: #062845;
+	--color-primary-accent: #1e90ff;
+	--color-secondary: #28a745;
+	--color-secondary-strong: #1f8a4d;
+	--color-surface: #ffffff;
+	--color-surface-alt: #f9f9f9;
+	--color-surface-soft: #f2f2f2;
+	--color-background: #ffffff;
+	--color-text: #333333;
+	--color-text-muted: #555555;
+	--color-text-soft: #666666;
+	--color-border: #eaeaea;
+	--color-border-strong: #dcdcdc;
+	--color-warning-bg: #fff4d6;
+	--color-warning-text: #8a5a00;
+
+	--shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.08);
+	--shadow-md: 0 6px 18px rgba(0, 0, 0, 0.12);
+	--shadow-lg: 0 12px 30px rgba(0, 0, 0, 0.15);
+
+	--radius-sm: 6px;
+	--radius-md: 10px;
+	--radius-lg: 16px;
+
+	--space-xs: 6px;
+	--space-sm: 12px;
+	--space-md: 20px;
+	--space-lg: 40px;
+	--space-xl: 60px;
+
+	--transition: 0.25s ease;
+
+	--azul: var(--color-primary);
+	--azul-claro: var(--color-primary-accent);
+	--azul-oscuro: var(--color-primary-strong);
+	--verde: var(--color-secondary);
+	--verde-oscuro: var(--color-secondary-strong);
+	--gris: var(--color-surface-alt);
+	--gris-medio: var(--color-border-strong);
+	--gris-oscuro: var(--color-text-muted);
+	--rojo: #d32f2f;
+	--blanco: var(--color-surface);
+	--negro: var(--color-primary-strong);
+	--shadow-sm: var(--shadow-sm);
+	--shadow-md: var(--shadow-md);
+	--shadow-lg: var(--shadow-lg);
+	--radius-sm: var(--radius-sm);
+	--radius-md: var(--radius-md);
+	--radius-lg: var(--radius-lg);
+	--font-base: var(--font-sans);
+	--font-title: var(--font-heading);
+}
