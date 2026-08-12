@@ -175,6 +175,31 @@ async function seedIfEmpty() {
 	seeded = true;
 }
 
+export async function syncSeedProducts({ removeMissing = false } = {}) {
+	await ensureReady();
+
+	const normalizedSeed = seedProducts.map(normalizeEstado);
+	const seedIds = normalizedSeed.map((product) => String(product.id));
+
+	for (const product of normalizedSeed) {
+		await ProductModel.updateOne(
+			{ id: String(product.id) },
+			{
+				$set: product,
+				$setOnInsert: { createdAt: new Date() }
+			},
+			{ upsert: true }
+		);
+	}
+
+	if (removeMissing) {
+		await ProductModel.deleteMany({ id: { $nin: seedIds } });
+	}
+
+	const products = await ProductModel.find({}).sort({ createdAt: -1, id: -1 }).lean();
+	return products.map(toProductDTO).filter(Boolean);
+}
+
 async function ensureReady() {
 	await connectProductsDatabase();
 	await seedIfEmpty();
