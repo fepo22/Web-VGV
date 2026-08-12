@@ -26,7 +26,7 @@ import cotizarRoutes from "./routes/cotizar.routes.js";
 // ===============================
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const LEGACY_PUBLIC_DIR = path.join(__dirname, "../public");
+const PUBLIC_ASSETS_DIR = path.join(__dirname, "../public");
 const FRONTEND_DIST_DIR = path.join(__dirname, "../public_html/catalogo/dist");
 const FRONTEND_INDEX_FILE = path.join(FRONTEND_DIST_DIR, "index.html");
 const hasFrontendBuild = fs.existsSync(FRONTEND_INDEX_FILE);
@@ -78,26 +78,23 @@ app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 // Seguridad
 applySecurity(app);
 
-// Legacy queda disponible solo bajo /legacy.
-app.use("/legacy", express.static(LEGACY_PUBLIC_DIR));
+// Servir solo assets publicos (imagenes/favicons/etc) sin exponer paginas legacy.
+app.use(express.static(PUBLIC_ASSETS_DIR, { index: false }));
 
-// Activos estaticos legacy (imagenes/css/js) disponibles sin exponer index legacy en "/".
-app.use(express.static(LEGACY_PUBLIC_DIR, { index: false }));
-
-const LEGACY_HTML_REDIRECTS = {
-  "/index.html": "/legacy/index.html",
-  "/ofertas.html": "/legacy/ofertas.html",
-  "/quienes.html": "/legacy/quienes.html",
-  "/contacto.html": "/legacy/contacto.html",
-  "/cotizar.html": "/legacy/cotizar.html",
-  "/calefaccion.html": "/legacy/calefaccion.html",
-  "/canalizacion.html": "/legacy/canalizacion.html",
-  "/griferias.html": "/legacy/griferias.html",
-  "/pegamentos.html": "/legacy/pegamentos.html"
+const LEGACY_ROUTE_REDIRECTS = {
+  "/index.html": "/",
+  "/ofertas.html": "/catalogo?linea=todas&ofertas=1",
+  "/quienes.html": "/",
+  "/contacto.html": "/checkout",
+  "/cotizar.html": "/checkout",
+  "/calefaccion.html": "/catalogo?linea=calefont-calefaccion",
+  "/canalizacion.html": "/catalogo?linea=canalizacion",
+  "/griferias.html": "/catalogo?linea=griferias-sanitarios",
+  "/pegamentos.html": "/catalogo?linea=pegamentos-cementos"
 };
 
-app.get(Object.keys(LEGACY_HTML_REDIRECTS), (req, res) => {
-  return res.redirect(302, LEGACY_HTML_REDIRECTS[req.path] || "/legacy/index.html");
+app.get(Object.keys(LEGACY_ROUTE_REDIRECTS), (req, res) => {
+  return res.redirect(301, LEGACY_ROUTE_REDIRECTS[req.path] || "/");
 });
 
 if (hasFrontendBuild) {
