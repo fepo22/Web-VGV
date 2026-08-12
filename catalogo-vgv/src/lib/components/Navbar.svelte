@@ -25,17 +25,9 @@
 		}
 	});
 
-	function getVgvHomeUrl() {
-		const configured = (import.meta.env.VITE_VGV_HOME_URL || '').trim();
-		if (configured) return configured;
-
-		// Si no hay override, usar el origen actual para evitar depender de dominios legacy.
-		return `${window.location.origin}/`;
-	}
-
-	function volverAlInicio() {
+	async function volverAlInicio() {
 		if (!browser) return;
-		window.location.href = getVgvHomeUrl();
+		await goto(resolve('/'));
 	}
 
 	async function cerrarSesionAdmin() {
