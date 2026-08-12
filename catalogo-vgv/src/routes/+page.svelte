@@ -12,12 +12,19 @@
 		return [...lista].sort((a, b) => Number(Boolean(b.oferta)) - Number(Boolean(a.oferta)));
 	}
 
+	function productoDisponible(producto) {
+		return (
+			Number(producto?.stock ?? 0) > 0 && String(producto?.estado ?? 'disponible') !== 'sin stock'
+		);
+	}
+
 	const categoriaActiva = $derived($page.url.searchParams.get('linea') ?? 'todas');
 	const soloOfertas = $derived($page.url.searchParams.get('ofertas') === '1');
+	const productosDisponibles = $derived(productos.filter(productoDisponible));
 	const productosPorCategoria = $derived(
 		categoriaActiva === 'todas'
-			? productos
-			: productos.filter((producto) => producto.categoriaSlug === categoriaActiva)
+			? productosDisponibles
+			: productosDisponibles.filter((producto) => producto.categoriaSlug === categoriaActiva)
 	);
 	const productosFiltrados = $derived(
 		soloOfertas

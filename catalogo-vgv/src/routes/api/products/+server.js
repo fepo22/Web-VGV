@@ -27,6 +27,10 @@ function mapProduct(producto) {
 		imagen: producto.imagen || '/images/placeholder.png',
 		categoria: producto.categoria || producto.categoriaSlug || 'Sin categoria',
 		categoriaSlug: producto.categoriaSlug || producto.categoria || 'sin-categoria',
+		stock: Math.max(0, Number(producto.stock ?? 0)),
+		estado: String(
+			producto.estado || (Number(producto.stock ?? 0) > 0 ? 'disponible' : 'sin stock')
+		),
 		oferta: Boolean(producto.oferta),
 		descuentoPct: Number.isFinite(Number(producto.descuentoPct))
 			? Number(producto.descuentoPct)

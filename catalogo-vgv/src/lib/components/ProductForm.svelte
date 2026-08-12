@@ -1,20 +1,47 @@
 <script>
+	import { categorias } from '$lib/data/categorias.js';
+
 	const { product = null, loading = false, onSubmit, onCancel } = $props();
 
 	let nombre = $state('');
 	let codigo = $state('');
 	let precio = $state('');
+	let descripcion = $state('');
+	let categoriaSlug = $state('sin-categoria');
+	let categoria = $state('Sin categoria');
 	let imagen = $state('');
-	let stock = $state('0');
+	let stock = $state('1');
 	let estado = $state('disponible');
+	let variantesJson = $state('');
+
+	function slugify(value) {
+		return String(value ?? '')
+			.normalize('NFD')
+			.replace(/[\u0300-\u036f]/g, '')
+			.toLowerCase()
+			.replace(/[^a-z0-9]+/g, '-')
+			.replace(/(^-|-$)/g, '');
+	}
+
+	function categoriaDesdeSlug(slug) {
+		return categorias.find((item) => item.slug === slug)?.nombre ?? 'Sin categoria';
+	}
 
 	function syncForm() {
 		nombre = product?.nombre ?? '';
 		codigo = product?.codigo ?? '';
 		precio = product?.precio ?? '';
+		descripcion = product?.descripcion ?? '';
+		categoriaSlug =
+			(product?.categoriaSlug ?? slugify(product?.categoria || '')) || 'sin-categoria';
+		categoria = product?.categoria ?? categoriaDesdeSlug(categoriaSlug);
 		imagen = product?.imagen ?? '';
-		stock = String(product?.stock ?? 0);
+		stock = String(product?.stock ?? 1);
 		estado = product?.estado === 'sin stock' ? 'sin stock' : 'disponible';
+		variantesJson =
+			Array.isArray(product?.variantes) && product.variantes.length
+				? JSON.stringify(product.variantes, null, 2)
+				: '';
 	}
 
 	$effect(() => {
@@ -25,14 +52,41 @@
 	async function handleSubmit(event) {
 		event.preventDefault();
 
+		let variantes;
+		if (variantesJson.trim()) {
+			try {
+				const parsed = JSON.parse(variantesJson);
+				if (!Array.isArray(parsed)) {
+					throw new Error('El JSON de variantes debe ser un arreglo.');
+				}
+				variantes = parsed;
+			} catch (error) {
+				window.alert(
+					error instanceof Error
+						? `Variantes inválidas: ${error.message}`
+						: 'Variantes inválidas. Revisa el formato JSON.'
+				);
+				return;
+			}
+		}
+
 		await onSubmit?.({
 			nombre: nombre.trim(),
 			codigo: codigo.trim(),
 			precio: Number(precio),
+			descripcion: descripcion.trim(),
+			categoria: categoria.trim() || categoriaDesdeSlug(categoriaSlug),
+			categoriaSlug: categoriaSlug.trim() || slugify(categoria),
 			imagen: imagen.trim(),
 			stock: Number(stock),
-			estado
+			estado,
+			...(variantes ? { variantes } : {})
 		});
+	}
+
+	function onCategoriaChange(value) {
+		categoriaSlug = value;
+		categoria = categoriaDesdeSlug(value);
 	}
 </script>
 
@@ -71,6 +125,27 @@
 		</label>
 
 		<label>
+			Descripcion
+			<textarea bind:value={descripcion} rows="3" placeholder="Descripcion comercial del producto"
+			></textarea>
+		</label>
+
+		<label>
+			Categoria
+			<select value={categoriaSlug} onchange={(e) => onCategoriaChange(e.currentTarget.value)}>
+				<option value="sin-categoria">Sin categoria</option>
+				{#each categorias as item (item.slug)}
+					<option value={item.slug}>{item.nombre}</option>
+				{/each}
+			</select>
+		</label>
+
+		<label>
+			Categoria slug
+			<input bind:value={categoriaSlug} type="text" placeholder="canalizacion" required />
+		</label>
+
+		<label>
 			Imagen
 			<input bind:value={imagen} type="text" placeholder="/images/mi-producto.png" required />
 		</label>
@@ -86,6 +161,12 @@
 				<option value="disponible">Disponible</option>
 				<option value="sin stock">Sin stock</option>
 			</select>
+		</label>
+
+		<label class="full">
+			Variantes (JSON opcional)
+			<textarea bind:value={variantesJson} rows="8" placeholder="Ej: arreglo JSON de variantes"
+			></textarea>
 		</label>
 	</div>
 
@@ -164,8 +245,13 @@
 		grid-column: span 2;
 	}
 
+	label.full {
+		grid-column: span 2;
+	}
+
 	input,
-	select {
+	select,
+	textarea {
 		width: 100%;
 	}
 

@@ -39,6 +39,15 @@ function parsePositiveNumber(value, fieldName) {
   return parsed;
 }
 
+function slugify(value) {
+  return String(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
 function normalizeVariantesInput(value) {
   if (value == null) return undefined;
   if (!Array.isArray(value)) {
@@ -65,6 +74,9 @@ function buildCreatePayload(body = {}) {
   const nombre = String(body.nombre ?? body.name ?? "").trim();
   const codigo = normalizeCodigo(body.codigo ?? body.code ?? body.sku ?? body.id ?? nombre);
   const precio = parsePositiveNumber(body.precio ?? body.price, "precio");
+  const descripcion = String(body.descripcion ?? "").trim();
+  const categoria = String(body.categoria ?? "").trim() || "Sin categoria";
+  const categoriaSlug = String(body.categoriaSlug ?? "").trim() || slugify(categoria) || "sin-categoria";
   const imagen = String(body.imagen ?? body.image ?? "").trim();
   const stock = parsePositiveNumber(body.stock, "stock");
   const estado = normalizeEstado(body.estado);
@@ -86,6 +98,9 @@ function buildCreatePayload(body = {}) {
     codigo,
     nombre,
     precio,
+    descripcion,
+    categoria,
+    categoriaSlug,
     imagen,
     ...(variantes ? { variantes } : {}),
     stock: estado === "sin stock" ? 0 : stock,
