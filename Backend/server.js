@@ -26,6 +26,7 @@ import cotizarRoutes from "./routes/cotizar.routes.js";
 // ===============================
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const LEGACY_PUBLIC_DIR = path.join(__dirname, "../public");
 const FRONTEND_DIST_DIR = path.join(__dirname, "../public_html/catalogo/dist");
 const FRONTEND_INDEX_FILE = path.join(FRONTEND_DIST_DIR, "index.html");
 const hasFrontendBuild = fs.existsSync(FRONTEND_INDEX_FILE);
@@ -77,8 +78,27 @@ app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 // Seguridad
 applySecurity(app);
 
-// Servir carpeta public
-app.use(express.static(path.join(__dirname, "../public")));
+// Legacy queda disponible solo bajo /legacy.
+app.use("/legacy", express.static(LEGACY_PUBLIC_DIR));
+
+// Activos estaticos legacy (imagenes/css/js) disponibles sin exponer index legacy en "/".
+app.use(express.static(LEGACY_PUBLIC_DIR, { index: false }));
+
+const LEGACY_HTML_REDIRECTS = {
+  "/index.html": "/legacy/index.html",
+  "/ofertas.html": "/legacy/ofertas.html",
+  "/quienes.html": "/legacy/quienes.html",
+  "/contacto.html": "/legacy/contacto.html",
+  "/cotizar.html": "/legacy/cotizar.html",
+  "/calefaccion.html": "/legacy/calefaccion.html",
+  "/canalizacion.html": "/legacy/canalizacion.html",
+  "/griferias.html": "/legacy/griferias.html",
+  "/pegamentos.html": "/legacy/pegamentos.html"
+};
+
+app.get(Object.keys(LEGACY_HTML_REDIRECTS), (req, res) => {
+  return res.redirect(302, LEGACY_HTML_REDIRECTS[req.path] || "/legacy/index.html");
+});
 
 if (hasFrontendBuild) {
   app.use(express.static(FRONTEND_DIST_DIR));
