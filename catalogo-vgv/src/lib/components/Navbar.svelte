@@ -57,6 +57,7 @@
 			<button class="link-btn" type="button" onclick={cerrarSesionAdmin}>Cerrar sesión</button>
 		{:else}
 			<button class="link-btn" type="button" onclick={volverAlInicio}>Volver al inicio</button>
+			<a href={resolve('/catalogo?linea=todas&ofertas=1')}>Ofertas</a>
 			<a href={resolve('/catalogo')}>Catálogo</a>
 			<a class="cart-link" href={resolve('/carrito')}>
 				Carrito

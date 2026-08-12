@@ -13,16 +13,23 @@
 	}
 
 	const categoriaActiva = $derived($page.url.searchParams.get('linea') ?? 'todas');
-	const productosFiltrados = $derived(
+	const soloOfertas = $derived($page.url.searchParams.get('ofertas') === '1');
+	const productosPorCategoria = $derived(
 		categoriaActiva === 'todas'
-			? ordenarConOfertasPrimero(productos)
-			: ordenarConOfertasPrimero(
-					productos.filter((producto) => producto.categoriaSlug === categoriaActiva)
-				)
+			? productos
+			: productos.filter((producto) => producto.categoriaSlug === categoriaActiva)
 	);
-	const tituloFiltro = $derived(
+	const productosFiltrados = $derived(
+		soloOfertas
+			? ordenarConOfertasPrimero(
+					productosPorCategoria.filter((producto) => Boolean(producto.oferta))
+				)
+			: ordenarConOfertasPrimero(productosPorCategoria)
+	);
+	const tituloCategoria = $derived(
 		categorias.find((c) => c.slug === categoriaActiva)?.nombre ?? 'Todas las líneas'
 	);
+	const tituloFiltro = $derived(soloOfertas ? `${tituloCategoria} en oferta` : tituloCategoria);
 
 	onMount(async () => {
 		const res = await fetch('/api/products');
@@ -38,6 +45,10 @@
 		<a class="linea-card" href={resolve('/catalogo?linea=todas')}>
 			<h2>Todas</h2>
 			<p>Ver catálogo completo</p>
+		</a>
+		<a class="linea-card oferta" href={resolve('/catalogo?linea=todas&ofertas=1')}>
+			<h2>Ofertas</h2>
+			<p>Ver solo productos en oferta</p>
 		</a>
 		{#each categorias as categoria (categoria.slug)}
 			<a class="linea-card" href={resolve(`/catalogo?linea=${categoria.slug}`)}>
@@ -87,6 +98,11 @@
 		transform: translateY(-3px);
 		border-color: var(--vgv-azul);
 		box-shadow: 0 10px 24px rgba(0, 87, 160, 0.12);
+	}
+
+	.linea-card.oferta {
+		border-color: rgba(46, 125, 50, 0.35);
+		background: linear-gradient(135deg, rgba(46, 125, 50, 0.08), rgba(255, 255, 255, 0.98));
 	}
 
 	.linea-card h2 {
