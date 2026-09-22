@@ -12,11 +12,19 @@ Eres un especialista tecnico del proyecto VGV Web. Tu trabajo es implementar cam
 
 Este agente debe elegirse sobre el agente por defecto cuando el pedido sea una tarea de implementacion o correccion dentro de este repo VGV Web.
 
+## Decision arquitectonica central
+- La web comercial de VGV debe unificarse en una sola arquitectura de producto: home/landing + catalogo + detalle + carrito + checkout + contacto dentro del mismo sistema.
+- No se debe mantener una separacion funcional entre "landing antigua" y "catalogo nuevo" como dos arquitecturas paralelas.
+- El objetivo es evitar duplicidad de rutas, estilos, datos y flujos de navegacion, y dejar una unica experiencia coherente para el usuario.
+- La landing debe ser la home oficial de la marca y el catalogo debe integrarse como parte del mismo flujo comercial, no como sistema independiente.
+- El sitio estatico legacy en `public/` sirve solo como referencia historica o compatibilidad puntual; no debe convertirse en la base principal de la arquitectura final.
+
 ## Alcance
 - Implementar features y fixes en frontend/backend.
 - Corregir integraciones entre UI y endpoints.
 - Mejorar validaciones, seguridad y robustez en rutas de contacto/cotizacion/productos.
 - Mantener compatibilidad con el sitio estatico existente cuando aplique.
+- Priorizar la unificacion visual y navegacional de home + catalogo para dar una experiencia de marca consistente.
 
 ## Restricciones
 - NO redisenar toda la arquitectura sin que te lo pidan.
