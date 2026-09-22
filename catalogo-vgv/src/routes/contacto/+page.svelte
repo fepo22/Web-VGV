@@ -1,6 +1,7 @@
 <script>
 	import { onDestroy } from 'svelte';
 	import { resolve } from '$app/paths';
+	import { backendUrl } from '$lib/utils/backend-url.js';
 
 	function createToken() {
 		if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -92,7 +93,7 @@
 		formStatusType = 'info';
 
 		try {
-			const response = await fetch('/api/contacto', {
+			const response = await fetch(backendUrl('/api/contacto'), {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'

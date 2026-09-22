@@ -1,6 +1,8 @@
+import { backendUrl } from '$lib/utils/backend-url.js';
+
 export async function load({ params, fetch }) {
 	try {
-		const respuesta = await fetch(`/api/products/${params.id}`);
+		const respuesta = await fetch(backendUrl(`/api/products/${params.id}`));
 		if (!respuesta.ok) {
 			return { producto: null };
 		}

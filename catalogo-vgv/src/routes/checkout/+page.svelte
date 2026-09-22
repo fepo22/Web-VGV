@@ -1,5 +1,6 @@
 <script>
 	import { carrito } from '$lib/stores/carrito.js';
+	import { backendUrl } from '$lib/utils/backend-url.js';
 
 	let items = $state([]);
 	let enviado = $state(false);
@@ -78,7 +79,7 @@
 		].join('\n');
 
 		try {
-			const res = await fetch('/api/contacto', {
+			const res = await fetch(backendUrl('/api/contacto'), {
 				method: 'POST',
 				headers: {
 					'content-type': 'application/json'

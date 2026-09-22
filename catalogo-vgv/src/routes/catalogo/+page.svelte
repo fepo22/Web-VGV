@@ -5,6 +5,7 @@
 	import Loader from '$lib/components/Loader.svelte';
 	import ProductGrid from '$lib/components/ProductGrid.svelte';
 	import { categorias } from '$lib/data/categorias.js';
+	import { backendUrl } from '$lib/utils/backend-url.js';
 
 	let productos = $state([]);
 
@@ -39,7 +40,7 @@
 	const tituloFiltro = $derived(soloOfertas ? `${tituloCategoria} en oferta` : tituloCategoria);
 
 	onMount(async () => {
-		const res = await fetch('/api/products');
+		const res = await fetch(backendUrl('/api/products'));
 		productos = await res.json();
 	});
 </script>
