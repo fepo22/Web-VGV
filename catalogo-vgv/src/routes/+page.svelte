@@ -20,14 +20,6 @@
 			description: 'Soluciones de calefacción para hogar y proyecto.',
 			ctaHref: '/catalogo?linea=calefont-calefaccion',
 			ctaText: 'Ver calefacción'
-		},
-		{
-			image: '/assets/Banners/Banner3.jpg',
-			alt: 'Línea de calefacción y accesorios VGV',
-			title: 'Calefont, radiadores y accesorios de instalación',
-			description: 'Asesoría técnica especializada',
-			ctaHref: '/catalogo?linea=calefont-calefaccion',
-			ctaText: 'Ver calefacción'
 		}
 	];
 
