@@ -20,6 +20,11 @@
 			description: 'Soluciones de calefacción para hogar y proyecto.',
 			ctaHref: '/catalogo?linea=calefont-calefaccion',
 			ctaText: 'Ver calefacción'
+		},
+		{
+			image: '/assets/Banners/banner3.jpg',
+			alt: 'VGV Punto Hidráulico celebra 10 años conectando proyectos con confianza',
+			anniversary: true
 		}
 	];
 
@@ -39,6 +44,16 @@
 
 	function moveCarousel(direction) {
 		if (!carouselTrack || !carouselTrack.children.length) return;
+		const maxScroll = carouselTrack.scrollWidth - carouselTrack.clientWidth;
+		if (maxScroll <= 0) return;
+		if (direction > 0 && carouselTrack.scrollLeft >= maxScroll - 2) {
+			carouselTrack.scrollTo({ left: 0, behavior: 'instant' });
+			return;
+		}
+		if (direction < 0 && carouselTrack.scrollLeft <= 2) {
+			carouselTrack.scrollTo({ left: maxScroll, behavior: 'instant' });
+			return;
+		}
 		const first = carouselTrack.children[0];
 		const styles = getComputedStyle(carouselTrack);
 		const gap = Number.parseFloat(styles.gap || styles.columnGap || '0') || 0;
@@ -158,25 +173,27 @@
 
 <section class="banner-slider">
 	{#each slides as slide, index (slide.image)}
-		<div class="slide slide--{index + 1} {activeSlide === index ? 'active' : ''}">
+		<div class="slide slide--{index + 1} {activeSlide === index ? 'active' : ''}" class:anniversary={slide.anniversary}>
 			<img
 				class="slide-bg"
 				src={slide.image}
 				alt={slide.alt}
 				width="1920"
-				height="760"
+				height={slide.anniversary ? 640 : 760}
 				loading={index === 0 ? 'eager' : 'lazy'}
 				decoding="async"
 				fetchpriority={index === 0 ? 'high' : 'low'}
 			/>
-			<div class="banner-content">
-				<h1>{slide.title}</h1>
-				<p>{slide.description}</p>
-				<a href={resolve(slide.ctaHref)} class="btn">{slide.ctaText}</a>
-				{#if slide.secondaryHref}
-					<a href="mailto:ventas@vgv.cl" class="btn">{slide.secondaryText}</a>
-				{/if}
-			</div>
+			{#if !slide.anniversary}
+				<div class="banner-content">
+					<h1>{slide.title}</h1>
+					<p>{slide.description}</p>
+					<a href={resolve(slide.ctaHref)} class="btn">{slide.ctaText}</a>
+					{#if slide.secondaryHref}
+						<a href="mailto:ventas@vgv.cl" class="btn">{slide.secondaryText}</a>
+					{/if}
+				</div>
+			{/if}
 		</div>
 	{/each}
 	<div class="banner-dots" aria-label="Navegación del banner">

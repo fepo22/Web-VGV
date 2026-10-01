@@ -46,6 +46,9 @@
   background: linear-gradient(90deg, rgba(6, 40, 69, 0.52) 0%, rgba(6, 40, 69, 0.15) 50%, rgba(6, 40, 69, 0.05) 100%);
 }
 
+.banner-slider .slide.anniversary::after { display: none; }
+.banner-slider .slide.anniversary .slide-bg { object-fit: cover; object-position: center; }
+
 .banner-content {
   position: absolute;
   bottom: 50px;
@@ -248,7 +251,7 @@
   -webkit-overflow-scrolling: touch;
   scroll-snap-type: x mandatory;
   scroll-padding-inline: 10px;
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
   padding: 20px 10px;
   transition: transform 0.5s ease;
 }
@@ -370,6 +373,8 @@
 }
 
 @media (max-width: 600px) {
+  .banner-slider .slide.anniversary .slide-bg { object-position: 72% center; }
+  .banner-slider:has(.anniversary.active) .banner-dots { bottom: 2px; }
   .banner-content {
     left: 14px;
     right: 14px;
