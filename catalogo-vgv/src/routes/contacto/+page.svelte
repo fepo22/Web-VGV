@@ -153,6 +153,7 @@
 		</div>
 		<ul>
 			<li><a href={resolve('/catalogo')}>Catálogo</a></li>
+			<li><a href={resolve('/cuenta')}>Mi cuenta</a></li>
 			<li><a href={resolve('/catalogo')}>Quiénes somos</a></li>
 			<li><a href={resolve('/contacto')} class="active">Contacto</a></li>
 		</ul>

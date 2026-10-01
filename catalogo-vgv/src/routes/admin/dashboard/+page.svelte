@@ -23,6 +23,19 @@
 	let searchTerm = $state('');
 	let quotations = $state([]);
 	let quotationsError = $state('');
+	let changingStatusId = $state('');
+	const statusLabels = {
+		pendiente: 'Pendiente',
+		cotizacion_enviada: 'Cotización enviada',
+		confirmada: 'Confirmada',
+		completada: 'Completada',
+		desistida: 'Desistida'
+	};
+	const nextStatuses = {
+		pendiente: ['cotizacion_enviada', 'desistida'],
+		cotizacion_enviada: ['confirmada', 'desistida'],
+		confirmada: ['completada']
+	};
 
 	let socket = null;
 	let refreshTimer;
@@ -167,6 +180,30 @@
 			quotations = await response.json();
 		} catch (loadError) {
 			quotationsError = loadError instanceof Error ? loadError.message : 'Error cargando cotizaciones.';
+		}
+	}
+
+	async function changeQuotationStatus(quotation, estado) {
+		if (!estado || estado === (quotation.estado || 'pendiente')) return;
+		if (estado === 'confirmada' && !window.confirm('¿El cliente aceptó la cotización y ya se recibió el pago?')) return;
+		if (estado === 'completada' && !window.confirm('¿El cliente ya recibió el pedido?')) return;
+		if (estado === 'desistida' && !window.confirm('¿Marcar esta cotización como desistida?')) return;
+		changingStatusId = quotation._id;
+		quotationsError = '';
+		try {
+			const response = await fetch(backendUrl(`/api/cotizar/${quotation._id}/estado`), {
+				method: 'PATCH',
+				headers: { 'content-type': 'application/json', Authorization: `Bearer ${token}` },
+				body: JSON.stringify({ estado })
+			});
+			if (response.status === 401) return logout('Tu sesión expiró. Vuelve a iniciar sesión.');
+			const data = await response.json().catch(() => ({}));
+			if (!response.ok) throw new Error(data.error || 'No se pudo cambiar el estado.');
+			quotations = quotations.map((entry) => entry._id === data._id ? data : entry);
+		} catch (changeError) {
+			quotationsError = changeError instanceof Error ? changeError.message : 'Error actualizando estado.';
+		} finally {
+			changingStatusId = '';
 		}
 	}
 
@@ -431,6 +468,14 @@
 							<div><a href={`mailto:${quotation.correo}`}>{quotation.correo}</a> · {quotation.contacto} · RUT {quotation.rut}</div>
 							<div>Despacho: {quotation.direccion}</div>
 							<ul>{#each quotation.productos as producto, position (position)}<li>{producto.nombre} · {producto.varianteSku || producto.id} × {producto.cantidad}</li>{/each}</ul>
+							<label class="quotation-status">Estado
+								<select value={quotation.estado || 'pendiente'} disabled={changingStatusId === quotation._id} onchange={(event) => { const nextStatus = event.currentTarget.value; event.currentTarget.value = quotation.estado || 'pendiente'; void changeQuotationStatus(quotation, nextStatus); }}>
+									<option value={quotation.estado || 'pendiente'}>{statusLabels[quotation.estado || 'pendiente']}</option>
+									{#each nextStatuses[quotation.estado || 'pendiente'] || [] as nextStatus (nextStatus)}
+										<option value={nextStatus}>{statusLabels[nextStatus]}</option>
+									{/each}
+								</select>
+							</label>
 						</article>
 						{/each}
 				</div>
@@ -492,6 +537,7 @@
 	.quotation { border-bottom: 1px solid #d9e5f2; padding-bottom: 0.75rem; overflow-wrap: anywhere; }
 	.quotation div { margin-bottom: 0.3rem; }
 	.quotation ul { margin: 0.25rem 0; }
+	.quotation-status { display: flex; align-items: center; gap: 0.65rem; font-weight: 700; }
 	.admin-shell {
 		display: flex;
 		flex-direction: column;

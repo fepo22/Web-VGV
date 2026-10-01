@@ -23,6 +23,9 @@ export const authMiddleware = (req, res, next) => {
     }
 
     const decoded = verifyJwtToken(token);
+    if (decoded.role !== "admin") {
+      return res.status(403).json({ error: "Acceso exclusivo para administradores." });
+    }
     req.user = decoded;
     next();
   } catch (error) {

@@ -20,6 +20,7 @@ import publicProductsRoutes from "./routes/products.public.routes.js";
 import productsRoutes from "./routes/products.routes.js";
 import contactRoutes from "./routes/contact.routes.js";
 import cotizarRoutes from "./routes/cotizar.routes.js";
+import customerRoutes from "./routes/customer.routes.js";
 
 // ===============================
 // FIX para __dirname en ES Modules
@@ -120,6 +121,7 @@ app.use("/api/products", publicProductsRoutes);
 app.use("/api/productos", publicProductsRoutes);
 app.use("/api/contacto", contactRoutes);
 app.use("/api/cotizar", cotizarRoutes);
+app.use("/api/clientes", customerRoutes);
 
 // Healthcheck explicito para monitoreo
 app.get("/health", (req, res) => {
