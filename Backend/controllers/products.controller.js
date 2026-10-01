@@ -265,6 +265,7 @@ export const getProducts = async (req, res) => {
     const products = await listProducts();
     return res.json(products);
   } catch (error) {
+    console.error("Error consultando productos:", error.message);
     return res.status(500).json({ error: "No se pudieron obtener los productos." });
   }
 };

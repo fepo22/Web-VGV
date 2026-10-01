@@ -8,6 +8,8 @@
 	import { backendUrl } from '$lib/utils/backend-url.js';
 
 	let productos = $state([]);
+	let cargando = $state(true);
+	let errorCarga = $state('');
 
 	function ordenarConOfertasPrimero(lista) {
 		return [...lista].sort((a, b) => Number(Boolean(b.oferta)) - Number(Boolean(a.oferta)));
@@ -39,9 +41,26 @@
 	);
 	const tituloFiltro = $derived(soloOfertas ? `${tituloCategoria} en oferta` : tituloCategoria);
 
-	onMount(async () => {
-		const res = await fetch(backendUrl('/api/products'));
-		productos = await res.json();
+	async function cargarProductos() {
+		cargando = true;
+		errorCarga = '';
+		try {
+			const respuesta = await fetch(backendUrl('/api/products'));
+			if (!respuesta.ok) throw new Error(`El servidor respondió ${respuesta.status}`);
+			const data = await respuesta.json();
+			if (!Array.isArray(data)) throw new Error('La respuesta del catálogo no es válida');
+			productos = data;
+		} catch (error) {
+			console.error('Error cargando productos:', error);
+			productos = [];
+			errorCarga = 'No se pudo cargar el catálogo. Inténtalo de nuevo en unos minutos.';
+		} finally {
+			cargando = false;
+		}
+	}
+
+	onMount(() => {
+		void cargarProductos();
 	});
 </script>
 
@@ -68,8 +87,13 @@
 
 	<p class="estado-filtro">Mostrando: <strong>{tituloFiltro}</strong></p>
 
-	{#if productos.length === 0}
+	{#if cargando}
 		<Loader />
+	{:else if errorCarga}
+		<div class="sin-resultados" role="alert">
+			<p>{errorCarga}</p>
+			<button type="button" onclick={cargarProductos}>Reintentar</button>
+		</div>
 	{:else if productosFiltrados.length === 0}
 		<p class="sin-resultados">Aun no hay productos cargados para esta linea.</p>
 	{:else}
