@@ -3,7 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { onDestroy, tick } from 'svelte';
-	import { carrito, carritoLateralAbierto, eliminarDelCarrito } from '$lib/stores/carrito.js';
+	import { actualizarCantidad, carrito, carritoLateralAbierto, eliminarDelCarrito } from '$lib/stores/carrito.js';
 	const { titulo = 'Catálogo VGV', admin = false } = $props();
 
 	const STORAGE_KEY = 'vgv_admin_token';
@@ -90,7 +90,14 @@
 				{#each items as item (item.cartKey)}
 					<li>
 						<img src={item.imagen} alt="" width="64" height="64" />
-						<div><strong>{item.nombre}</strong><span>Cantidad: {item.cantidad}</span></div>
+						<div class="item-details">
+							<strong>{item.nombre}</strong>
+							<div class="quantity-controls" aria-label={`Cantidad de ${item.nombre}`}>
+								<button type="button" aria-label={`Quitar una unidad de ${item.nombre}`} disabled={item.cantidad <= 1} onclick={() => actualizarCantidad(item.cartKey, item.cantidad - 1)}>−</button>
+								<span>{item.cantidad}</span>
+								<button type="button" aria-label={`Agregar una unidad de ${item.nombre}`} onclick={() => actualizarCantidad(item.cartKey, item.cantidad + 1)}>+</button>
+							</div>
+						</div>
 						<button type="button" aria-label={`Eliminar ${item.nombre}`} onclick={() => eliminarDelCarrito(item.cartKey)}>×</button>
 					</li>
 				{/each}
@@ -138,7 +145,11 @@
 	.panel-items { list-style: none; padding: 0; overflow-y: auto; flex: 1; }
 	.panel-items li { border-bottom: 1px solid #d9e5f2; padding: 0.8rem 0; }
 	.panel-items img { object-fit: contain; flex: none; }
-	.panel-items li div { flex: 1; display: grid; gap: 0.25rem; }
+	.panel-items .item-details { flex: 1; min-width: 0; display: grid; gap: 0.4rem; }
+	.quantity-controls { display: flex; align-items: center; gap: 0.5rem; }
+	.quantity-controls button { width: 2rem; height: 2rem; border: 1px solid #d9e5f2; border-radius: 4px; font-size: 1rem; }
+	.quantity-controls button:disabled { opacity: 0.4; cursor: not-allowed; }
+	.quantity-controls span { min-width: 1.5rem; text-align: center; }
 	.panel-items span { font-size: 0.85rem; }
 	.panel-actions { margin-top: auto; padding-top: 1rem; flex-wrap: wrap; }
 	.panel-actions a { color: var(--vgv-azul-oscuro); font-weight: 700; }

@@ -88,11 +88,14 @@
 						<div class="controls">
 							<button
 								type="button"
+								aria-label={`Quitar una unidad de ${item.nombre}`}
+								disabled={item.cantidad <= 1}
 								onclick={() => actualizarCantidad(item.cartKey, item.cantidad - 1)}>-</button
 							>
 							<span>{item.cantidad}</span>
 							<button
 								type="button"
+								aria-label={`Agregar una unidad de ${item.nombre}`}
 								onclick={() => actualizarCantidad(item.cartKey, item.cantidad + 1)}>+</button
 							>
 						</div>
@@ -213,6 +216,11 @@
 		background: var(--vgv-azul);
 		color: white;
 		cursor: pointer;
+	}
+
+	.controls button:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
 	}
 
 	.eliminar {
