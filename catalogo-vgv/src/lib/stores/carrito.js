@@ -62,9 +62,11 @@ function createCartStore() {
 }
 
 export const carrito = createCartStore();
+export const carritoLateralAbierto = writable(false);
 
 export function agregarAlCarrito(producto) {
 	carrito.agregar(producto);
+	carritoLateralAbierto.set(true);
 }
 
 export function eliminarDelCarrito(id) {

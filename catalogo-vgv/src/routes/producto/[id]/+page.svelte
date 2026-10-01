@@ -5,12 +5,6 @@
 	const { data } = $props();
 	const producto = $derived(data?.producto ?? null);
 	const variantes = $derived(Array.isArray(producto?.variantes) ? producto.variantes : []);
-	const precioDescuento = $derived(
-		Number(producto?.precioDescuento ?? 0) > 0 &&
-			Number(producto?.precioDescuento ?? 0) < Number(producto?.precio ?? 0)
-			? Number(producto?.precioDescuento)
-			: null
-	);
 	let ultimoProductoRegistrado = $state(null);
 	let cantidadesPorVariante = $state({});
 
@@ -88,12 +82,6 @@
 
 		<div class="info">
 			<h1>{producto.nombre}</h1>
-			{#if precioDescuento}
-				<p class="precio">${Number(precioDescuento).toLocaleString('es-CL')}</p>
-				<p class="precio-original">${Number(producto.precio).toLocaleString('es-CL')}</p>
-			{:else}
-				<p class="precio">${producto.precio.toLocaleString('es-CL')}</p>
-			{/if}
 			<p class="descripcion">{producto.descripcion}</p>
 
 			{#if variantes.length > 0}
@@ -102,7 +90,6 @@
 					<div class="variantes-head" aria-hidden="true">
 						<span>Medida</span>
 						<span>SKU</span>
-						<span>Precio</span>
 						<span>Cantidad</span>
 					</div>
 					{#each variantes as variante (variante.sku)}
@@ -112,8 +99,6 @@
 								<small>Cantidad minima: {variante.minima}</small>
 							</div>
 							<span class="sku">{variante.sku}</span>
-							<span class="variante-precio">${Number(variante.precio).toLocaleString('es-CL')}</span
-							>
 							<input
 								type="number"
 								min="0"
@@ -158,25 +143,10 @@
 		margin-bottom: 1rem;
 	}
 
-	.precio {
-		font-size: 1.6rem;
-		font-weight: 700;
-		color: var(--vgv-verde);
-		margin-bottom: 1rem;
-	}
-
 	.descripcion {
 		font-size: 1rem;
 		color: var(--vgv-gris);
 		margin-bottom: 2rem;
-	}
-
-	.precio-original {
-		font-size: 1rem;
-		color: var(--vgv-gris);
-		margin-top: -0.55rem;
-		margin-bottom: 1rem;
-		text-decoration: line-through;
 	}
 
 	.variantes-box {
@@ -198,7 +168,7 @@
 	.variantes-head,
 	.variante-row {
 		display: grid;
-		grid-template-columns: minmax(180px, 1fr) 110px 110px 100px;
+		grid-template-columns: minmax(180px, 1fr) 110px 100px;
 		gap: 0.6rem;
 		align-items: center;
 	}
@@ -228,11 +198,6 @@
 	.sku {
 		font-weight: 600;
 		color: var(--vgv-azul);
-	}
-
-	.variante-precio {
-		font-weight: 700;
-		color: var(--vgv-verde);
 	}
 
 	.variante-row input {

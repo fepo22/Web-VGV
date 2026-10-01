@@ -1,5 +1,5 @@
 <script>
-	import { carrito } from '$lib/stores/carrito.js';
+	import { carrito, vaciarCarrito } from '$lib/stores/carrito.js';
 	import { backendUrl } from '$lib/utils/backend-url.js';
 
 	let items = $state([]);
@@ -15,15 +15,6 @@
 		mail: ''
 	});
 
-	const datosBancarios = {
-		banco: 'BCI Credito e inversiones',
-		tipoCuenta: 'Cuenta corriente',
-		numeroCuenta: '78384578',
-		rut: '76.420.074-8',
-		razonSocial: 'Comercial y distribuidora VGV SPA',
-		correo: 'ventas@vgv.cl'
-	};
-
 	$effect(() => {
 		const unsub = carrito.subscribe((value) => {
 			items = value;
@@ -31,10 +22,6 @@
 
 		return () => unsub();
 	});
-
-	function total() {
-		return items.reduce((acc, item) => acc + item.precio * item.cantidad, 0);
-	}
 
 	async function enviarFormulario(event) {
 		event.preventDefault();
@@ -57,34 +44,24 @@
 			return;
 		}
 
-		const detalle = items
-			.map(
-				(item) =>
-					`- ${item.nombre} x ${item.cantidad} ($${(item.precio * item.cantidad).toLocaleString('es-CL')})`
-			)
-			.join('\n');
-
-		const mensaje = [
-			'Solicitud de compra desde checkout VGV',
-			`Cliente: ${nombre}`,
-			`Empresa: ${empresa}`,
-			`RUT: ${rut}`,
-			`Telefono: ${contacto}`,
-			`Direccion despacho: ${direccion}`,
-			'',
-			'Detalle:',
-			detalle || '- Sin productos',
-			'',
-			`Total referencial: $${total().toLocaleString('es-CL')}`
-		].join('\n');
+		if (items.length === 0) {
+			errorEnvio = 'Agrega productos al carrito antes de solicitar una cotización.';
+			enviando = false;
+			return;
+		}
 
 		try {
-			const res = await fetch(backendUrl('/api/contacto'), {
+			const res = await fetch(backendUrl('/api/cotizar'), {
 				method: 'POST',
 				headers: {
 					'content-type': 'application/json'
 				},
-				body: JSON.stringify({ nombre, correo, mensaje, empresa: '', token: '' })
+				body: JSON.stringify({
+					nombre, correo, empresa, rut, contacto, direccion,
+					productos: items.map(({ id, nombre, cantidad, varianteSku, varianteMedida }) => ({
+						id, nombre, cantidad, varianteSku, varianteMedida
+					}))
+				})
 			});
 
 			const data = await res.json().catch(() => ({}));
@@ -99,6 +76,7 @@
 
 			enviado = true;
 			errorEnvio = '';
+			vaciarCarrito();
 			formValues = {
 				nombreApellido: '',
 				empresa: '',
@@ -109,7 +87,7 @@
 			};
 			form?.reset?.();
 		} catch (error) {
-			console.error('Error enviando checkout a contacto:', error);
+			console.error('Error enviando cotización:', error);
 			errorEnvio =
 				'No hay conexión con el servidor para enviar la solicitud. Inténtalo nuevamente en unos minutos.';
 		} finally {
@@ -120,8 +98,8 @@
 
 <section class="checkout">
 	<header class="cabecera">
-		<h1>Finalizar compra</h1>
-		<p>Completa tus datos para preparar el despacho y realizar tu transferencia bancaria.</p>
+		<h1>Solicitar cotización</h1>
+		<p>Completa tus datos para que el equipo VGV prepare tu cotización.</p>
 	</header>
 
 	<div class="layout">
@@ -165,14 +143,13 @@
 			<label for="mail">Mail</label>
 			<input id="mail" name="mail" type="email" bind:value={formValues.mail} required />
 
-			<button class="btn-submit" type="submit" disabled={enviando}>
-				{enviando ? 'Enviando...' : 'Enviar solicitud de compra'}
+			<button class="btn-submit" type="submit" disabled={enviando || items.length === 0}>
+				{enviando ? 'Enviando...' : 'Enviar solicitud de cotización'}
 			</button>
 
 			{#if enviado}
 				<p class="ok">
-					Solicitud enviada a ventas@vgv.cl. En breve el equipo VGV te contactara para confirmar
-					stock y despacho.
+					Solicitud enviada. En breve el equipo VGV te contactará con tu cotización.
 				</p>
 			{/if}
 
@@ -182,32 +159,19 @@
 		</form>
 
 		<aside class="resumen">
-			<h2>Resumen del pedido</h2>
+			<h2>Productos a cotizar</h2>
 
 			{#if items.length === 0}
 				<p class="vacio">No hay productos en el carrito.</p>
 			{:else}
 				<ul class="lista">
-					{#each items as item (item.id)}
+					{#each items as item (item.cartKey)}
 						<li>
 							<span>{item.nombre} x {item.cantidad}</span>
-							<strong>${(item.precio * item.cantidad).toLocaleString('es-CL')}</strong>
 						</li>
 					{/each}
 				</ul>
-
-				<p class="total">Total referencial: <strong>${total().toLocaleString('es-CL')}</strong></p>
 			{/if}
-
-			<section class="banco">
-				<h3>Datos bancarios de VGV (transferencia)</h3>
-				<p><strong>Banco:</strong> {datosBancarios.banco}</p>
-				<p><strong>Tipo de cuenta:</strong> {datosBancarios.tipoCuenta}</p>
-				<p><strong>Numero de cuenta:</strong> {datosBancarios.numeroCuenta}</p>
-				<p><strong>RUT:</strong> {datosBancarios.rut}</p>
-				<p><strong>Razon social:</strong> {datosBancarios.razonSocial}</p>
-				<p><strong>Correo de confirmacion:</strong> {datosBancarios.correo}</p>
-			</section>
 		</aside>
 	</div>
 </section>
@@ -321,28 +285,6 @@
 		gap: 0.8rem;
 		border-bottom: 1px dashed #d9e5f2;
 		padding-bottom: 0.45rem;
-	}
-
-	.total {
-		margin-top: 0.9rem;
-		color: var(--vgv-azul-oscuro);
-	}
-
-	.banco {
-		margin-top: 1rem;
-		border-top: 1px solid #e7eef6;
-		padding-top: 0.9rem;
-	}
-
-	.banco h3 {
-		margin: 0 0 0.6rem;
-		color: var(--vgv-azul-oscuro);
-		font-size: 1rem;
-	}
-
-	.banco p {
-		margin: 0.25rem 0;
-		color: var(--vgv-gris);
 	}
 
 	.vacio {

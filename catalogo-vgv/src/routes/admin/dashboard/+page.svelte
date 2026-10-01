@@ -21,6 +21,8 @@
 	let error = $state('');
 	let notice = $state('');
 	let searchTerm = $state('');
+	let quotations = $state([]);
+	let quotationsError = $state('');
 
 	let socket = null;
 
@@ -116,6 +118,7 @@
 		void loadProducts().finally(() => {
 			setupSocket();
 		});
+		void loadQuotations();
 	});
 
 	onDestroy(() => {
@@ -128,6 +131,7 @@
 		}
 		teardownSocket();
 		products = [];
+		quotations = [];
 		editingProduct = null;
 		error = message;
 		notice = '';
@@ -142,6 +146,24 @@
 
 	function cancelEditing() {
 		editingProduct = null;
+	}
+
+	async function loadQuotations() {
+		if (!token) return;
+		quotationsError = '';
+		try {
+			const response = await fetch(backendUrl('/api/cotizar'), {
+				headers: { Authorization: `Bearer ${token}` }
+			});
+			if (response.status === 401) {
+				logout('Tu sesión expiró. Vuelve a iniciar sesión.');
+				return;
+			}
+			if (!response.ok) throw new Error('No se pudieron cargar las cotizaciones.');
+			quotations = await response.json();
+		} catch (loadError) {
+			quotationsError = loadError instanceof Error ? loadError.message : 'Error cargando cotizaciones.';
+		}
 	}
 
 	function csvSafe(value) {
@@ -404,6 +426,27 @@
 		</section>
 
 		<section class="stacked">
+			<section class="panel card">
+				<div class="panel-head">
+					<div>
+						<h2>Cotizaciones solicitadas</h2>
+						<p>Últimas 100 solicitudes recibidas.</p>
+					</div>
+					<button class="refresh" type="button" onclick={loadQuotations}>Actualizar</button>
+				</div>
+				{#if quotationsError}<p class="feedback error">{quotationsError}</p>{/if}
+				{#if quotations.length === 0 && !quotationsError}<p>Sin cotizaciones registradas.</p>{/if}
+				<div class="quotation-list">
+					{#each quotations as quotation (quotation._id)}
+						<article class="quotation">
+							<div><strong>{quotation.nombre}</strong> · {quotation.empresa} · {new Date(quotation.createdAt).toLocaleString('es-CL')}</div>
+							<div><a href={`mailto:${quotation.correo}`}>{quotation.correo}</a> · {quotation.contacto} · RUT {quotation.rut}</div>
+							<div>Despacho: {quotation.direccion}</div>
+							<ul>{#each quotation.productos as producto}<li>{producto.nombre} · {producto.varianteSku || producto.id} × {producto.cantidad}</li>{/each}</ul>
+						</article>
+						{/each}
+				</div>
+			</section>
 			<ProductForm
 				product={editingProduct}
 				loading={saving}
@@ -457,6 +500,10 @@
 </section>
 
 <style>
+	.quotation-list { display: grid; gap: 0.75rem; max-height: 440px; overflow-y: auto; }
+	.quotation { border-bottom: 1px solid #d9e5f2; padding-bottom: 0.75rem; overflow-wrap: anywhere; }
+	.quotation div { margin-bottom: 0.3rem; }
+	.quotation ul { margin: 0.25rem 0; }
 	.admin-shell {
 		display: flex;
 		flex-direction: column;

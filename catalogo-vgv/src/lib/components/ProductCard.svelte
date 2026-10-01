@@ -23,12 +23,6 @@
 		return Number.isFinite(pct) ? `${Math.max(1, Math.round(pct))}% OFF` : 'Oferta';
 	}
 
-	function precioEnOferta() {
-		const precio = Number(producto?.precio ?? 0);
-		const precioDescuento = Number(producto?.precioDescuento ?? 0);
-		return precioDescuento > 0 && precioDescuento < precio ? precioDescuento : null;
-	}
-
 	function registrarProductoVisto(id) {
 		if (!browser || !id) return;
 
@@ -80,12 +74,6 @@
 
 		<div class="content">
 			<h3 class="nombre">{producto.nombre}</h3>
-			{#if precioEnOferta()}
-				<p class="precio">${Number(precioEnOferta()).toLocaleString('es-CL')}</p>
-				<p class="precio-original">${Number(producto.precio).toLocaleString('es-CL')}</p>
-			{:else}
-				<p class="precio">${producto.precio.toLocaleString('es-CL')}</p>
-			{/if}
 			<p class="desc">{producto.descripcion}</p>
 		</div>
 	</a>
@@ -183,20 +171,6 @@
 		font-weight: 700;
 		color: var(--vgv-azul-oscuro);
 		margin: 0;
-	}
-
-	.precio {
-		font-weight: 700;
-		font-size: 1.1rem;
-		color: var(--vgv-verde);
-		margin: 0;
-	}
-
-	.precio-original {
-		margin: -0.15rem 0 0;
-		color: var(--vgv-gris);
-		font-size: 0.9rem;
-		text-decoration: line-through;
 	}
 
 	.desc {

@@ -93,7 +93,6 @@ Web-VGV/
 │  ├─ favicon.ico
 │  ├─ griferias.html
 │  ├─ index.html
-│  ├─ ofertas.html
 │  ├─ pegamentos.html
 │  ├─ quienes.html
 │  ├─ robots.txt

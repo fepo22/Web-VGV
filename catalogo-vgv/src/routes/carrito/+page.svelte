@@ -20,10 +20,6 @@
 		return () => unsub();
 	});
 
-	function total() {
-		return items.reduce((acc, item) => acc + item.precio * item.cantidad, 0);
-	}
-
 	function leerProductosVistos() {
 		if (!browser) return [];
 
@@ -89,8 +85,6 @@
 						{#if item.varianteSku}
 							<p class="meta-variante">SKU: {item.varianteSku}</p>
 						{/if}
-						<p class="precio">${item.precio.toLocaleString('es-CL')}</p>
-
 						<div class="controls">
 							<button
 								type="button"
@@ -112,8 +106,7 @@
 		</div>
 
 		<div class="total">
-			<h2>Total: ${total().toLocaleString('es-CL')}</h2>
-			<a class="btn-pagar" href={resolve('/checkout')}>Finalizar compra</a>
+			<a class="btn-pagar" href={resolve('/checkout')}>Solicitar cotización</a>
 			<button class="btn-vaciar" type="button" onclick={vaciarCarrito}>Vaciar carrito</button>
 		</div>
 
@@ -137,7 +130,6 @@
 							/>
 							<div class="relacionado-info">
 								<h3>{producto.nombre}</h3>
-								<p class="precio">${producto.precio.toLocaleString('es-CL')}</p>
 								<p>{producto.descripcion}</p>
 								<div class="acciones">
 									<a href={resolve(`/producto/${producto.id}`)}>Ver detalle</a>
@@ -204,11 +196,6 @@
 		margin: 0.2rem 0 0;
 		font-size: 0.86rem;
 		color: var(--vgv-gris);
-	}
-
-	.precio {
-		font-weight: 700;
-		color: var(--vgv-verde);
 	}
 
 	.controls {

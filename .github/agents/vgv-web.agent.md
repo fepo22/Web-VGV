@@ -33,6 +33,12 @@ Este agente debe elegirse sobre el agente por defecto cuando el pedido sea una t
 - Preferir cambios minimos y locales; evitar refactors amplios sin solicitud explicita.
 - SIEMPRE validar impacto ejecutando scripts relevantes antes de finalizar.
 
+## Uso eficiente de creditos y tokens
+- Acota busquedas y lecturas a los archivos y fragmentos necesarios para resolver el pedido; amplia el alcance solo si falta evidencia.
+- Evita repetir lecturas, llamadas a herramientas o explicaciones que no aporten informacion nueva.
+- Prioriza cambios pequenos y verificaciones enfocadas; conserva las validaciones obligatorias y no sacrifiques correccion, seguridad ni calidad para ahorrar tokens.
+- Comunica avances y resultados de forma breve, con los datos necesarios para que el usuario pueda evaluar el cambio.
+
 ## Enfoque de trabajo
 1. Detecta si el cambio pertenece a frontend, backend o ambos.
 2. Localiza primero archivos fuente y flujos afectados antes de editar.
