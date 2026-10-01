@@ -11,7 +11,8 @@
 	let imagen = $state('');
 	let stock = $state('1');
 	let estado = $state('disponible');
-	let variantesJson = $state('');
+	let variantes = $state([]);
+	let nextVariantKey = 0;
 
 	function slugify(value) {
 		return String(value ?? '')
@@ -36,18 +37,14 @@
 		imagen = product?.imagen ?? '';
 		stock = String(product?.stock ?? 1);
 		estado = product?.estado === 'sin stock' ? 'sin stock' : 'disponible';
-		variantesJson =
-			Array.isArray(product?.variantes) && product.variantes.length
-				? JSON.stringify(
-						product.variantes.map((variante) => ({
-							sku: variante.sku,
-							medida: variante.medida,
-							minima: variante.minima
-						})),
-						null,
-						2
-					)
-				: '';
+		variantes = Array.isArray(product?.variantes)
+			? product.variantes.map((variante) => ({
+					key: ++nextVariantKey,
+					sku: variante.sku || '',
+					medida: variante.medida || '',
+					minima: variante.minima ?? 1
+				}))
+			: [];
 	}
 
 	$effect(() => {
@@ -57,28 +54,9 @@
 
 	async function handleSubmit(event) {
 		event.preventDefault();
-
-		let variantes;
-		if (variantesJson.trim()) {
-			try {
-				const parsed = JSON.parse(variantesJson);
-				if (!Array.isArray(parsed)) {
-					throw new Error('El JSON de variantes debe ser un arreglo.');
-				}
-				variantes = parsed.map((variante) => ({
-					sku: variante?.sku,
-					medida: variante?.medida,
-					minima: variante?.minima
-				}));
-			} catch (error) {
-				window.alert(
-					error instanceof Error
-						? `Variantes inválidas: ${error.message}`
-						: 'Variantes inválidas. Revisa el formato JSON.'
-				);
-				return;
-			}
-		}
+		const variantesPayload = variantes.map(({ sku, medida, minima }) => ({
+			sku: sku.trim(), medida: medida.trim(), minima: Number(minima)
+		}));
 
 		await onSubmit?.({
 			nombre: nombre.trim(),
@@ -89,7 +67,7 @@
 			imagen: imagen.trim(),
 			stock: Number(stock),
 			estado,
-			...(variantes ? { variantes } : {})
+			...(product || variantes.length ? { variantes: variantesPayload } : {})
 		});
 	}
 
@@ -167,11 +145,20 @@
 			</select>
 		</label>
 
-		<label class="full">
-			Variantes (JSON opcional)
-			<textarea bind:value={variantesJson} rows="8" placeholder="Ej: arreglo JSON de variantes"
-			></textarea>
-		</label>
+		<div class="variants full">
+			<div class="variants-head">
+				<h3>Variantes</h3>
+				<button class="ghost" type="button" onclick={() => variantes = [...variantes, { key: ++nextVariantKey, sku: '', medida: '', minima: 1 }]}>Agregar variante</button>
+			</div>
+			{#each variantes as variante (variante.key)}
+				<div class="variant-row">
+					<label>SKU <input bind:value={variante.sku} required placeholder="DP-20" /></label>
+					<label>Medida <input bind:value={variante.medida} required placeholder="20 mm x 6 m" /></label>
+					<label>Cantidad mínima <input type="number" min="1" step="1" bind:value={variante.minima} required /></label>
+					<button class="remove-variant" type="button" title="Eliminar variante" aria-label={`Eliminar variante ${variante.sku || variante.key}`} onclick={() => variantes = variantes.filter((item) => item.key !== variante.key)}>×</button>
+				</div>
+			{/each}
+		</div>
 	</div>
 
 	<button class="submit" type="submit" disabled={loading}>
@@ -237,6 +224,11 @@
 		gap: 1rem;
 	}
 
+	.variants-head { display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; }
+	.variants-head h3 { margin: 0; font-size: 1rem; }
+	.variant-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 120px 40px; align-items: end; gap: 0.6rem; margin-top: 0.5rem; }
+	.remove-variant { width: 40px; height: 40px; border: 1px solid var(--vgv-border-soft); border-radius: 4px; background: transparent; color: var(--vgv-danger); font-size: 1.5rem; cursor: pointer; }
+
 	label {
 		display: flex;
 		flex-direction: column;
@@ -245,11 +237,11 @@
 		color: var(--vgv-azul-oscuro);
 	}
 
-	label:last-of-type {
+	.grid > label:last-of-type {
 		grid-column: span 2;
 	}
 
-	label.full {
+	.grid > .full {
 		grid-column: span 2;
 	}
 
@@ -296,8 +288,12 @@
 			grid-template-columns: 1fr;
 		}
 
-		label:last-of-type {
+		.grid > label:last-of-type,
+		.grid > .full {
 			grid-column: auto;
 		}
+	}
+	@media (max-width: 650px) {
+		.variant-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 	}
 </style>

@@ -2,7 +2,7 @@
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { onDestroy, onMount } from 'svelte';
+	import { onDestroy, onMount, tick } from 'svelte';
 	import { io } from 'socket.io-client';
 	import Loader from '$lib/components/Loader.svelte';
 	import ProductForm from '$lib/components/ProductForm.svelte';
@@ -14,15 +14,24 @@
 	let token = $state('');
 	let products = $state([]);
 	let loading = $state(true);
+	let productsLoaded = false;
 	let saving = $state(false);
 	let actionLoadingId = $state('');
 	let editingProduct = $state(null);
+	let showProductForm = $state(false);
 	let lastAdded = $state('');
 	let error = $state('');
 	let notice = $state('');
 	let searchTerm = $state('');
+	let productStatus = $state('todos');
+	let activeView = $state('cotizaciones');
+	let productFormAnchor = $state();
 	let quotations = $state([]);
 	let quotationsError = $state('');
+	let quotationsLoading = $state(true);
+	let quotationsLoaded = false;
+	let quoteStatus = $state('pendiente');
+	let quoteSearchTerm = $state('');
 	let changingStatusId = $state('');
 	const statusLabels = {
 		pendiente: 'Pendiente',
@@ -55,9 +64,9 @@
 
 	const filteredProducts = $derived.by(() => {
 		const term = searchTerm.trim().toLowerCase();
-		if (!term) return products;
-
 		return products.filter((product) => {
+			if (productStatus !== 'todos' && product.estado !== productStatus) return false;
+			if (!term) return true;
 			const code = String(product.codigo || `VGV-${String(product.id ?? '').padStart(4, '0')}`)
 				.toLowerCase()
 				.trim();
@@ -65,6 +74,16 @@
 				.toLowerCase()
 				.trim();
 			return code.includes(term) || name.includes(term);
+		});
+	});
+
+	const pendingQuotations = $derived(quotations.filter((quotation) => (quotation.estado || 'pendiente') === 'pendiente').length);
+	const filteredQuotations = $derived.by(() => {
+		const term = quoteSearchTerm.trim().toLowerCase();
+		return quotations.filter((quotation) => {
+			if (quoteStatus !== 'todas' && (quotation.estado || 'pendiente') !== quoteStatus) return false;
+			return !term || [quotation.nombre, quotation.empresa, quotation.correo, quotation.rut]
+				.some((value) => String(value || '').toLowerCase().includes(term));
 		});
 	});
 
@@ -149,6 +168,8 @@
 		teardownSocket();
 		products = [];
 		quotations = [];
+		productsLoaded = false;
+		quotationsLoaded = false;
 		editingProduct = null;
 		error = message;
 		notice = '';
@@ -156,17 +177,30 @@
 	}
 
 	function startEditing(product) {
+		activeView = 'productos';
+		showProductForm = true;
 		editingProduct = { ...product };
 		error = '';
 		notice = '';
+		void tick().then(() => productFormAnchor?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+	}
+
+	function startCreating() {
+		activeView = 'productos';
+		editingProduct = null;
+		showProductForm = true;
+		error = '';
+		void tick().then(() => productFormAnchor?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
 	}
 
 	function cancelEditing() {
 		editingProduct = null;
+		showProductForm = false;
 	}
 
 	async function loadQuotations() {
 		if (!token) return;
+		quotationsLoading = !quotationsLoaded;
 		quotationsError = '';
 		try {
 			const response = await fetch(backendUrl('/api/cotizar'), {
@@ -180,6 +214,9 @@
 			quotations = await response.json();
 		} catch (loadError) {
 			quotationsError = loadError instanceof Error ? loadError.message : 'Error cargando cotizaciones.';
+		} finally {
+			quotationsLoading = false;
+			quotationsLoaded = true;
 		}
 	}
 
@@ -260,7 +297,7 @@
 	async function loadProducts() {
 		if (!token) return;
 
-		loading = true;
+		loading = !productsLoaded;
 		error = '';
 
 		try {
@@ -287,6 +324,7 @@
 			error = loadError instanceof Error ? loadError.message : 'Error cargando productos.';
 		} finally {
 			loading = false;
+			productsLoaded = true;
 		}
 	}
 
@@ -332,6 +370,7 @@
 				? 'Producto actualizado correctamente.'
 				: 'Producto creado correctamente.';
 			editingProduct = null;
+			showProductForm = false;
 		} catch (saveError) {
 			error = saveError instanceof Error ? saveError.message : 'Error guardando producto.';
 		} finally {
@@ -445,26 +484,45 @@
 				<strong>{metrics.outOfStock}</strong>
 			</article>
 			<article class="metric card">
-				<p>Último agregado</p>
-				<strong>{metrics.lastAdded}</strong>
+				<p>Cotizaciones pendientes</p>
+				<strong>{pendingQuotations}</strong>
 			</article>
 		</section>
 
+		<div class="view-tabs" role="group" aria-label="Secciones de administración">
+			<button type="button" aria-pressed={activeView === 'cotizaciones'} class:active={activeView === 'cotizaciones'} onclick={() => activeView = 'cotizaciones'}>Cotizaciones</button>
+			<button type="button" aria-pressed={activeView === 'productos'} class:active={activeView === 'productos'} onclick={() => activeView = 'productos'}>Productos</button>
+		</div>
 		<section class="stacked">
+			{#if activeView === 'cotizaciones'}
 			<section class="panel card">
 				<div class="panel-head">
 					<div>
 						<h2>Cotizaciones solicitadas</h2>
-						<p>Últimas 100 solicitudes recibidas.</p>
+						<p>{filteredQuotations.length} de {quotations.length} solicitudes.</p>
 					</div>
 					<button class="refresh" type="button" onclick={loadQuotations}>Actualizar</button>
 				</div>
+				<div class="quote-filters">
+					<label for="quote-status">Estado
+						<select id="quote-status" bind:value={quoteStatus}>
+							<option value="pendiente">Pendientes ({pendingQuotations})</option>
+							<option value="todas">Todas</option>
+							{#each Object.entries(statusLabels).filter(([key]) => key !== 'pendiente') as [key, label] (key)}
+								<option value={key}>{label}</option>
+							{/each}
+						</select>
+					</label>
+					<label for="quote-search">Buscar
+						<input id="quote-search" type="search" placeholder="Cliente, empresa, correo o RUT" bind:value={quoteSearchTerm} />
+					</label>
+				</div>
 				{#if quotationsError}<p class="feedback error">{quotationsError}</p>{/if}
-				{#if quotations.length === 0 && !quotationsError}<p>Sin cotizaciones registradas.</p>{/if}
+				{#if quotationsLoading}<Loader />{:else if filteredQuotations.length === 0 && !quotationsError}<p>Sin cotizaciones para este filtro.</p>{/if}
 				<div class="quotation-list">
-					{#each quotations as quotation (quotation._id)}
-						<article class="quotation">
-							<div><strong>{quotation.nombre}</strong> · {quotation.tipoCliente || 'Tipo no indicado'}{#if quotation.empresa} · {quotation.empresa}{/if} · {new Date(quotation.createdAt).toLocaleString('es-CL')}</div>
+					{#each filteredQuotations as quotation (quotation._id)}
+						<details class="quotation">
+							<summary><strong>{quotation.nombre}</strong><span>{quotation.empresa || quotation.tipoCliente || 'Cliente'}</span><span class="quote-state">{statusLabels[quotation.estado || 'pendiente']}</span><time datetime={quotation.createdAt}>{new Date(quotation.createdAt).toLocaleDateString('es-CL')}</time></summary>
 							<div><a href={`mailto:${quotation.correo}`}>{quotation.correo}</a> · {quotation.contacto} · RUT {quotation.rut}</div>
 							<div>Despacho: {quotation.direccion}</div>
 							<ul>{#each quotation.productos as producto, position (position)}<li>{producto.nombre} · {producto.varianteSku || producto.id} × {producto.cantidad}</li>{/each}</ul>
@@ -476,16 +534,21 @@
 									{/each}
 								</select>
 							</label>
-						</article>
+						</details>
 						{/each}
 				</div>
 			</section>
+			{:else}
+			{#if showProductForm}
+			<div bind:this={productFormAnchor} class="form-anchor">
 			<ProductForm
 				product={editingProduct}
 				loading={saving}
 				onSubmit={saveProduct}
 				onCancel={cancelEditing}
 			/>
+			</div>
+			{/if}
 
 			<section class="panel card">
 				<div class="panel-head">
@@ -497,19 +560,23 @@
 						</p>
 					</div>
 					<div class="panel-actions">
+						<button class="refresh" type="button" onclick={startCreating}>Nuevo producto</button>
 						<button class="refresh" type="button" onclick={loadProducts}>Refrescar</button>
 						<button class="refresh" type="button" onclick={exportProductsCsv}>Exportar CSV</button>
 					</div>
 				</div>
 
 				<div class="search-row">
-					<label for="product-search">Buscar por codigo o nombre</label>
-					<input
-						id="product-search"
-						type="search"
-						placeholder="Ej: VGV-0049 o Codo 90"
-						bind:value={searchTerm}
-					/>
+					<label for="product-search">Buscar por código o nombre
+						<input id="product-search" type="search" placeholder="Ej: VGV-0049 o Codo 90" bind:value={searchTerm} />
+					</label>
+					<label for="product-status">Disponibilidad
+						<select id="product-status" bind:value={productStatus}>
+							<option value="todos">Todos</option>
+							<option value="disponible">Disponibles</option>
+							<option value="sin stock">Sin stock</option>
+						</select>
+					</label>
 				</div>
 
 				{#if error}
@@ -520,24 +587,40 @@
 					<p class="feedback ok">{notice}</p>
 				{/if}
 
-				<ProductTable
-					products={filteredProducts}
-					loadingId={actionLoadingId}
-					onEdit={startEditing}
-					onToggleStatus={toggleStatus}
-					onDelete={deleteProduct}
-				/>
+				{#if filteredProducts.length === 0}
+					<p>No hay productos para esta búsqueda.</p>
+				{:else}
+					<ProductTable
+						products={filteredProducts}
+						loadingId={actionLoadingId}
+						onEdit={startEditing}
+						onToggleStatus={toggleStatus}
+						onDelete={deleteProduct}
+					/>
+				{/if}
 			</section>
+			{/if}
 		</section>
 	{/if}
 </section>
 
 <style>
-	.quotation-list { display: grid; gap: 0.75rem; max-height: 440px; overflow-y: auto; }
-	.quotation { border-bottom: 1px solid #d9e5f2; padding-bottom: 0.75rem; overflow-wrap: anywhere; }
-	.quotation div { margin-bottom: 0.3rem; }
+	.view-tabs { display: flex; gap: 0.3rem; border-bottom: 1px solid var(--vgv-border-soft); }
+	.view-tabs button { border: none; border-bottom: 3px solid transparent; background: transparent; color: var(--vgv-azul-oscuro); padding: 0.8rem 1.1rem; font-weight: 700; cursor: pointer; }
+	.view-tabs button.active { border-color: var(--vgv-verde); }
+	.form-anchor { scroll-margin-top: 1rem; }
+	.quotation-list { display: grid; }
+	.quotation { border-bottom: 1px solid #d9e5f2; padding: 0.85rem 0; overflow-wrap: anywhere; }
+	.quotation summary { display: grid; grid-template-columns: minmax(10rem, 1.4fr) minmax(8rem, 1fr) auto auto; align-items: center; gap: 0.8rem; cursor: pointer; }
+	.quotation summary strong { color: var(--vgv-azul-oscuro); }
+	.quotation summary time { color: var(--vgv-gris); white-space: nowrap; }
+	.quote-state { color: var(--vgv-verde-oscuro); font-weight: 700; }
+	.quotation div { margin: 0.55rem 0; }
 	.quotation ul { margin: 0.25rem 0; }
 	.quotation-status { display: flex; align-items: center; gap: 0.65rem; font-weight: 700; }
+	.quote-filters { display: grid; grid-template-columns: minmax(170px, 220px) minmax(220px, 1fr); gap: 1rem; }
+	.quote-filters label { display: grid; gap: 0.4rem; font-weight: 700; }
+	.quote-filters input, .quote-filters select { width: 100%; min-width: 0; }
 	.admin-shell {
 		display: flex;
 		flex-direction: column;
@@ -619,18 +702,21 @@
 	}
 
 	.search-row {
-		display: flex;
-		flex-direction: column;
-		gap: 0.4rem;
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(180px, 220px);
+		gap: 1rem;
 	}
 
 	.search-row label {
+		display: grid;
+		gap: 0.4rem;
 		font-weight: 700;
 		color: var(--vgv-azul-oscuro);
 	}
 
-	.search-row input {
-		width: min(100%, 420px);
+	.search-row input, .search-row select {
+		width: 100%;
+		min-width: 0;
 	}
 
 	.logout,
@@ -677,6 +763,9 @@
 	}
 
 	@media (max-width: 700px) {
+		.quote-filters { grid-template-columns: 1fr; }
+		.quotation summary { grid-template-columns: 1fr auto; }
+		.search-row { grid-template-columns: 1fr; }
 		.hero,
 		.panel-head {
 			flex-direction: column;

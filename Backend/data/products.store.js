@@ -65,7 +65,7 @@ function buildProductCode(producto = {}) {
 }
 
 function normalizeVariantes(variantes, fallbackId = "") {
-	const source = Array.isArray(variantes) && variantes.length > 0 ? variantes : seedVariantsById.get(String(fallbackId));
+	const source = Array.isArray(variantes) ? variantes : seedVariantsById.get(String(fallbackId));
 	if (!Array.isArray(source)) return [];
 
 	return source
