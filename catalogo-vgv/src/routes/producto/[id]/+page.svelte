@@ -32,7 +32,6 @@
 			agregarAlCarrito({
 				id: producto.id,
 				nombre: `${producto.nombre} · ${variante.medida}`,
-				precio: Number(variante.precio ?? producto.precio ?? 0),
 				descripcion: `${producto.descripcion} (SKU ${variante.sku})`,
 				imagen: producto.imagen,
 				categoria: producto.categoria,

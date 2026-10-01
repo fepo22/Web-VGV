@@ -5,8 +5,6 @@
 
 	let nombre = $state('');
 	let codigo = $state('');
-	let precio = $state('');
-	let precioDescuento = $state('');
 	let descripcion = $state('');
 	let categoriaSlug = $state('sin-categoria');
 	let categoria = $state('Sin categoria');
@@ -31,11 +29,6 @@
 	function syncForm() {
 		nombre = product?.nombre ?? '';
 		codigo = product?.codigo ?? '';
-		precio = product?.precio ?? '';
-		precioDescuento =
-			product?.precioDescuento == null || product?.precioDescuento === ''
-				? ''
-				: String(product.precioDescuento);
 		descripcion = product?.descripcion ?? '';
 		categoriaSlug =
 			(product?.categoriaSlug ?? slugify(product?.categoria || '')) || 'sin-categoria';
@@ -45,7 +38,15 @@
 		estado = product?.estado === 'sin stock' ? 'sin stock' : 'disponible';
 		variantesJson =
 			Array.isArray(product?.variantes) && product.variantes.length
-				? JSON.stringify(product.variantes, null, 2)
+				? JSON.stringify(
+						product.variantes.map((variante) => ({
+							sku: variante.sku,
+							medida: variante.medida,
+							minima: variante.minima
+						})),
+						null,
+						2
+					)
 				: '';
 	}
 
@@ -64,7 +65,11 @@
 				if (!Array.isArray(parsed)) {
 					throw new Error('El JSON de variantes debe ser un arreglo.');
 				}
-				variantes = parsed;
+				variantes = parsed.map((variante) => ({
+					sku: variante?.sku,
+					medida: variante?.medida,
+					minima: variante?.minima
+				}));
 			} catch (error) {
 				window.alert(
 					error instanceof Error
@@ -78,8 +83,6 @@
 		await onSubmit?.({
 			nombre: nombre.trim(),
 			codigo: codigo.trim(),
-			precio: Number(precio),
-			precioDescuento: precioDescuento === '' ? null : Number(precioDescuento),
 			descripcion: descripcion.trim(),
 			categoria: categoria.trim() || categoriaDesdeSlug(categoriaSlug),
 			categoriaSlug: categoriaSlug.trim() || slugify(categoria),
@@ -123,16 +126,6 @@
 		<label>
 			Codigo
 			<input bind:value={codigo} type="text" placeholder="VGV-0001" required />
-		</label>
-
-		<label>
-			Precio
-			<input bind:value={precio} type="number" min="0" step="1" placeholder="0" required />
-		</label>
-
-		<label>
-			Precio descuento (opcional)
-			<input bind:value={precioDescuento} type="number" min="0" step="1" placeholder="Ej: 19990" />
 		</label>
 
 		<label>

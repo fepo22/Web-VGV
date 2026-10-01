@@ -10,19 +10,6 @@
 		return Array.isArray(producto.variantes) && producto.variantes.length > 0;
 	}
 
-	function getDescuentoTexto() {
-		const precio = Number(producto?.precio ?? 0);
-		const precioDescuento = Number(producto?.precioDescuento ?? 0);
-		if (precioDescuento > 0 && precioDescuento < precio) {
-			const pctAuto = Math.max(1, Math.round(((precio - precioDescuento) / precio) * 100));
-			return `${pctAuto}% OFF`;
-		}
-
-		if (!producto.oferta) return 'Oferta';
-		const pct = Number(producto.descuentoPct);
-		return Number.isFinite(pct) ? `${Math.max(1, Math.round(pct))}% OFF` : 'Oferta';
-	}
-
 	function registrarProductoVisto(id) {
 		if (!browser || !id) return;
 
@@ -59,7 +46,7 @@
 	>
 		<div class="img-wrapper">
 			{#if producto.oferta}
-				<span class="badge-oferta">{getDescuentoTexto()}</span>
+				<span class="badge-oferta">Oferta</span>
 			{/if}
 			<img
 				src={producto.imagen}
