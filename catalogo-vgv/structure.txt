@@ -94,7 +94,6 @@ Web-VGV/
 │  ├─ griferias.html
 │  ├─ index.html
 │  ├─ pegamentos.html
-│  ├─ quienes.html
 │  ├─ robots.txt
 │  ├─ script.js
 │  ├─ sitemap.xml

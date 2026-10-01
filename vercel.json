@@ -14,6 +14,9 @@
       ]
     }
   },
+  "redirects": [
+    { "source": "/quienes.html", "destination": "/quienes-somos", "permanent": true }
+  ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": { "service": "backend" } },
     { "source": "/auth/(.*)", "destination": { "service": "backend" } },

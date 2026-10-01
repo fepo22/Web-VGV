@@ -62,6 +62,7 @@
 		{:else}
 			<button class="link-btn" type="button" onclick={volverAlInicio}>Volver al inicio</button>
 			<a href={resolve('/catalogo')}>Catálogo</a>
+			<a href={resolve('/quienes-somos')}>Quiénes somos</a>
 			<a href={resolve('/cuenta')}>Mi cuenta</a>
 			<button class="cart-link link-btn" type="button" onclick={() => carritoLateralAbierto.set(true)} aria-label="Ver carrito">
 				Carrito

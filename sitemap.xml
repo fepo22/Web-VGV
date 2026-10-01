@@ -35,7 +35,7 @@
 
   <!-- Páginas corporativas -->
   <url>
-    <loc>https://www.vgv.cl/quienes.html</loc>
+    <loc>https://www.vgv.cl/quienes-somos</loc>
     <changefreq>yearly</changefreq>
     <priority>0.7</priority>
   </url>

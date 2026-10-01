@@ -95,7 +95,7 @@ app.use(express.static(PUBLIC_ASSETS_DIR, { index: false }));
 const LEGACY_ROUTE_REDIRECTS = {
   "/index.html": "/",
   "/ofertas.html": "/catalogo",
-  "/quienes.html": "/",
+  "/quienes.html": "/quienes-somos",
   "/contacto.html": "/checkout",
   "/cotizar.html": "/checkout",
   "/calefaccion.html": "/catalogo?linea=calefont-calefaccion",

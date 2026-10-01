@@ -113,7 +113,7 @@
 		<ul>
 			<li><a href={resolve('/catalogo')}>Catálogo</a></li>
 			<li><a href={resolve('/cuenta')}>Mi cuenta</a></li>
-			<li><a href={resolve('/catalogo')}>Quiénes somos</a></li>
+			<li><a href={resolve('/quienes-somos')}>Quiénes somos</a></li>
 			<li><a href={resolve('/contacto')}>Contacto</a></li>
 		</ul>
 	</nav>
