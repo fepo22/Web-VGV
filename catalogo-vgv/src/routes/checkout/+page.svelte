@@ -8,6 +8,7 @@
 	let errorEnvio = $state('');
 	let formValues = $state({
 		nombreApellido: '',
+		tipoCliente: '',
 		empresa: '',
 		rut: '',
 		direccion: '',
@@ -32,13 +33,14 @@
 
 		const formData = new FormData(event.currentTarget);
 		const nombre = String(formData.get('nombreApellido') || '').trim();
+		const tipoCliente = String(formData.get('tipoCliente') || '').trim();
 		const empresa = String(formData.get('empresa') || '').trim();
 		const correo = String(formData.get('mail') || '').trim();
 		const contacto = String(formData.get('contacto') || '').trim();
 		const rut = String(formData.get('rut') || '').trim();
 		const direccion = String(formData.get('direccion') || '').trim();
 
-		if (!nombre || !empresa || !correo || !contacto || !rut || !direccion) {
+		if (!nombre || !tipoCliente || (tipoCliente === 'constructora' && !empresa) || !correo || !contacto || !rut || !direccion) {
 			errorEnvio = 'Completa todos los campos antes de enviar la solicitud.';
 			enviando = false;
 			return;
@@ -57,7 +59,7 @@
 					'content-type': 'application/json'
 				},
 				body: JSON.stringify({
-					nombre, correo, empresa, rut, contacto, direccion,
+					nombre, tipoCliente, correo, empresa, rut, contacto, direccion,
 					productos: items.map(({ id, nombre, cantidad, varianteSku, varianteMedida }) => ({
 						id, nombre, cantidad, varianteSku, varianteMedida
 					}))
@@ -79,6 +81,7 @@
 			vaciarCarrito();
 			formValues = {
 				nombreApellido: '',
+				tipoCliente: '',
 				empresa: '',
 				rut: '',
 				direccion: '',
@@ -115,8 +118,16 @@
 				required
 			/>
 
+			<label for="tipo-cliente">Tipo de cliente</label>
+			<select id="tipo-cliente" name="tipoCliente" bind:value={formValues.tipoCliente} required>
+				<option value="" disabled>Selecciona una opción</option>
+				<option value="constructora">Constructora</option>
+				<option value="instalador/contratista">Instalador/contratista</option>
+				<option value="particular">Particular</option>
+			</select>
+
 			<label for="empresa">Empresa</label>
-			<input id="empresa" name="empresa" type="text" bind:value={formValues.empresa} required />
+			<input id="empresa" name="empresa" type="text" bind:value={formValues.empresa} required={formValues.tipoCliente === 'constructora'} />
 
 			<label for="rut">RUT</label>
 			<input
@@ -219,7 +230,8 @@
 		margin: 0.7rem 0 0.35rem;
 	}
 
-	input {
+	input,
+	select {
 		width: 100%;
 	}
 

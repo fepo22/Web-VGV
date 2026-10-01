@@ -22,7 +22,6 @@ export function mapProduct(producto) {
 		estado: String(
 			producto.estado || (Number(producto.stock ?? 0) > 0 ? 'disponible' : 'sin stock')
 		),
-		oferta: Boolean(producto.oferta),
 		variantes
 	};
 }

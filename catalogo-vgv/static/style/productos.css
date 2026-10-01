@@ -204,103 +204,11 @@
 
 
 /* ============================================================
-   OFERTAS — Estilo de tarjetas premium
-============================================================ */
-.hero-ofertas {
-  padding: 100px 20px 80px;
-}
-
-.eyebrow {
-  display: inline-block;
-  margin-bottom: 12px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: rgba(255,255,255,0.2);
-  font-size: 0.9rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.ofertas-section {
-  margin-top: -20px;
-  padding-bottom: 60px;
-}
-
-.ofertas-grid {
-  align-items: stretch;
-}
-
-.oferta-card {
-  padding: 20px;
-}
-
-.oferta-card .precio {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin: 12px 0 8px;
-  font-weight: 700;
-  color: var(--azul);
-}
-
-.oferta-card .old-price {
-  color: #888;
-  text-decoration: line-through;
-  font-size: 0.95rem;
-}
-
-.oferta-card .new-price {
-  color: var(--verde-oscuro);
-  font-size: 1.05rem;
-}
-
-.oferta-card .descuento {
-  display: inline-block;
-  margin-bottom: 12px;
-  padding: 6px 10px;
-  background: #fff4d6;
-  color: #8a5a00;
-  border-radius: 999px;
-  font-weight: 700;
-}
-
-.oferta-card .btn-agregar {
-  display: inline-block;
-  margin-top: 0.45rem;
-  background: linear-gradient(135deg, var(--azul), var(--azul-claro));
-  color: #fff;
-  padding: 0.6rem 1rem;
-  border: none;
-  border-radius: 999px;
-  font-weight: 700;
-  text-decoration: none;
-  cursor: pointer;
-  transition:
-    transform 0.12s ease,
-    box-shadow 0.12s ease;
-  box-shadow: 0 8px 18px rgba(0, 87, 160, 0.16);
-}
-
-.oferta-card .btn-agregar:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 20px rgba(0, 87, 160, 0.22);
-}
-
-.oferta-card .btn-agregar:active {
-  transform: scale(0.97);
-}
-
-/* ============================================================
    RESPONSIVE
 ============================================================ */
 @media (max-width: 768px) {
   .hero h1 {
     font-size: 36px;
-  }
-
-  .hero-ofertas h1 {
-    font-size: 32px;
   }
 
   .detalle .card {

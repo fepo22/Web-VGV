@@ -45,9 +45,6 @@
 		onclick={() => registrarProductoVisto(producto.id)}
 	>
 		<div class="img-wrapper">
-			{#if producto.oferta}
-				<span class="badge-oferta">Oferta</span>
-			{/if}
 			<img
 				src={producto.imagen}
 				alt={producto.nombre}
@@ -126,19 +123,6 @@
 		border-radius: 14px;
 		overflow: hidden;
 		position: relative;
-	}
-
-	.badge-oferta {
-		position: absolute;
-		top: 0.55rem;
-		left: 0.55rem;
-		padding: 0.2rem 0.55rem;
-		border-radius: 999px;
-		background: var(--color-warning-bg);
-		color: var(--color-warning-text);
-		font-size: 0.72rem;
-		font-weight: 800;
-		letter-spacing: 0.02em;
 	}
 
 	img {

@@ -104,7 +104,6 @@ export const products = [
   {
     id: 10,
     nombre: "Termo eléctrico mural 120 litros Splendid",
-    oferta: true,
     descripcion: "Termo eléctrico para instalación en pared, ideal para agua caliente eficiente.\n\nTanque interno enlozado.\nSistema de aislamiento en poliuretano expandido.\nIndicador de temperatura.\nSelector de temperatura.\nConexión 220 V.\nSistema de seguridad para sobrepresión.\nVálvula anti-retorno.",
     imagen: "/images/termo.png",
     categoria: "Calefont y calefacción",
@@ -114,7 +113,6 @@ export const products = [
   {
     id: 14,
     nombre: "Portátil 9000 BTU Frío/Calor Splendid",
-    oferta: true,
     descripcion: "Función Frío/Calor\nIdeal para verano e invierno\nWiFi: Controla desde tu smartphone\nAutocondensación\nDiseño compacto\nFácil instalación",
     imagen: "/images/ofertas/portable_9000.jpg",
     categoria: "Calefont y calefacción",
@@ -124,7 +122,6 @@ export const products = [
   {
     id: 15,
     nombre: "Portátil 12000 BTU Frío/Calor WiFi Splendid",
-    oferta: true,
     descripcion: "Calefacción y enfriamiento\nWiFi: Controla desde tu smartphone\nAutocondensación\nDiseño compacto\nFácil instalación",
     imagen: "/images/ofertas/portable_12000_wifi.jpg",
     categoria: "Calefont y calefacción",
@@ -134,7 +131,6 @@ export const products = [
   {
     id: 16,
     nombre: "Jarra purificadora de agua potable",
-    oferta: true,
     descripcion: "Jarra de filtrado para mejorar sabor y calidad del agua de consumo diario.",
     imagen: "/images/ofertas/jarra_purificadora.jpg",
     categoria: "Griferías y sanitarios",
@@ -144,7 +140,6 @@ export const products = [
   {
     id: 17,
     nombre: "Filtro Purificador Triple",
-    oferta: true,
     descripcion: "Sistema de purificación de tres etapas para agua más limpia en el hogar.",
     imagen: "/images/ofertas/filtro_purificador_triple.png",
     categoria: "Griferías y sanitarios",
@@ -154,7 +149,6 @@ export const products = [
   {
     id: 18,
     nombre: "Pomel 1' x 104mm",
-    oferta: true,
     descripcion: "Accesorio de conexión para instalaciones sanitarias y de canalización.",
     imagen: "/images/ofertas/pomel_1x104.jpg",
     categoria: "Consumibles de obra",
@@ -430,7 +424,6 @@ export const products = [
     categoria: "Canalización",
     categoriaSlug: "canalizacion",
     stock: 1,
-    oferta: false,
     variantes: [
       { sku: "C90-20", medida: "20mm", minima: 1 },
       { sku: "C90-25", medida: "25mm", minima: 1 },

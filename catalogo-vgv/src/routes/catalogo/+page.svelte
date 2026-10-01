@@ -11,10 +11,6 @@
 	let cargando = $state(true);
 	let errorCarga = $state('');
 
-	function ordenarConOfertasPrimero(lista) {
-		return [...lista].sort((a, b) => Number(Boolean(b.oferta)) - Number(Boolean(a.oferta)));
-	}
-
 	function productoDisponible(producto) {
 		return (
 			Number(producto?.stock ?? 0) > 0 && String(producto?.estado ?? 'disponible') !== 'sin stock'
@@ -22,24 +18,15 @@
 	}
 
 	const categoriaActiva = $derived($page.url.searchParams.get('linea') ?? 'todas');
-	const soloOfertas = $derived($page.url.searchParams.get('ofertas') === '1');
 	const productosDisponibles = $derived(productos.filter(productoDisponible));
 	const productosPorCategoria = $derived(
 		categoriaActiva === 'todas'
 			? productosDisponibles
 			: productosDisponibles.filter((producto) => producto.categoriaSlug === categoriaActiva)
 	);
-	const productosFiltrados = $derived(
-		soloOfertas
-			? ordenarConOfertasPrimero(
-					productosPorCategoria.filter((producto) => Boolean(producto.oferta))
-				)
-			: ordenarConOfertasPrimero(productosPorCategoria)
-	);
 	const tituloCategoria = $derived(
 		categorias.find((c) => c.slug === categoriaActiva)?.nombre ?? 'Todas las líneas'
 	);
-	const tituloFiltro = $derived(soloOfertas ? `${tituloCategoria} en oferta` : tituloCategoria);
 
 	async function cargarProductos() {
 		cargando = true;
@@ -73,10 +60,6 @@
 			<h2>Todas</h2>
 			<p>Ver catálogo completo</p>
 		</a>
-		<a class="linea-card oferta" href={resolve('/catalogo?linea=todas&ofertas=1')}>
-			<h2>Ofertas</h2>
-			<p>Ver solo productos en oferta</p>
-		</a>
 		{#each categorias as categoria (categoria.slug)}
 			<a class="linea-card" href={resolve(`/catalogo?linea=${categoria.slug}`)}>
 				<h2>{categoria.nombre}</h2>
@@ -85,7 +68,7 @@
 		{/each}
 	</section>
 
-	<p class="estado-filtro">Mostrando: <strong>{tituloFiltro}</strong></p>
+	<p class="estado-filtro">Mostrando: <strong>{tituloCategoria}</strong></p>
 
 	{#if cargando}
 		<Loader />
@@ -94,10 +77,10 @@
 			<p>{errorCarga}</p>
 			<button type="button" onclick={cargarProductos}>Reintentar</button>
 		</div>
-	{:else if productosFiltrados.length === 0}
+	{:else if productosPorCategoria.length === 0}
 		<p class="sin-resultados">Aun no hay productos cargados para esta linea.</p>
 	{:else}
-		<ProductGrid productos={productosFiltrados} />
+		<ProductGrid productos={productosPorCategoria} />
 	{/if}
 </section>
 
@@ -130,11 +113,6 @@
 		transform: translateY(-3px);
 		border-color: var(--vgv-azul);
 		box-shadow: 0 10px 24px rgba(0, 87, 160, 0.12);
-	}
-
-	.linea-card.oferta {
-		border-color: rgba(46, 125, 50, 0.35);
-		background: linear-gradient(135deg, rgba(46, 125, 50, 0.08), rgba(255, 255, 255, 0.98));
 	}
 
 	.linea-card h2 {

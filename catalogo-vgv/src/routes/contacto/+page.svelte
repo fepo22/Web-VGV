@@ -152,7 +152,6 @@
 			</a>
 		</div>
 		<ul>
-			<li><a href={resolve('/catalogo?linea=todas&ofertas=1')}>Ofertas</a></li>
 			<li><a href={resolve('/catalogo')}>Catálogo</a></li>
 			<li><a href={resolve('/catalogo')}>Quiénes somos</a></li>
 			<li><a href={resolve('/contacto')} class="active">Contacto</a></li>

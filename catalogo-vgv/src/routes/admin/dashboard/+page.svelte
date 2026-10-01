@@ -427,7 +427,7 @@
 				<div class="quotation-list">
 					{#each quotations as quotation (quotation._id)}
 						<article class="quotation">
-							<div><strong>{quotation.nombre}</strong> · {quotation.empresa} · {new Date(quotation.createdAt).toLocaleString('es-CL')}</div>
+							<div><strong>{quotation.nombre}</strong> · {quotation.tipoCliente || 'Tipo no indicado'}{#if quotation.empresa} · {quotation.empresa}{/if} · {new Date(quotation.createdAt).toLocaleString('es-CL')}</div>
 							<div><a href={`mailto:${quotation.correo}`}>{quotation.correo}</a> · {quotation.contacto} · RUT {quotation.rut}</div>
 							<div>Despacho: {quotation.direccion}</div>
 							<ul>{#each quotation.productos as producto, position (position)}<li>{producto.nombre} · {producto.varianteSku || producto.id} × {producto.cantidad}</li>{/each}</ul>

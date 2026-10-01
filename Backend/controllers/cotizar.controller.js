@@ -5,6 +5,7 @@ import { connectProductsDatabase } from "../data/products.store.js";
 
 const quotationSchema = Joi.object({
   nombre: Joi.string().trim().min(3).max(100).required(),
+  tipoCliente: Joi.string().valid("constructora", "instalador/contratista", "particular").required(),
   correo: Joi.string().trim().email().required(),
   empresa: Joi.string().trim().max(100).allow("").default(""),
   rut: Joi.string().trim().max(30).allow("").default(""),
@@ -21,6 +22,7 @@ const quotationSchema = Joi.object({
 
 const Quotation = mongoose.models.Quotation || mongoose.model("Quotation", new mongoose.Schema({
   nombre: String,
+  tipoCliente: String,
   correo: String,
   empresa: String,
   rut: String,
@@ -51,6 +53,7 @@ export const sendQuotation = async (req, res) => {
       subject: "Nueva cotización desde la web",
       text: `Cotización solicitada por:
 Nombre: ${value.nombre}
+    Tipo de cliente: ${value.tipoCliente}
 Correo: ${value.correo}
 Empresa: ${value.empresa}
 RUT: ${value.rut}

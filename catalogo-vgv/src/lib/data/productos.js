@@ -109,7 +109,6 @@ export const productos = [
 		imagen: '/images/ofertas/portable_9000.jpg',
 		categoria: 'Calefont y calefacción',
 		categoriaSlug: 'calefont-calefaccion',
-		oferta: true,
 	},
 	{
 		id: '15',
@@ -119,7 +118,6 @@ export const productos = [
 		imagen: '/images/ofertas/portable_12000_wifi.jpg',
 		categoria: 'Calefont y calefacción',
 		categoriaSlug: 'calefont-calefaccion',
-		oferta: true,
 	},
 	{
 		id: '16',
@@ -128,7 +126,6 @@ export const productos = [
 		imagen: '/images/ofertas/jarra_purificadora.jpg',
 		categoria: 'Griferías y sanitarios',
 		categoriaSlug: 'griferias-sanitarios',
-		oferta: true,
 	},
 	{
 		id: '17',
@@ -137,7 +134,6 @@ export const productos = [
 		imagen: '/images/ofertas/filtro_purificador_triple.png',
 		categoria: 'Griferías y sanitarios',
 		categoriaSlug: 'griferias-sanitarios',
-		oferta: true,
 	},
 	{
 		id: '18',
@@ -146,7 +142,6 @@ export const productos = [
 		imagen: '/images/ofertas/pomel_1x104.jpg',
 		categoria: 'Consumibles de obra',
 		categoriaSlug: 'consumibles-obra',
-		oferta: true,
 	},
 	{
 		id: '20',
