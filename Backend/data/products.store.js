@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 import { products as seedProducts } from "./products.sample.js";
 
-const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/vgv";
+const MONGO_URI = process.env.MONGO_URI || process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/vgv";
 const MONGO_DB_NAME = process.env.MONGO_DB_NAME || undefined;
 
 let connectionPromise = null;
@@ -140,8 +140,8 @@ function toProductDTO(document) {
 }
 
 export async function connectProductsDatabase() {
-	if (process.env.VERCEL && !process.env.MONGO_URI) {
-		throw new Error("Falta MONGO_URI en el entorno del servicio backend de Vercel");
+	if (process.env.VERCEL && !process.env.MONGO_URI && !process.env.MONGODB_URI) {
+		throw new Error("Falta MONGO_URI o MONGODB_URI en el entorno del servicio backend de Vercel");
 	}
 
 	if (mongoose.connection.readyState === 1) {
