@@ -140,6 +140,10 @@ function toProductDTO(document) {
 }
 
 export async function connectProductsDatabase() {
+	if (process.env.VERCEL && !process.env.MONGO_URI) {
+		throw new Error("Falta MONGO_URI en el entorno del servicio backend de Vercel");
+	}
+
 	if (mongoose.connection.readyState === 1) {
 		return mongoose.connection;
 	}
