@@ -11,7 +11,7 @@
 	let itemsCount = $state(0);
 	let items = $state([]);
 	let panelAbierto = $state(false);
-	let panelElement;
+	let panelElement = $state();
 	let pulse = $state(false);
 
 	const unsubscribe = carrito.subscribe((value) => {

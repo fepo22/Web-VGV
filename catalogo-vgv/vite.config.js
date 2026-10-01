@@ -1,4 +1,5 @@
-import adapter from '@sveltejs/adapter-static';
+import staticAdapter from '@sveltejs/adapter-static';
+import vercelAdapter from '@sveltejs/adapter-vercel';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 
@@ -11,11 +12,9 @@ export default defineConfig({
 					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
 			},
 
-			adapter: adapter({
-				pages: 'dist',
-				assets: 'dist',
-				fallback: 'index.html'
-			})
+			adapter: process.env.VERCEL
+				? vercelAdapter()
+				: staticAdapter({ pages: 'dist', assets: 'dist', fallback: 'index.html' })
 		})
 	]
 });

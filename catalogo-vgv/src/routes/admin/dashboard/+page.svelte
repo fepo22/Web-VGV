@@ -25,6 +25,7 @@
 	let quotationsError = $state('');
 
 	let socket = null;
+	let refreshTimer;
 
 	const metrics = $derived.by(() => {
 		const total = products.length;
@@ -75,9 +76,7 @@
 			auth: { token }
 		});
 
-		socket.on('connect_error', () => {
-			error = 'No se pudo conectar al canal en tiempo real.';
-		});
+		socket.on('connect_error', teardownSocket);
 
 		socket.on('productAdded', (product) => {
 			upsertProduct(product);
@@ -119,10 +118,15 @@
 			setupSocket();
 		});
 		void loadQuotations();
+		refreshTimer = window.setInterval(() => {
+			void loadProducts();
+			void loadQuotations();
+		}, 30_000);
 	});
 
 	onDestroy(() => {
 		teardownSocket();
+		if (refreshTimer) window.clearInterval(refreshTimer);
 	});
 
 	function logout(message = '') {
@@ -393,8 +397,8 @@
 	<header class="hero card">
 		<div>
 			<p class="eyebrow">Panel de administración</p>
-			<h1>Dashboard en tiempo real</h1>
-			<p>Monitorea cambios de productos sin recargar gracias a Socket.io.</p>
+			<h1>Dashboard VGV</h1>
+			<p>Productos y cotizaciones actualizados periódicamente.</p>
 		</div>
 		<button class="logout" type="button" onclick={() => logout('Sesión cerrada correctamente.')}
 			>Cerrar sesión</button
@@ -442,7 +446,7 @@
 							<div><strong>{quotation.nombre}</strong> · {quotation.empresa} · {new Date(quotation.createdAt).toLocaleString('es-CL')}</div>
 							<div><a href={`mailto:${quotation.correo}`}>{quotation.correo}</a> · {quotation.contacto} · RUT {quotation.rut}</div>
 							<div>Despacho: {quotation.direccion}</div>
-							<ul>{#each quotation.productos as producto}<li>{producto.nombre} · {producto.varianteSku || producto.id} × {producto.cantidad}</li>{/each}</ul>
+							<ul>{#each quotation.productos as producto, position (position)}<li>{producto.nombre} · {producto.varianteSku || producto.id} × {producto.cantidad}</li>{/each}</ul>
 						</article>
 						{/each}
 				</div>

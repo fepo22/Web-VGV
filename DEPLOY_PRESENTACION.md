@@ -35,3 +35,11 @@ Con esta configuracion, el backend sirve:
 
 - GitHub Pages no sirve backend Node, por eso no alcanza para demo completa.
 - Este flujo evita separar frontend y backend para la presentacion.
+
+## Vercel Services (alternativa)
+
+Crear un proyecto Vercel con raiz en el repositorio (`.`) y habilitar Services (beta). El archivo `vercel.json` publica SvelteKit en `/` y Express en `/api/*`, `/auth/*`, `/admin/products*` y `/health`. El frontend usa el binding interno `BACKEND_URL` para llamadas de servidor; no configurarlo manualmente ni exponerlo como variable `VITE_*`. Las llamadas del navegador usan el mismo dominio publico.
+
+Configurar en Vercel las variables del backend `MONGO_URI` (MongoDB accesible desde Vercel), `JWT_SECRET`, `SMTP_HOST`, `SMTP_USER` y `SMTP_PASS`. Opcionales: `MONGO_DB_NAME`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_TO_QUOTES`, `SMTP_TO_CONTACT` y `CLIENT_ORIGIN`. Sin MongoDB no funcionan productos ni el historial de cotizaciones; sin SMTP no se envian solicitudes. No se deben subir credenciales al repositorio.
+
+El frontend genera funciones SSR con `adapter-vercel` solo en Vercel; el build Docker conserva `adapter-static`. Socket.IO necesita un servidor persistente: en Vercel el dashboard consulta las actualizaciones cada 30 segundos y mantiene la actualizacion manual. Para probar las rutas y bindings localmente: `npx vercel dev -L` (requiere MongoDB y SMTP para pruebas completas de datos y envio).

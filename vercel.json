@@ -1,0 +1,24 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "backend": {
+      "root": "Backend",
+      "framework": "express",
+      "entrypoint": "server.js"
+    },
+    "catalogo-vgv": {
+      "root": "catalogo-vgv",
+      "framework": "sveltekit-1",
+      "bindings": [
+        { "type": "service", "service": "backend", "format": "url", "env": "BACKEND_URL" }
+      ]
+    }
+  },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": { "service": "backend" } },
+    { "source": "/auth/(.*)", "destination": { "service": "backend" } },
+    { "source": "/admin/products(.*)", "destination": { "service": "backend" } },
+    { "source": "/health", "destination": { "service": "backend" } },
+    { "source": "/(.*)", "destination": { "service": "catalogo-vgv" } }
+  ]
+}

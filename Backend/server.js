@@ -42,7 +42,7 @@ function envFlag(name, fallback = false) {
 const AUTO_SYNC_SEED = envFlag("AUTO_SYNC_SEED", false);
 const AUTO_SYNC_REMOVE_MISSING = envFlag("AUTO_SYNC_REMOVE_MISSING", false);
 
-if (!fs.existsSync(LOG_DIR)) {
+if (!process.env.VERCEL && !fs.existsSync(LOG_DIR)) {
   fs.mkdirSync(LOG_DIR, { recursive: true });
 }
 
@@ -60,13 +60,13 @@ const logger = winston.createLogger({
   format: loggerFormat,
   transports: [
     new winston.transports.Console({ level: "info" }),
-    new DailyRotateFile({
+    ...(!process.env.VERCEL ? [new DailyRotateFile({
       level: "info",
       filename: path.join(LOG_DIR, "app.log"),
       datePattern: "YYYY-MM-DD",
       maxFiles: "14d",
       zippedArchive: false
-    })
+    })] : [])
   ]
 });
 
@@ -74,6 +74,7 @@ const logger = winston.createLogger({
 // APP
 // ===============================
 const app = express();
+app.set("trust proxy", 1);
 const httpServer = createServer(app);
 const isProduction = process.env.NODE_ENV === "production";
 const CATALOG_URL = process.env.CATALOG_URL || (isProduction ? "" : "http://localhost:5173");

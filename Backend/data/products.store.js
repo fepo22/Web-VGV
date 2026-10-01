@@ -147,6 +147,9 @@ export async function connectProductsDatabase() {
 	if (!connectionPromise) {
 		connectionPromise = mongoose.connect(MONGO_URI, {
 			dbName: MONGO_DB_NAME
+		}).catch((error) => {
+			connectionPromise = null;
+			throw error;
 		});
 	}
 

@@ -1,6 +1,7 @@
 import Joi from "joi";
 import mongoose from "mongoose";
 import { createMailTransport, getMailConfig, hasMailConfig } from "../config/mail.js";
+import { connectProductsDatabase } from "../data/products.store.js";
 
 const quotationSchema = Joi.object({
   nombre: Joi.string().trim().min(3).max(100).required(),
@@ -37,6 +38,7 @@ export const sendQuotation = async (req, res) => {
   ).join("\n");
 
   try {
+    await connectProductsDatabase();
     const mailConfig = getMailConfig();
     if (!hasMailConfig(mailConfig)) {
       return res.status(500).json({ error: "Configuracion de correo incompleta en el servidor" });
@@ -69,6 +71,7 @@ ${listado}`
 
 export const getQuotations = async (req, res) => {
   try {
+    await connectProductsDatabase();
     const quotations = await Quotation.find().sort({ createdAt: -1 }).limit(100).lean();
     res.json(quotations);
   } catch (err) {
