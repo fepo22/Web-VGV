@@ -1,6 +1,7 @@
 <script>
 	import '../app.css';
 	import { page } from '$app/state';
+	import favicon from '$lib/assets/favicon.svg';
 
 	import Navbar from '$lib/components/Navbar.svelte';
 	import Footer from '$lib/components/Footer.svelte';
@@ -9,6 +10,10 @@
 	const isAdminRoute = $derived(page.url.pathname.startsWith('/admin'));
 	const isLegacyPage = $derived(page.url.pathname === '/' || page.url.pathname === '/contacto');
 </script>
+
+<svelte:head>
+	<link rel="icon" href={favicon} type="image/svg+xml" />
+</svelte:head>
 
 {#if !isAdminRoute && !isLegacyPage}
 	<Navbar titulo="Catálogo VGV" />
