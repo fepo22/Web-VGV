@@ -1,7 +1,9 @@
 import { browser } from '$app/environment';
 import { writable } from 'svelte/store';
 
-const STORAGE_KEY = 'vgv_cart';
+const STORAGE_KEY = 'vgv_cart_v2';
+const LEGACY_STORAGE_KEY = 'vgv_cart';
+const CART_TTL_MS = 24 * 60 * 60 * 1000;
 
 function normalizeCartItem(item) {
 	return {
@@ -20,12 +22,22 @@ function normalizeCartItem(item) {
 }
 
 function readCart() {
-	if (!browser) return [];
+	const empty = { items: [], expiresAt: null };
+	if (!browser) return empty;
 	try {
-		const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]');
-		return Array.isArray(stored) ? stored.filter(Boolean).map(normalizeCartItem) : [];
+		const saved = localStorage.getItem(STORAGE_KEY);
+		localStorage.removeItem(LEGACY_STORAGE_KEY);
+		if (saved !== null) {
+			const stored = JSON.parse(saved);
+			if (!Array.isArray(stored?.items) || !Number.isFinite(stored.expiresAt) || stored.expiresAt <= Date.now() || stored.expiresAt - Date.now() > CART_TTL_MS) {
+				localStorage.removeItem(STORAGE_KEY);
+				return empty;
+			}
+			return { items: stored.items.filter(Boolean).map(normalizeCartItem), expiresAt: stored.expiresAt };
+		}
+		return empty;
 	} catch {
-		return [];
+		return empty;
 	}
 }
 
@@ -34,25 +46,64 @@ function countItems(items) {
 }
 
 function createCartStore() {
-	const initialValue = readCart();
+	const initial = readCart();
+	const { subscribe, set, update } = writable(initial.items);
+	let expiresAt = initial.expiresAt;
+	let expirationTimer;
 
-	const { subscribe, set, update } = writable(initialValue);
+	function checkExpiration() {
+		if (!browser) return;
+		window.clearTimeout(expirationTimer);
+		if (!expiresAt) return;
+		if (Date.now() >= expiresAt) {
+			expiresAt = null;
+			set([]);
+			return;
+		}
+		expirationTimer = window.setTimeout(checkExpiration, expiresAt - Date.now());
+	}
 
 	const persist = (value) => {
 		if (!browser) return;
-		localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
+		try {
+			if (value.length === 0) {
+				expiresAt = null;
+				localStorage.removeItem(STORAGE_KEY);
+			} else {
+				expiresAt ??= Date.now() + CART_TTL_MS;
+				localStorage.setItem(STORAGE_KEY, JSON.stringify({ items: value, expiresAt }));
+			}
+			checkExpiration();
+		} catch {
+			// El carrito sigue disponible durante esta sesión si el navegador bloquea el almacenamiento.
+		}
 	};
 
 	if (browser) {
+		checkExpiration();
+		let firstEmission = true;
 		subscribe((value) => {
+			if (firstEmission) {
+				firstEmission = false;
+				return;
+			}
 			persist(value);
 		});
+		window.addEventListener('focus', checkExpiration);
+		document.addEventListener('visibilitychange', () => {
+			if (document.visibilityState === 'visible') checkExpiration();
+		});
+	}
+
+	function updateFresh(callback) {
+		checkExpiration();
+		update(callback);
 	}
 
 	return {
 		subscribe,
 		agregar(producto) {
-			update((items) => {
+			updateFresh((items) => {
 				const cartKey =
 					producto.cartKey ||
 					(producto.varianteSku ? `${producto.id}:${producto.varianteSku}` : String(producto.id));
@@ -69,13 +120,14 @@ function createCartStore() {
 			});
 		},
 		getCount() {
-			return countItems(readCart());
+			checkExpiration();
+			return countItems(readCart().items);
 		},
 		eliminar(cartKey) {
-			update((items) => items.filter((item) => item.cartKey !== cartKey));
+			updateFresh((items) => items.filter((item) => item.cartKey !== cartKey));
 		},
 		actualizarCantidad(cartKey, cantidad) {
-			update((items) =>
+			updateFresh((items) =>
 				items.map((item) =>
 					item.cartKey === cartKey ? { ...item, cantidad: Math.max(1, cantidad) } : item
 				)
