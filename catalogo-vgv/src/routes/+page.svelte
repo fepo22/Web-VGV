@@ -3,12 +3,13 @@
 	import { resolve } from '$app/paths';
 	import { familias } from '$lib/data/categorias.js';
 
+	const familiasPortada = familias.filter((familia) => familia.slug !== 'consumibles-obra');
+
 	const familiaImagenes = {
 		'canalizacion-tuberia': '/assets/icons/canalizacion.png',
 		'pegamentos-cementos': '/assets/icons/pegamentos.png',
 		'bano-cocina': '/assets/icons/griferias.png',
-		calefaccion: '/assets/icons/calefaccion.png',
-		'consumibles-obra': '/assets/images/Presec 01 Albañileria.jpg'
+		calefaccion: '/assets/icons/calefaccion.png'
 	};
 
 	const slides = [
@@ -238,7 +239,7 @@
 
 <section id="catalogo" class="catalogo">
 	<div class="grid">
-		{#each familias as familia (familia.slug)}
+		{#each familiasPortada as familia (familia.slug)}
 			<a href={resolve(`/catalogo?familia=${familia.slug}`)} class="card">
 				<img
 					src={familiaImagenes[familia.slug]}
