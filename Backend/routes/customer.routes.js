@@ -6,10 +6,8 @@ import {
 } from "../controllers/customer.controller.js";
 import { getCustomerQuotations } from "../controllers/cotizar.controller.js";
 import { authLimiter } from "../middlewares/rateLimit.js";
-import { sanitizeMiddleware } from "../middlewares/sanitize.js";
 
 const router = Router();
-router.use(sanitizeMiddleware);
 
 router.post("/registrar", authLimiter, registerCustomer);
 router.post("/verificar", authLimiter, verifyCustomer);

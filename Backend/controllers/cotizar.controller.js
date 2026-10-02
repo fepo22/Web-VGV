@@ -21,7 +21,7 @@ const quotationSchema = Joi.object({
   })).required()
 });
 
-const Quotation = mongoose.models.Quotation || mongoose.model("Quotation", new mongoose.Schema({
+const quotationModelSchema = new mongoose.Schema({
   nombre: String,
   tipoCliente: String,
   estado: { type: String, enum: ["pendiente", "cotizacion_enviada", "confirmada", "completada", "desistida"], default: "pendiente" },
@@ -33,7 +33,16 @@ const Quotation = mongoose.models.Quotation || mongoose.model("Quotation", new m
   contacto: String,
   direccion: String,
   productos: [{ id: String, nombre: String, cantidad: Number, varianteSku: String, varianteMedida: String }]
-}, { timestamps: true }));
+}, { timestamps: true });
+
+quotationModelSchema.index({ createdAt: -1 });
+quotationModelSchema.index({ customerId: 1, createdAt: -1 });
+quotationModelSchema.index(
+  { customerId: 1, correo: 1, createdAt: -1 },
+  { collation: { locale: "en", strength: 2 } }
+);
+
+const Quotation = mongoose.models.Quotation || mongoose.model("Quotation", quotationModelSchema);
 
 export const sendQuotation = async (req, res) => {
   const { error, value } = quotationSchema.validate(req.body, { stripUnknown: true });
@@ -45,17 +54,29 @@ export const sendQuotation = async (req, res) => {
 
   try {
     await connectProductsDatabase();
+    const customer = await getCustomerFromRequest(req);
+    await Quotation.create({
+      ...value,
+      correo: value.correo.toLowerCase(),
+      customerId: customer?.profileComplete && customer.email === value.correo.toLowerCase() ? customer._id : null,
+      historialEstados: [{ estado: "pendiente", fecha: new Date(), actor: "sistema" }]
+    });
+
     const mailConfig = getMailConfig();
     if (!hasMailConfig(mailConfig)) {
-      return res.status(500).json({ error: "Configuracion de correo incompleta en el servidor" });
+      return res.status(202).json({
+        ok: true,
+        message: "Solicitud registrada; notificación por correo pendiente de configuración."
+      });
     }
 
     const transporter = createMailTransport(mailConfig);
-    await transporter.sendMail({
-      from: `"${mailConfig.fromName}" <${mailConfig.fromEmail}>`,
-      to: mailConfig.toQuotes,
-      subject: "Nueva cotización desde la web",
-      text: `Cotización solicitada por:
+    try {
+      await transporter.sendMail({
+        from: `"${mailConfig.fromName}" <${mailConfig.fromEmail}>`,
+        to: mailConfig.toQuotes,
+        subject: "Nueva cotización desde la web",
+        text: `Cotización solicitada por:
 Nombre: ${value.nombre}
 Tipo de cliente: ${value.tipoCliente}
 Correo: ${value.correo}
@@ -66,15 +87,15 @@ Dirección: ${value.direccion}
 
 Productos:
 ${listado}`
-    });
+      });
+    } catch (mailError) {
+      console.error("Error notificando cotización por correo:", mailError.message);
+      return res.status(202).json({
+        ok: true,
+        message: "Solicitud registrada; no se pudo enviar la notificación por correo."
+      });
+    }
 
-    const customer = await getCustomerFromRequest(req);
-    await Quotation.create({
-      ...value,
-      correo: value.correo.toLowerCase(),
-      customerId: customer?.profileComplete && customer.email === value.correo.toLowerCase() ? customer._id : null,
-      historialEstados: [{ estado: "pendiente", fecha: new Date(), actor: "sistema" }]
-    });
     res.status(200).json({ ok: true, message: "Cotización enviada correctamente" });
   } catch (err) {
     console.error("Error procesando cotización:", err);

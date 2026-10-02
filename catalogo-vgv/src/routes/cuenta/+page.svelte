@@ -32,7 +32,7 @@
 		const response = await fetch(backendUrl(`/api/clientes${path}`), {
 			method,
 			credentials: 'include',
-			headers: { 'content-type': 'application/json' },
+			...(body ? { headers: { 'content-type': 'application/json' } } : {}),
 			...(body ? { body: JSON.stringify(body) } : {})
 		});
 		const data = await response.json().catch(() => ({}));

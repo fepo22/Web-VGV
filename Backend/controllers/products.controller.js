@@ -1,9 +1,9 @@
 import {
   createProduct,
+  bulkUpsertProductsByCode,
   deleteProductById,
   getProductById as findProductById,
   listProducts,
-  upsertProductByCode,
   updateProductById
 } from "../data/products.store.js";
 import { emitProductEvent } from "../realtime/socket.js";
@@ -284,8 +284,8 @@ export const getAdminProductById = async (req, res) => {
 
 export const bulkImportProductsController = async (req, res) => {
   const rows = req.body?.products;
-  if (!Array.isArray(rows) || rows.length === 0 || rows.length > 10) {
-    return res.status(400).json({ error: "Envía entre 1 y 10 productos por lote." });
+  if (!Array.isArray(rows) || rows.length === 0 || rows.length > 100) {
+    return res.status(400).json({ error: "Envía entre 1 y 100 productos por lote." });
   }
 
   const validRows = [];
@@ -303,6 +303,9 @@ export const bulkImportProductsController = async (req, res) => {
       const precioCosto = parsePositiveNumber(row?.precioCosto, "precio costo");
       if (!nombre || !familia || !subfamilia) {
         throw new Error("Nombre, familia y subfamilia son obligatorios.");
+      }
+      if (codigo.length > 80 || nombre.length > 200) {
+        throw new Error("El código admite hasta 80 caracteres y el nombre hasta 200.");
       }
       if (codesInBatch.has(codigo)) throw new Error("El código está duplicado en este lote.");
       codesInBatch.add(codigo);
@@ -331,14 +334,14 @@ export const bulkImportProductsController = async (req, res) => {
   let created = 0;
   let updated = 0;
   try {
-    for (const { payload } of validRows) {
-      const result = await upsertProductByCode(payload);
+    const results = await bulkUpsertProductsByCode(validRows.map(({ payload }) => payload));
+    for (const result of results) {
       if (result.created) {
         created += 1;
-        emitProductEvent("productAdded", result.product);
+        emitProductEvent("productAdded", withoutCost(result.product));
       } else {
         updated += 1;
-        emitProductEvent("productUpdated", result.product);
+        emitProductEvent("productUpdated", withoutCost(result.product));
       }
     }
     return res.json({ created, updated, errors });
@@ -353,7 +356,7 @@ export const createProductController = async (req, res) => {
     const payload = buildCreatePayload(req.body);
     const created = await createProduct(payload);
 
-    emitProductEvent("productAdded", created);
+    emitProductEvent("productAdded", withoutCost(created));
 
     return res.status(201).json(created);
   } catch (error) {
@@ -371,7 +374,7 @@ export const updateProductController = async (req, res) => {
     const patch = buildUpdatePayload(req.body, currentProduct);
     const updated = await updateProductById(req.params.id, patch);
 
-    emitProductEvent("productUpdated", updated);
+    emitProductEvent("productUpdated", withoutCost(updated));
 
     return res.json(updated);
   } catch (error) {

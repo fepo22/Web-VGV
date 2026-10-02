@@ -3,11 +3,11 @@ import fs from "fs";
 import jwt from "jsonwebtoken";
 import path from "path";
 import { fileURLToPath } from "url";
+import { getJwtSecret } from "../middlewares/auth.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const USERS_FILE = process.env.USERS_FILE || path.join(__dirname, "../data/users.json");
-const JWT_SECRET = process.env.JWT_SECRET || "vgv-dev-secret";
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "8h";
 
 function readUsers() {
@@ -60,7 +60,7 @@ export async function loginAuth(req, res) {
 				username: user.username,
 				role: user.role || "admin"
 			},
-			JWT_SECRET,
+			getJwtSecret(),
 			{ expiresIn: JWT_EXPIRES_IN }
 		);
 

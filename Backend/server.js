@@ -83,6 +83,8 @@ const CATALOG_URL = process.env.CATALOG_URL || (isProduction ? "" : "http://loca
 // Middleware global
 app.use(morgan("combined"));
 app.use(compression());
+app.use("/admin/products/bulk", express.json({ limit: "100kb" }));
+app.use("/api/cotizar", express.json({ limit: "128kb" }));
 app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 
@@ -157,7 +159,11 @@ io.use((socket, next) => {
       return next(new Error("Token no provisto"));
     }
 
-    socket.data.user = verifyJwtToken(token);
+    const user = verifyJwtToken(token);
+    if (user.role !== "admin") {
+      return next(new Error("Acceso exclusivo para administradores"));
+    }
+    socket.data.user = user;
     return next();
   } catch {
     return next(new Error("Token inválido o expirado"));

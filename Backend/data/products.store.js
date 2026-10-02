@@ -43,6 +43,9 @@ const productSchema = new mongoose.Schema(
 	}
 );
 
+productSchema.index({ codigo: 1 });
+productSchema.index({ createdAt: -1, id: -1 });
+
 const ProductModel = mongoose.models.Product || mongoose.model("Product", productSchema);
 
 const seedVariantsById = new Map(
@@ -227,20 +230,48 @@ export async function createProduct(payload) {
 	return toProductDTO(created.toObject());
 }
 
-export async function upsertProductByCode(payload) {
+export async function bulkUpsertProductsByCode(payloads) {
 	await ensureReady();
-	const existing = await ProductModel.findOne({ codigo: payload.codigo }).lean();
-	if (!existing) {
-		return { product: await createProduct(payload), created: true };
+	const codes = payloads.map((payload) => payload.codigo);
+	const existingProducts = await ProductModel.find(
+		{ codigo: { $in: codes } },
+		{ id: 1, codigo: 1, _id: 0 }
+	).lean();
+
+	const existingByCode = new Map(existingProducts.map((product) => [product.codigo, product]));
+	const operations = [];
+	const outcomes = [];
+
+	for (const payload of payloads) {
+		const existing = existingByCode.get(payload.codigo);
+		if (existing) {
+			const patch = Object.fromEntries(
+				Object.entries(payload).filter(([field]) => !["imagen", "stock", "estado"].includes(field))
+			);
+			operations.push({
+				updateOne: {
+					filter: { id: existing.id },
+					update: { $set: patch },
+					runValidators: true
+				}
+			});
+			outcomes.push({ id: existing.id, created: false });
+		} else {
+			const id = new mongoose.Types.ObjectId().toString();
+			operations.push({ insertOne: { document: normalizeEstado({ ...payload, id }) } });
+			outcomes.push({ id, created: true });
+		}
 	}
 
-	const patch = Object.fromEntries(
-		Object.entries(payload).filter(([field]) => !["imagen", "stock", "estado"].includes(field))
-	);
-	return {
-		product: await updateProductById(existing.id, patch),
-		created: false
-	};
+	if (operations.length) await ProductModel.bulkWrite(operations, { ordered: true });
+	const savedProducts = await ProductModel.find(
+		{ id: { $in: outcomes.map((outcome) => outcome.id) } }
+	).lean();
+	const savedById = new Map(savedProducts.map((product) => [String(product.id), toProductDTO(product)]));
+	return outcomes.map((outcome) => ({
+		product: savedById.get(outcome.id),
+		created: outcome.created
+	}));
 }
 
 export async function updateProductById(id, patch) {

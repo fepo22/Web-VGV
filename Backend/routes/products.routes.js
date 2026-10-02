@@ -9,11 +9,10 @@ import {
 } from "../controllers/products.controller.js";
 import authMiddleware from "../middlewares/auth.js";
 import { adminLimiter } from "../middlewares/rateLimit.js";
-import { sanitizeMiddleware } from "../middlewares/sanitize.js";
 
 const router = Router();
 
-router.use(authMiddleware, sanitizeMiddleware, adminLimiter);
+router.use(adminLimiter, authMiddleware);
 
 router.get("/", getAdminProducts);
 router.get("/:id", getAdminProductById);

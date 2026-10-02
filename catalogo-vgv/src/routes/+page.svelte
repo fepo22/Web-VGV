@@ -1,6 +1,15 @@
 <script>
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
+	import { familias } from '$lib/data/categorias.js';
+
+	const familiaImagenes = {
+		'canalizacion-tuberia': '/assets/icons/canalizacion.png',
+		'pegamentos-cementos': '/assets/icons/pegamentos.png',
+		'bano-cocina': '/assets/icons/griferias.png',
+		calefaccion: '/assets/icons/calefaccion.png',
+		'consumibles-obra': '/assets/images/Presec 01 Albañileria.jpg'
+	};
 
 	const slides = [
 		{
@@ -190,7 +199,7 @@
 					<p>{slide.description}</p>
 					<a href={resolve(slide.ctaHref)} class="btn">{slide.ctaText}</a>
 					{#if slide.secondaryHref}
-						<a href="mailto:ventas@vgv.cl" class="btn">{slide.secondaryText}</a>
+						<a href={slide.secondaryHref} class="btn">{slide.secondaryText}</a>
 					{/if}
 				</div>
 			{/if}
@@ -229,58 +238,21 @@
 
 <section id="catalogo" class="catalogo">
 	<div class="grid">
-		<a href={resolve('/catalogo?linea=canalizacion')} class="card">
-			<img
-				src="/assets/icons/canalizacion.png"
-				alt="Canalización de aguas"
-				width="96"
-				height="96"
-				loading="lazy"
-				decoding="async"
-				fetchpriority="low"
-			/>
-			<h3>Canalización</h3>
-			<p>Tuberías, codos, uniones y accesorios PVC y HDPE.</p>
-		</a>
-		<a href={resolve('/catalogo?linea=pegamentos-cementos')} class="card">
-			<img
-				src="/assets/icons/pegamentos.png"
-				alt="Pegamentos y cementos"
-				width="96"
-				height="96"
-				loading="lazy"
-				decoding="async"
-				fetchpriority="low"
-			/>
-			<h3>Pegamentos y cementos</h3>
-			<p>Adhesivos industriales, cementos de contacto y sellantes.</p>
-		</a>
-		<a href={resolve('/catalogo?linea=griferias-sanitarios')} class="card">
-			<img
-				src="/assets/icons/griferias.png"
-				alt="Griferías y sanitarios"
-				width="96"
-				height="96"
-				loading="lazy"
-				decoding="async"
-				fetchpriority="low"
-			/>
-			<h3>Griferías y sanitarios</h3>
-			<p>Llaves, grifos, WC y lavamanos.</p>
-		</a>
-		<a href={resolve('/catalogo?linea=calefont-calefaccion')} class="card">
-			<img
-				src="/assets/icons/calefaccion.png"
-				alt="Calefont y calefacción"
-				width="96"
-				height="96"
-				loading="lazy"
-				decoding="async"
-				fetchpriority="low"
-			/>
-			<h3>Calefont y calefacción</h3>
-			<p>Calefont a gas, radiadores y accesorios de instalación.</p>
-		</a>
+		{#each familias as familia (familia.slug)}
+			<a href={resolve(`/catalogo?familia=${familia.slug}`)} class="card">
+				<img
+					src={familiaImagenes[familia.slug]}
+					alt={familia.nombre}
+					width="96"
+					height="96"
+					loading="lazy"
+					decoding="async"
+					fetchpriority="low"
+				/>
+				<h3>{familia.nombre}</h3>
+				<p>{familia.subfamilias.slice(0, 3).map((item) => item.nombre).join(' · ')}</p>
+			</a>
+		{/each}
 	</div>
 </section>
 

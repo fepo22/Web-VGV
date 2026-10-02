@@ -35,6 +35,8 @@
 	let quoteSearchTerm = $state('');
 	let changingStatusId = $state('');
 	let importingProducts = $state(false);
+	let bulkProgress = $state(0);
+	let bulkTotal = $state(0);
 	let bulkFileInput = $state();
 	const statusLabels = {
 		pendiente: 'Pendiente',
@@ -331,6 +333,8 @@
 				: text.replace(/,/g, '');
 		} else if (text.includes(',')) {
 			text = text.replace(',', '.');
+		} else if (/^\d{1,3}(\.\d{3})+$/.test(text)) {
+			text = text.replace(/\./g, '');
 		}
 		return Number(text);
 	}
@@ -374,6 +378,8 @@
 		const file = input.files?.[0];
 		if (!file) return;
 		importingProducts = true;
+		bulkProgress = 0;
+		bulkTotal = 0;
 		error = '';
 		notice = '';
 		const rowErrors = [];
@@ -383,6 +389,9 @@
 		try {
 			if (!file.name.toLowerCase().endsWith('.xlsx')) {
 				throw new Error('Selecciona un archivo .xlsx.');
+			}
+			if (file.size > 5 * 1024 * 1024) {
+				throw new Error('El archivo Excel no puede superar 5 MB.');
 			}
 			const ExcelJS = (await import('exceljs')).default;
 			const workbook = new ExcelJS.Workbook();
@@ -418,7 +427,7 @@
 			}
 
 			const rows = [];
-			const seenCodes = [];
+			const seenCodes = Object.create(null);
 			for (let rowNumber = 2; rowNumber <= sheet.rowCount; rowNumber += 1) {
 				const row = sheet.getRow(rowNumber);
 				const value = (key) => excelCellValue(row.getCell(columns[key]).value);
@@ -443,8 +452,10 @@
 					const precioCosto = parseExcelCost(rawCost);
 					if (!Number.isFinite(precioCosto) || precioCosto < 0) throw new Error('Precio costo debe ser un número igual o mayor a cero.');
 					const normalizedCode = codigo.replace(/\s+/g, '-').replace(/[^A-Z0-9-_]/g, '');
-					if (seenCodes.includes(normalizedCode)) throw new Error('Código duplicado dentro del archivo.');
-					seenCodes.push(normalizedCode);
+					if (Object.hasOwn(seenCodes, normalizedCode)) {
+						throw new Error('Código duplicado dentro del archivo.');
+					}
+					seenCodes[normalizedCode] = true;
 					rows.push({
 						rowNumber,
 						codigo,
@@ -465,12 +476,13 @@
 				const details = rowErrors.slice(0, 12).map((item) => `Fila ${item.row}: ${item.message}`).join('\n');
 				throw new Error(details || 'No hay filas válidas para importar.');
 			}
+			bulkTotal = rows.length;
 
-			for (let start = 0; start < rows.length; start += 10) {
+			for (let start = 0; start < rows.length; start += 100) {
 				const response = await fetch(backendUrl('/admin/products/bulk'), {
 					method: 'POST',
 					headers: { 'content-type': 'application/json', Authorization: `Bearer ${token}` },
-					body: JSON.stringify({ products: rows.slice(start, start + 10) })
+					body: JSON.stringify({ products: rows.slice(start, start + 100) })
 				});
 				if (response.status === 401) return logout('Tu sesión expiró. Vuelve a iniciar sesión.');
 				const data = await response.json().catch(() => ({}));
@@ -478,6 +490,7 @@
 				created += Number(data.created ?? 0);
 				updated += Number(data.updated ?? 0);
 				rowErrors.push(...(data.errors ?? []));
+				bulkProgress = Math.min(start + 100, rows.length);
 			}
 
 			await loadProducts();
@@ -763,7 +776,9 @@
 						<button class="refresh" type="button" onclick={startCreating}>Nuevo producto</button>
 						<button class="refresh" type="button" onclick={downloadBulkTemplate}>Plantilla Excel</button>
 						<button class="refresh" type="button" disabled={importingProducts} onclick={() => bulkFileInput?.click()}>
-							{importingProducts ? 'Importando...' : 'Subir Excel'}
+							{importingProducts
+								? bulkTotal ? `Importando ${bulkProgress}/${bulkTotal}...` : 'Preparando Excel...'
+								: 'Subir Excel'}
 						</button>
 						<button class="refresh" type="button" onclick={loadProducts}>Refrescar</button>
 						<button class="refresh" type="button" onclick={exportProductsCsv}>Exportar CSV</button>

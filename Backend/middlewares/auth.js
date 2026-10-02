@@ -1,13 +1,21 @@
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET || "vgv-dev-secret";
+  const configuredJwtSecret = process.env.JWT_SECRET;
+  if (!configuredJwtSecret && (process.env.VERCEL || process.env.NODE_ENV === "production")) {
+    throw new Error("Falta JWT_SECRET en producción");
+  }
+  const JWT_SECRET = configuredJwtSecret || "vgv-dev-secret";
+
+export function getJwtSecret() {
+  return JWT_SECRET;
+}
 
 function extractBearerToken(authorization = "") {
 	return authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
 }
 
 export function verifyJwtToken(token) {
-	return jwt.verify(token, JWT_SECRET);
+  return jwt.verify(token, getJwtSecret());
 }
 
 export const authMiddleware = (req, res, next) => {

@@ -1,5 +1,8 @@
 import nodemailer from "nodemailer";
 
+let cachedTransporter = null;
+let cachedTransportConfig = "";
+
 function toBoolean(value, fallback = false) {
   if (typeof value === "boolean") return value;
   if (typeof value !== "string") return fallback;
@@ -36,13 +39,21 @@ export function hasMailConfig(config = getMailConfig()) {
 }
 
 export function createMailTransport(config = getMailConfig()) {
-  return nodemailer.createTransport({
+  const transportConfig = JSON.stringify([config.host, config.port, config.secure, config.user, config.pass]);
+  if (cachedTransporter && cachedTransportConfig === transportConfig) return cachedTransporter;
+  cachedTransporter?.close();
+  cachedTransportConfig = transportConfig;
+  cachedTransporter = nodemailer.createTransport({
     host: config.host,
     port: config.port,
     secure: config.secure,
+    pool: true,
+    maxConnections: 5,
+    maxMessages: 100,
     auth: {
       user: config.user,
       pass: config.pass
     }
   });
+  return cachedTransporter;
 }
