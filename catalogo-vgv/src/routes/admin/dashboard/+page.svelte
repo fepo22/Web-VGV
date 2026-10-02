@@ -7,6 +7,7 @@
 	import Loader from '$lib/components/Loader.svelte';
 	import ProductForm from '$lib/components/ProductForm.svelte';
 	import ProductTable from '$lib/components/ProductTable.svelte';
+	import { familias } from '$lib/data/categorias.js';
 	import { backendUrl, getBackendUrl } from '$lib/utils/backend-url.js';
 
 	const STORAGE_KEY = 'vgv_admin_token';
@@ -33,6 +34,8 @@
 	let quoteStatus = $state('pendiente');
 	let quoteSearchTerm = $state('');
 	let changingStatusId = $state('');
+	let importingProducts = $state(false);
+	let bulkFileInput = $state();
 	const statusLabels = {
 		pendiente: 'Pendiente',
 		cotizacion_enviada: 'Cotización enviada',
@@ -259,6 +262,9 @@
 			'codigo',
 			'id',
 			'nombre',
+			'familia',
+			'subfamilia',
+			'precio costo',
 			'stock',
 			'estado',
 			'categoria'
@@ -270,6 +276,9 @@
 				product.codigo || fallbackCode,
 				product.id,
 				product.nombre,
+				product.familia || product.categoria || '',
+				product.subfamilia || '',
+				Number(product.precioCosto ?? 0),
 				Number(product.stock ?? 0),
 				product.estado || (Number(product.stock ?? 0) > 0 ? 'disponible' : 'sin stock'),
 				product.categoria || ''
@@ -292,6 +301,197 @@
 
 		notice = `CSV exportado con ${products.length} productos.`;
 		error = '';
+	}
+
+	function normalizeExcelLabel(value) {
+		return String(value ?? '')
+			.normalize('NFD')
+			.replace(/[\u0300-\u036f]/g, '')
+			.toLowerCase()
+			.replace(/[^a-z0-9]+/g, ' ')
+			.trim();
+	}
+
+	function excelCellValue(value) {
+		if (value && typeof value === 'object') {
+			if ('result' in value) return value.result;
+			if (Array.isArray(value.richText)) return value.richText.map((part) => part.text).join('');
+			if ('text' in value) return value.text;
+		}
+		return value;
+	}
+
+	function parseExcelCost(value) {
+		if (typeof value === 'number') return value;
+		let text = String(value ?? '').replace(/[^\d,.-]/g, '');
+		if (!/\d/.test(text)) return Number.NaN;
+		if (text.includes(',') && text.includes('.')) {
+			text = text.lastIndexOf(',') > text.lastIndexOf('.')
+				? text.replace(/\./g, '').replace(',', '.')
+				: text.replace(/,/g, '');
+		} else if (text.includes(',')) {
+			text = text.replace(',', '.');
+		}
+		return Number(text);
+	}
+
+	async function downloadBulkTemplate() {
+		try {
+			const ExcelJS = (await import('exceljs')).default;
+			const workbook = new ExcelJS.Workbook();
+			const sheet = workbook.addWorksheet('Productos');
+			sheet.addRow([
+				'CODIGO',
+				'NOMBRE DEL PRODUCTO',
+				'FAMILIA',
+				'SUBFAMILIA',
+				'CATEGORIA',
+				'PRECIO COSTO'
+			]);
+			sheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+			sheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF174B3A' } };
+			sheet.columns = [
+				{ width: 20 }, { width: 34 }, { width: 28 }, { width: 28 }, { width: 26 }, { width: 18 }
+			];
+			sheet.views = [{ state: 'frozen', ySplit: 1 }];
+			const buffer = await workbook.xlsx.writeBuffer();
+			const blob = new Blob([buffer], {
+				type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+			});
+			const url = URL.createObjectURL(blob);
+			const link = document.createElement('a');
+			link.href = url;
+			link.download = 'plantilla-productos-vgv.xlsx';
+			link.click();
+			URL.revokeObjectURL(url);
+		} catch (templateError) {
+			error = templateError instanceof Error ? templateError.message : 'No se pudo generar la plantilla Excel.';
+		}
+	}
+
+	async function importProductsFromExcel(event) {
+		const input = event.currentTarget;
+		const file = input.files?.[0];
+		if (!file) return;
+		importingProducts = true;
+		error = '';
+		notice = '';
+		const rowErrors = [];
+		let created = 0;
+		let updated = 0;
+
+		try {
+			if (!file.name.toLowerCase().endsWith('.xlsx')) {
+				throw new Error('Selecciona un archivo .xlsx.');
+			}
+			const ExcelJS = (await import('exceljs')).default;
+			const workbook = new ExcelJS.Workbook();
+			await workbook.xlsx.load(await file.arrayBuffer());
+			const sheet = workbook.worksheets[0];
+			if (!sheet || sheet.rowCount < 2 || sheet.rowCount > 5001) {
+				throw new Error('El Excel debe incluir datos y no superar 5.000 filas.');
+			}
+
+			const headerIndexes = {};
+			sheet.getRow(1).eachCell((cell, column) => {
+				headerIndexes[normalizeExcelLabel(excelCellValue(cell.value))] = column;
+			});
+			const headerAliases = {
+				codigo: ['codigo', 'code', 'sku'],
+				nombre: ['nombre del producto', 'nombre'],
+				familia: ['familia'],
+				subfamilia: ['subfamilia'],
+				categoria: ['categoria'],
+				precioCosto: ['precio costo', 'precio de costo', 'preciocosto']
+			};
+			const columns = Object.fromEntries(
+				Object.entries(headerAliases).map(([key, aliases]) => [
+					key,
+					aliases.map(normalizeExcelLabel).map((alias) => headerIndexes[alias]).find(Boolean)
+				])
+			);
+			const missingHeaders = Object.entries(columns)
+				.filter(([, column]) => !column)
+				.map(([key]) => key);
+			if (missingHeaders.length) {
+				throw new Error(`Faltan columnas requeridas: ${missingHeaders.join(', ')}.`);
+			}
+
+			const rows = [];
+			const seenCodes = [];
+			for (let rowNumber = 2; rowNumber <= sheet.rowCount; rowNumber += 1) {
+				const row = sheet.getRow(rowNumber);
+				const value = (key) => excelCellValue(row.getCell(columns[key]).value);
+				const codigo = String(value('codigo') ?? '').trim().toUpperCase();
+				const nombre = String(value('nombre') ?? '').trim();
+				const familiaNombre = String(value('familia') ?? '').trim();
+				const subfamiliaNombre = String(value('subfamilia') ?? '').trim();
+				const categoriaNombre = String(value('categoria') ?? '').trim();
+				const rawCost = value('precioCosto');
+				if (![codigo, nombre, familiaNombre, subfamiliaNombre, categoriaNombre, rawCost].some((item) => String(item ?? '').trim())) continue;
+
+				try {
+					const family = familias.find((item) => normalizeExcelLabel(item.nombre) === normalizeExcelLabel(familiaNombre));
+					if (!codigo || !nombre || !family || !subfamiliaNombre || rawCost === '' || rawCost == null) {
+						throw new Error('Completa código, nombre, familia, subfamilia y precio costo.');
+					}
+					const subfamily = family.subfamilias.find((item) => normalizeExcelLabel(item.nombre) === normalizeExcelLabel(subfamiliaNombre));
+					if (!subfamily) throw new Error(`Subfamilia no válida para ${family.nombre}.`);
+					const category = subfamily.categorias?.find((item) => normalizeExcelLabel(item.nombre) === normalizeExcelLabel(categoriaNombre));
+					if (subfamily.categorias?.length && !category) throw new Error(`Selecciona una categoría válida para ${subfamily.nombre}.`);
+					if (!subfamily.categorias?.length && categoriaNombre) throw new Error(`${subfamily.nombre} no lleva categoría adicional.`);
+					const precioCosto = parseExcelCost(rawCost);
+					if (!Number.isFinite(precioCosto) || precioCosto < 0) throw new Error('Precio costo debe ser un número igual o mayor a cero.');
+					const normalizedCode = codigo.replace(/\s+/g, '-').replace(/[^A-Z0-9-_]/g, '');
+					if (seenCodes.includes(normalizedCode)) throw new Error('Código duplicado dentro del archivo.');
+					seenCodes.push(normalizedCode);
+					rows.push({
+						rowNumber,
+						codigo,
+						nombre,
+						familia: family.nombre,
+						familiaSlug: family.slug,
+						subfamilia: subfamily.nombre,
+						subfamiliaSlug: subfamily.slug,
+						categoria: category?.nombre ?? '',
+						categoriaSlug: category?.slug ?? '',
+						precioCosto
+					});
+				} catch (rowError) {
+					rowErrors.push({ row: rowNumber, message: rowError instanceof Error ? rowError.message : 'Fila inválida.' });
+				}
+			}
+			if (!rows.length) {
+				const details = rowErrors.slice(0, 12).map((item) => `Fila ${item.row}: ${item.message}`).join('\n');
+				throw new Error(details || 'No hay filas válidas para importar.');
+			}
+
+			for (let start = 0; start < rows.length; start += 10) {
+				const response = await fetch(backendUrl('/admin/products/bulk'), {
+					method: 'POST',
+					headers: { 'content-type': 'application/json', Authorization: `Bearer ${token}` },
+					body: JSON.stringify({ products: rows.slice(start, start + 10) })
+				});
+				if (response.status === 401) return logout('Tu sesión expiró. Vuelve a iniciar sesión.');
+				const data = await response.json().catch(() => ({}));
+				if (!response.ok) throw new Error(data.error || 'No se pudo importar el lote.');
+				created += Number(data.created ?? 0);
+				updated += Number(data.updated ?? 0);
+				rowErrors.push(...(data.errors ?? []));
+			}
+
+			await loadProducts();
+			notice = `Importación completada: ${created} nuevos y ${updated} actualizados.`;
+			if (rowErrors.length) {
+				error = rowErrors.slice(0, 12).map((item) => `Fila ${item.row}: ${item.message}`).join('\n');
+				if (rowErrors.length > 12) error += `\nY ${rowErrors.length - 12} errores más.`;
+			}
+		} catch (importError) {
+			error = importError instanceof Error ? importError.message : 'No se pudo leer el archivo Excel.';
+		} finally {
+			importingProducts = false;
+			input.value = '';
+		}
 	}
 
 	async function loadProducts() {
@@ -561,10 +761,15 @@
 					</div>
 					<div class="panel-actions">
 						<button class="refresh" type="button" onclick={startCreating}>Nuevo producto</button>
+						<button class="refresh" type="button" onclick={downloadBulkTemplate}>Plantilla Excel</button>
+						<button class="refresh" type="button" disabled={importingProducts} onclick={() => bulkFileInput?.click()}>
+							{importingProducts ? 'Importando...' : 'Subir Excel'}
+						</button>
 						<button class="refresh" type="button" onclick={loadProducts}>Refrescar</button>
 						<button class="refresh" type="button" onclick={exportProductsCsv}>Exportar CSV</button>
 					</div>
 				</div>
+				<input bind:this={bulkFileInput} class="bulk-file-input" type="file" accept=".xlsx" onchange={importProductsFromExcel} />
 
 				<div class="search-row">
 					<label for="product-search">Buscar por código o nombre
@@ -755,6 +960,9 @@
 		background: rgba(76, 175, 80, 0.1);
 		color: var(--vgv-verde-oscuro);
 	}
+
+	.bulk-file-input { display: none; }
+	.feedback.error { white-space: pre-line; }
 
 	@media (max-width: 1000px) {
 		.metrics-grid {

@@ -3,6 +3,7 @@ import {
   deleteProductById,
   getProductById as findProductById,
   listProducts,
+  upsertProductByCode,
   updateProductById
 } from "../data/products.store.js";
 import { emitProductEvent } from "../realtime/socket.js";
@@ -48,6 +49,12 @@ function slugify(value) {
     .replace(/(^-|-$)/g, "");
 }
 
+function withoutCost(product) {
+  const publicProduct = { ...product };
+  delete publicProduct.precioCosto;
+  return publicProduct;
+}
+
 function normalizeVariantesInput(value) {
   if (value == null) return undefined;
   if (!Array.isArray(value)) {
@@ -73,9 +80,14 @@ function buildCreatePayload(body = {}) {
   const nombre = String(body.nombre ?? body.name ?? "").trim();
   const codigo = normalizeCodigo(body.codigo ?? body.code ?? body.sku ?? body.id ?? nombre);
   const descripcion = String(body.descripcion ?? "").trim();
-  const categoria = String(body.categoria ?? "").trim() || "Sin categoria";
-  const categoriaSlug = String(body.categoriaSlug ?? "").trim() || slugify(categoria) || "sin-categoria";
+  const familia = String(body.familia ?? body.categoria ?? "").trim() || "Sin categoria";
+  const familiaSlug = String(body.familiaSlug ?? body.categoriaSlug ?? "").trim() || slugify(familia) || "sin-categoria";
+  const subfamilia = String(body.subfamilia ?? "").trim();
+  const subfamiliaSlug = String(body.subfamiliaSlug ?? "").trim() || slugify(subfamilia);
+  const categoria = body.familia ? String(body.categoria ?? "").trim() : "";
+  const categoriaSlug = body.familia ? String(body.categoriaSlug ?? "").trim() || slugify(categoria) : "";
   const imagen = String(body.imagen ?? body.image ?? "").trim();
+	const precioCosto = parsePositiveNumber(body.precioCosto ?? 0, "precioCosto");
   const stock = parsePositiveNumber(body.stock, "stock");
   const estado = normalizeEstado(body.estado);
   const variantes = normalizeVariantesInput(body.variantes);
@@ -96,8 +108,13 @@ function buildCreatePayload(body = {}) {
     codigo,
     nombre,
     descripcion,
+    familia,
+    familiaSlug,
+    subfamilia,
+    subfamiliaSlug,
     categoria,
     categoriaSlug,
+    precioCosto,
     imagen,
     ...(variantes ? { variantes } : {}),
     stock: estado === "sin stock" ? 0 : stock,
@@ -116,8 +133,13 @@ function buildUpdatePayload(body = {}, currentProduct) {
   const hasEstado = Object.prototype.hasOwnProperty.call(body, "estado");
   const hasVariantes = Object.prototype.hasOwnProperty.call(body, "variantes");
   const hasDescripcion = Object.prototype.hasOwnProperty.call(body, "descripcion");
+  const hasFamilia = Object.prototype.hasOwnProperty.call(body, "familia");
+  const hasFamiliaSlug = Object.prototype.hasOwnProperty.call(body, "familiaSlug");
+  const hasSubfamilia = Object.prototype.hasOwnProperty.call(body, "subfamilia");
+  const hasSubfamiliaSlug = Object.prototype.hasOwnProperty.call(body, "subfamiliaSlug");
   const hasCategoria = Object.prototype.hasOwnProperty.call(body, "categoria");
   const hasCategoriaSlug = Object.prototype.hasOwnProperty.call(body, "categoriaSlug");
+  const hasPrecioCosto = Object.prototype.hasOwnProperty.call(body, "precioCosto");
 
   const hasAnyField =
     hasCodigo ||
@@ -127,8 +149,13 @@ function buildUpdatePayload(body = {}, currentProduct) {
     hasEstado ||
     hasVariantes ||
     hasDescripcion ||
+    hasFamilia ||
+    hasFamiliaSlug ||
+    hasSubfamilia ||
+    hasSubfamiliaSlug ||
     hasCategoria ||
-    hasCategoriaSlug;
+    hasCategoriaSlug ||
+    hasPrecioCosto;
 
   if (!hasAnyField) {
     throw new Error("Debes enviar datos para actualizar el producto.");
@@ -156,6 +183,10 @@ function buildUpdatePayload(body = {}, currentProduct) {
     patch.imagen = imagen;
   }
 
+  if (hasPrecioCosto) {
+    patch.precioCosto = parsePositiveNumber(body.precioCosto, "precioCosto");
+  }
+
   if (hasDescripcion) {
     patch.descripcion = String(body.descripcion ?? "");
   }
@@ -164,12 +195,22 @@ function buildUpdatePayload(body = {}, currentProduct) {
     patch.variantes = normalizeVariantesInput(body.variantes) ?? currentProduct.variantes;
   }
 
-  if (hasCategoria) {
-    patch.categoria = String(body.categoria ?? "").trim() || currentProduct.categoria;
-  }
-
-  if (hasCategoriaSlug) {
-    patch.categoriaSlug = String(body.categoriaSlug ?? "").trim() || currentProduct.categoriaSlug;
+  if (hasFamilia || hasFamiliaSlug || hasSubfamilia || hasSubfamiliaSlug) {
+    patch.familia = String(body.familia ?? currentProduct.familia ?? currentProduct.categoria ?? "Sin categoria").trim();
+    patch.familiaSlug = String(body.familiaSlug ?? currentProduct.familiaSlug ?? currentProduct.categoriaSlug ?? slugify(patch.familia)).trim();
+    patch.subfamilia = String(body.subfamilia ?? currentProduct.subfamilia ?? "").trim();
+    patch.subfamiliaSlug = String(body.subfamiliaSlug ?? currentProduct.subfamiliaSlug ?? slugify(patch.subfamilia)).trim();
+    patch.categoria = String(body.categoria ?? "").trim();
+    patch.categoriaSlug = String(body.categoriaSlug ?? "").trim() || slugify(patch.categoria);
+  } else if (hasCategoria || hasCategoriaSlug) {
+    patch.familia = hasCategoria
+      ? String(body.categoria ?? "").trim() || currentProduct.familia || currentProduct.categoria
+      : currentProduct.familia || currentProduct.categoria;
+    patch.familiaSlug = String(body.categoriaSlug ?? "").trim() || currentProduct.familiaSlug || slugify(patch.familia);
+    patch.subfamilia = "";
+    patch.subfamiliaSlug = "";
+    patch.categoria = "";
+    patch.categoriaSlug = "";
   }
 
   if (hasStock) {
@@ -202,7 +243,16 @@ function buildUpdatePayload(body = {}, currentProduct) {
 export const getProducts = async (req, res) => {
   try {
     const products = await listProducts();
-    return res.json(products);
+    return res.json(products.map(withoutCost));
+  } catch (error) {
+    console.error("Error consultando productos:", error.message);
+    return res.status(500).json({ error: "No se pudieron obtener los productos." });
+  }
+};
+
+export const getAdminProducts = async (req, res) => {
+  try {
+    return res.json(await listProducts());
   } catch (error) {
     console.error("Error consultando productos:", error.message);
     return res.status(500).json({ error: "No se pudieron obtener los productos." });
@@ -216,9 +266,85 @@ export const getProductById = async (req, res) => {
       return res.status(404).json({ error: "Producto no encontrado" });
     }
 
-    return res.json(product);
+    return res.json(withoutCost(product));
   } catch (error) {
     return res.status(500).json({ error: "No se pudo obtener el producto." });
+  }
+};
+
+export const getAdminProductById = async (req, res) => {
+  try {
+    const product = await findProductById(req.params.id);
+    if (!product) return res.status(404).json({ error: "Producto no encontrado" });
+    return res.json(product);
+  } catch {
+    return res.status(500).json({ error: "No se pudo obtener el producto." });
+  }
+};
+
+export const bulkImportProductsController = async (req, res) => {
+  const rows = req.body?.products;
+  if (!Array.isArray(rows) || rows.length === 0 || rows.length > 10) {
+    return res.status(400).json({ error: "Envía entre 1 y 10 productos por lote." });
+  }
+
+  const validRows = [];
+  const errors = [];
+  const codesInBatch = new Set();
+
+  for (const [index, row] of rows.entries()) {
+    const rowNumber = Number(row?.rowNumber) || index + 1;
+    try {
+      const codigo = normalizeCodigo(row?.codigo);
+      const nombre = String(row?.nombre ?? "").trim();
+      const familia = String(row?.familia ?? "").trim();
+      const subfamilia = String(row?.subfamilia ?? "").trim();
+      const categoria = String(row?.categoria ?? "").trim();
+      const precioCosto = parsePositiveNumber(row?.precioCosto, "precio costo");
+      if (!nombre || !familia || !subfamilia) {
+        throw new Error("Nombre, familia y subfamilia son obligatorios.");
+      }
+      if (codesInBatch.has(codigo)) throw new Error("El código está duplicado en este lote.");
+      codesInBatch.add(codigo);
+      validRows.push({
+        rowNumber,
+        payload: {
+          codigo,
+          nombre,
+          familia,
+          familiaSlug: String(row?.familiaSlug ?? slugify(familia)).trim() || slugify(familia),
+          subfamilia,
+          subfamiliaSlug: String(row?.subfamiliaSlug ?? slugify(subfamilia)).trim() || slugify(subfamilia),
+          categoria,
+          categoriaSlug: String(row?.categoriaSlug ?? slugify(categoria)).trim() || slugify(categoria),
+          precioCosto,
+          imagen: "/assets/images/producto-sin-imagen.svg",
+          stock: 0,
+          estado: "sin stock"
+        }
+      });
+    } catch (error) {
+      errors.push({ row: rowNumber, message: error.message || "Fila inválida." });
+    }
+  }
+
+  let created = 0;
+  let updated = 0;
+  try {
+    for (const { payload } of validRows) {
+      const result = await upsertProductByCode(payload);
+      if (result.created) {
+        created += 1;
+        emitProductEvent("productAdded", result.product);
+      } else {
+        updated += 1;
+        emitProductEvent("productUpdated", result.product);
+      }
+    }
+    return res.json({ created, updated, errors });
+  } catch (error) {
+    console.error("Error importando productos:", error.message);
+    return res.status(500).json({ error: "No se pudo completar la importación." });
   }
 };
 

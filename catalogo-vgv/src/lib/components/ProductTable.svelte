@@ -8,6 +8,8 @@
 			<tr>
 				<th>Codigo</th>
 				<th>Nombre</th>
+				<th>Clasificación</th>
+				<th>Precio costo</th>
 				<th>Stock</th>
 				<th>Estado</th>
 				<th>Acciones</th>
@@ -23,6 +25,12 @@
 						<strong>{product.nombre}</strong>
 						<small>ID {product.id}</small>
 					</td>
+					<td>
+						{[product.familia || product.categoria, product.subfamilia, product.familia ? product.categoria : '']
+							.filter(Boolean)
+							.join(' / ') || 'Sin clasificar'}
+					</td>
+					<td>$ {Number(product.precioCosto ?? 0).toLocaleString('es-CL')}</td>
 					<td>{Number(product.stock ?? 0)}</td>
 					<td>
 						<span class={`status-pill ${product.estado === 'disponible' ? 'available' : 'out'}`}>
@@ -70,7 +78,7 @@
 	.product-table {
 		width: 100%;
 		border-collapse: collapse;
-		min-width: 760px;
+		min-width: 1020px;
 	}
 
 	th,

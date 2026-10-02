@@ -7,6 +7,11 @@ const MONGO_DB_NAME = process.env.MONGO_DB_NAME || undefined;
 
 let connectionPromise = null;
 let seeded = false;
+const legacyFamilySlugs = {
+	canalizacion: "canalizacion-tuberia",
+	"griferias-sanitarios": "bano-cocina",
+	"calefont-calefaccion": "calefaccion"
+};
 
 const productSchema = new mongoose.Schema(
 	{
@@ -15,8 +20,13 @@ const productSchema = new mongoose.Schema(
 		nombre: { type: String, required: true },
 		descripcion: { type: String, default: "" },
 		imagen: { type: String, required: true },
+		familia: { type: String, default: "Sin categoria" },
+		familiaSlug: { type: String, default: "sin-categoria" },
+		subfamilia: { type: String, default: "" },
+		subfamiliaSlug: { type: String, default: "" },
 		categoria: { type: String, default: "Sin categoria" },
 		categoriaSlug: { type: String, default: "sin-categoria" },
+		precioCosto: { type: Number, min: 0, default: 0 },
 		variantes: [
 			{
 				sku: { type: String, default: "" },
@@ -87,6 +97,10 @@ function normalizeEstado(producto) {
 	const stock = Number(producto.stock ?? 0);
 	const estado = String(producto.estado || (stock > 0 ? "disponible" : "sin stock")).toLowerCase();
 	const id = String(producto.id);
+	const isLegacyCategory = !producto.familia && Boolean(producto.categoria);
+	const familia = String(producto.familia ?? producto.categoria ?? "Sin categoria");
+	const rawFamiliaSlug = String(producto.familiaSlug ?? producto.categoriaSlug ?? "sin-categoria");
+	const familiaSlug = legacyFamilySlugs[rawFamiliaSlug] ?? rawFamiliaSlug;
 
 	return {
 		id,
@@ -94,8 +108,15 @@ function normalizeEstado(producto) {
 		nombre: String(producto.nombre ?? "").trim(),
 		descripcion: String(producto.descripcion ?? ""),
 		imagen: String(producto.imagen ?? ""),
-		categoria: String(producto.categoria ?? "Sin categoria"),
-		categoriaSlug: String(producto.categoriaSlug ?? "sin-categoria"),
+		familia,
+		familiaSlug,
+		subfamilia: String(producto.subfamilia ?? ""),
+		subfamiliaSlug: String(producto.subfamiliaSlug ?? ""),
+		categoria: isLegacyCategory ? "" : String(producto.categoria ?? ""),
+		categoriaSlug: isLegacyCategory ? "" : String(producto.categoriaSlug ?? ""),
+		precioCosto: Number.isFinite(Number(producto.precioCosto)) && Number(producto.precioCosto) >= 0
+			? Number(producto.precioCosto)
+			: 0,
 		variantes: normalizeVariantes(producto.variantes, id),
 		stock: Number.isFinite(stock) && stock >= 0 ? stock : 0,
 		estado: estado === "sin stock" ? "sin stock" : "disponible",
@@ -204,6 +225,22 @@ export async function createProduct(payload) {
 
 	const created = await ProductModel.create(normalizeEstado({ ...payload, id: String(nextId) }));
 	return toProductDTO(created.toObject());
+}
+
+export async function upsertProductByCode(payload) {
+	await ensureReady();
+	const existing = await ProductModel.findOne({ codigo: payload.codigo }).lean();
+	if (!existing) {
+		return { product: await createProduct(payload), created: true };
+	}
+
+	const patch = Object.fromEntries(
+		Object.entries(payload).filter(([field]) => !["imagen", "stock", "estado"].includes(field))
+	);
+	return {
+		product: await updateProductById(existing.id, patch),
+		created: false
+	};
 }
 
 export async function updateProductById(id, patch) {

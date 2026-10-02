@@ -1,3 +1,4 @@
+import { normalizeFamiliaSlug } from '$lib/data/categorias.js';
 
 export function mapProduct(producto) {
 	const variantes = Array.isArray(producto.variantes)
@@ -16,8 +17,12 @@ export function mapProduct(producto) {
 		nombre: producto.nombre,
 		descripcion: producto.descripcion || '',
 		imagen: producto.imagen || '/images/placeholder.png',
-		categoria: producto.categoria || producto.categoriaSlug || 'Sin categoria',
-		categoriaSlug: producto.categoriaSlug || producto.categoria || 'sin-categoria',
+		familia: producto.familia || producto.categoria || 'Sin categoria',
+		familiaSlug: normalizeFamiliaSlug(producto.familiaSlug || producto.categoriaSlug || 'sin-categoria'),
+		subfamilia: producto.subfamilia || '',
+		subfamiliaSlug: producto.subfamiliaSlug || '',
+		categoria: producto.familia ? producto.categoria || '' : '',
+		categoriaSlug: producto.familia ? producto.categoriaSlug || '' : '',
 		stock: Math.max(0, Number(producto.stock ?? 0)),
 		estado: String(
 			producto.estado || (Number(producto.stock ?? 0) > 0 ? 'disponible' : 'sin stock')

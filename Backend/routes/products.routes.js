@@ -1,9 +1,10 @@
 import { Router } from "express";
 import {
 	createProductController,
+	bulkImportProductsController,
 	deleteProductController,
-	getProductById,
-	getProducts,
+	getAdminProductById,
+	getAdminProducts,
 	updateProductController
 } from "../controllers/products.controller.js";
 import authMiddleware from "../middlewares/auth.js";
@@ -14,8 +15,9 @@ const router = Router();
 
 router.use(authMiddleware, sanitizeMiddleware, adminLimiter);
 
-router.get("/", getProducts);
-router.get("/:id", getProductById);
+router.get("/", getAdminProducts);
+router.get("/:id", getAdminProductById);
+router.post("/bulk", bulkImportProductsController);
 router.post("/", createProductController);
 router.put("/:id", updateProductController);
 router.delete("/:id", deleteProductController);

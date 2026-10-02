@@ -1,13 +1,15 @@
 <script>
-	import { categorias } from '$lib/data/categorias.js';
+	import { familias, normalizeFamiliaSlug } from '$lib/data/categorias.js';
 
 	const { product = null, loading = false, onSubmit, onCancel } = $props();
 
 	let nombre = $state('');
 	let codigo = $state('');
 	let descripcion = $state('');
-	let categoriaSlug = $state('sin-categoria');
-	let categoria = $state('Sin categoria');
+	let precioCosto = $state('0');
+	let familiaSlug = $state('');
+	let subfamiliaSlug = $state('');
+	let categoriaSlug = $state('');
 	let imagen = $state('');
 	let stock = $state('1');
 	let estado = $state('disponible');
@@ -23,17 +25,26 @@
 			.replace(/(^-|-$)/g, '');
 	}
 
-	function categoriaDesdeSlug(slug) {
-		return categorias.find((item) => item.slug === slug)?.nombre ?? 'Sin categoria';
+	function findFamilia(slug) {
+		return familias.find((item) => item.slug === slug);
+	}
+
+	function findSubfamilia(familiaId, subfamiliaId) {
+		return findFamilia(familiaId)?.subfamilias.find((item) => item.slug === subfamiliaId);
+	}
+
+	function labelDesdeSlug(options, slug) {
+		return options?.find((item) => item.slug === slug)?.nombre ?? '';
 	}
 
 	function syncForm() {
 		nombre = product?.nombre ?? '';
 		codigo = product?.codigo ?? '';
 		descripcion = product?.descripcion ?? '';
-		categoriaSlug =
-			(product?.categoriaSlug ?? slugify(product?.categoria || '')) || 'sin-categoria';
-		categoria = product?.categoria ?? categoriaDesdeSlug(categoriaSlug);
+		precioCosto = String(product?.precioCosto ?? 0);
+		familiaSlug = normalizeFamiliaSlug(product?.familiaSlug ?? product?.categoriaSlug ?? '');
+		subfamiliaSlug = product?.subfamiliaSlug ?? '';
+		categoriaSlug = product?.familiaSlug ? product?.categoriaSlug ?? '' : '';
 		imagen = product?.imagen ?? '';
 		stock = String(product?.stock ?? 1);
 		estado = product?.estado === 'sin stock' ? 'sin stock' : 'disponible';
@@ -62,8 +73,13 @@
 			nombre: nombre.trim(),
 			codigo: codigo.trim(),
 			descripcion: descripcion.trim(),
-			categoria: categoria.trim() || categoriaDesdeSlug(categoriaSlug),
-			categoriaSlug: categoriaSlug.trim() || slugify(categoria),
+			precioCosto: Number(precioCosto),
+			familia: labelDesdeSlug(familias, familiaSlug),
+			familiaSlug,
+			subfamilia: labelDesdeSlug(findFamilia(familiaSlug)?.subfamilias, subfamiliaSlug),
+			subfamiliaSlug,
+			categoria: labelDesdeSlug(findSubfamilia(familiaSlug, subfamiliaSlug)?.categorias, categoriaSlug),
+			categoriaSlug,
 			imagen: imagen.trim(),
 			stock: Number(stock),
 			estado,
@@ -71,9 +87,15 @@
 		});
 	}
 
-	function onCategoriaChange(value) {
-		categoriaSlug = value;
-		categoria = categoriaDesdeSlug(value);
+	function onFamiliaChange(value) {
+		familiaSlug = value;
+		subfamiliaSlug = '';
+		categoriaSlug = '';
+	}
+
+	function onSubfamiliaChange(value) {
+		subfamiliaSlug = value;
+		categoriaSlug = '';
 	}
 </script>
 
@@ -113,19 +135,46 @@
 		</label>
 
 		<label>
-			Categoria
-			<select value={categoriaSlug} onchange={(e) => onCategoriaChange(e.currentTarget.value)}>
-				<option value="sin-categoria">Sin categoria</option>
-				{#each categorias as item (item.slug)}
+			Precio costo
+			<input bind:value={precioCosto} type="number" min="0" step="1" placeholder="0" required />
+		</label>
+
+		<label>
+			Familia
+			<select value={familiaSlug} onchange={(e) => onFamiliaChange(e.currentTarget.value)} required>
+				<option value="" disabled>Selecciona una familia</option>
+				{#each familias as item (item.slug)}
 					<option value={item.slug}>{item.nombre}</option>
 				{/each}
 			</select>
 		</label>
 
 		<label>
-			Categoria slug
-			<input bind:value={categoriaSlug} type="text" placeholder="canalizacion" required />
+			Subfamilia
+			<select
+				value={subfamiliaSlug}
+				onchange={(e) => onSubfamiliaChange(e.currentTarget.value)}
+				disabled={!familiaSlug}
+				required={!product || Boolean(subfamiliaSlug)}
+			>
+				<option value="" disabled>Selecciona una subfamilia</option>
+				{#each findFamilia(familiaSlug)?.subfamilias ?? [] as item (item.slug)}
+					<option value={item.slug}>{item.nombre}</option>
+				{/each}
+			</select>
 		</label>
+
+		{#if findSubfamilia(familiaSlug, subfamiliaSlug)?.categorias?.length}
+			<label>
+				Categoría
+				<select bind:value={categoriaSlug} required>
+					<option value="" disabled>Selecciona una categoría</option>
+					{#each findSubfamilia(familiaSlug, subfamiliaSlug).categorias as item (item.slug)}
+						<option value={item.slug}>{item.nombre}</option>
+					{/each}
+				</select>
+			</label>
+		{/if}
 
 		<label>
 			Imagen
