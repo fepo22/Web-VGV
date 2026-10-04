@@ -13,6 +13,14 @@ Disponible en la pestaña **Importar imágenes** del panel. El formulario de pro
 - `onrefresh`: refresca los productos tras conflictos o respuestas inciertas antes de volver a confirmar. También hay un botón de actualización manual.
 - El sincronizador de seed conserva imágenes y relaciones gestionadas desde el panel; las asigna solo al insertar productos nuevos.
 
+### Crear o editar con imagen en una acción
+
+El formulario permite seleccionar JPEG, PNG o WebP, comprimirlo y revisar la vista previa antes de **Crear producto / Guardar cambios**. La URL sigue disponible si no se selecciona archivo. Para reemplazar una imagen existente se exige confirmación explícita. Durante el guardado se bloquean los campos, relacionados y cambios de formulario/pestaña.
+
+Primero se guarda la ficha por POST (creación con placeholder) o PUT (edición sin modificar la imagen existente); después se envía el archivo por multipart con el ID confirmado y la imagen observada como `expectedImage`. Las respuestas parciales se fusionan para conservar costo, relaciones y variantes.
+
+Si falla la imagen, se mantienen la selección y el ID de la ficha ya guardada, se consulta su imagen actual y se solicita nuevamente consentimiento cuando corresponde. El siguiente guardado usa **PUT sobre ese mismo ID**, nunca otro POST de creación. Si el refresco falla se conserva el ID confirmado; un conflicto requiere revisar la imagen actual antes de confirmar otra vez. Los errores de guardado permanecen visibles aunque se refresque periódicamente la lista. Abrir explícitamente “Nuevo producto” inicia un formulario independiente.
+
 ## Asociación y flujo
 
 Nombre de archivo sin **última extensión**, comparado exactamente sin distinguir mayúsculas contra `codigo`, `id` y cada SKU de variante. No se quitan espacios, acentos ni se normalizan separadores o ceros. Ejemplo: `ABC-01.jpg` → `ABC-01`; `ABC-01 (1).jpg` **no** coincide. Si varios campos del mismo producto coinciden, cuenta una sola coincidencia. Si coinciden dos productos, o ninguno, selección manual obligatoria. Un SKU asocia la imagen al producto padre, no a una imagen específica de variante.

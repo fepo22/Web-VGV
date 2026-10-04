@@ -12,9 +12,26 @@
 		calefaccion: '/assets/icons/calefaccion.png'
 	};
 
+	const bannerFiles = import.meta.glob('/static/assets/Banners/*.{jpg,jpeg,png,JPG,JPEG,PNG}', {
+		eager: true,
+		query: '?url',
+		import: 'default'
+	});
+
+	function bannerImage(name) {
+		for (const extension of ['png', 'jpg', 'jpeg']) {
+			const entry = Object.entries(bannerFiles).find(([path]) =>
+				path.toLowerCase().endsWith(`/${name.toLowerCase()}.${extension}`)
+			);
+			// SvelteKit serves static files at the root, without the /static prefix.
+			if (entry) return entry[0].replace(/^\/static\//, '/');
+		}
+		return `/assets/Banners/${name}.jpg`;
+	}
+
 	const slides = [
 		{
-			image: '/assets/Banners/banner1.jpg',
+			image: bannerImage('banner1'),
 			alt: 'Fachada VGV con marcas de proveedores',
 			title: 'Materiales de construcción para proyectos que duran',
 			description: 'Soluciones y asesoría para tu proyecto en Talcahuano.',
@@ -24,15 +41,12 @@
 			secondaryText: 'Cotizar ahora'
 		},
 		{
-			image: '/assets/Banners/banner2.jpg',
-			alt: 'Calefactores y radiadores para el hogar',
-			title: 'Calefactores y radiadores de alto rendimiento',
-			description: 'Soluciones de calefacción para hogar y proyecto.',
-			ctaHref: '/catalogo?linea=calefont-calefaccion',
-			ctaText: 'Ver calefacción'
+			image: bannerImage('banner2'),
+			alt: 'VGV Punto Hidráulico',
+			imageOnly: true
 		},
 		{
-			image: '/assets/Banners/banner3.jpg',
+			image: bannerImage('banner3'),
 			alt: 'VGV Punto Hidráulico celebra 10 años conectando proyectos con confianza',
 			anniversary: true
 		}
@@ -272,7 +286,7 @@
 	{#each slides as slide, index (slide.image)}
 		<div
 			class="slide slide--{index + 1} {activeSlide === index ? 'active' : ''}"
-			class:anniversary={slide.anniversary}
+			class:anniversary={slide.anniversary || slide.imageOnly}
 			aria-hidden={activeSlide !== index}
 			inert={activeSlide !== index}
 		>
@@ -286,7 +300,7 @@
 				decoding="async"
 				fetchpriority={index === 0 ? 'high' : 'low'}
 			/>
-			{#if !slide.anniversary}
+			{#if !slide.anniversary && !slide.imageOnly}
 				<div class="banner-content">
 					<h1>{slide.title}</h1>
 					<p>{slide.description}</p>

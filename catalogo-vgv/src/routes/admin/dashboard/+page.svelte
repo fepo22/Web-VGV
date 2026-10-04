@@ -10,6 +10,7 @@
 	import ProductTable from '$lib/components/ProductTable.svelte';
 	import { familias } from '$lib/data/categorias.js';
 	import { backendUrl, getBackendUrl } from '$lib/utils/backend-url.js';
+	import { saveProductWithImage } from '$lib/utils/save-product.js';
 
 	const STORAGE_KEY = 'vgv_admin_token';
 
@@ -20,6 +21,9 @@
 	let saving = $state(false);
 	let actionLoadingId = $state('');
 	let editingProduct = $state(null);
+	let savedFormProduct = $state(null);
+	let formSaveError = $state('');
+	let formKey = $state(0);
 	let showProductForm = $state(false);
 	let lastAdded = $state('');
 	let error = $state('');
@@ -198,6 +202,10 @@
 	}
 
 	function startEditing(product) {
+		if (saving) return;
+		formKey += 1;
+		formSaveError = '';
+		savedFormProduct = null;
 		activeView = 'productos';
 		showProductForm = true;
 		editingProduct = { ...product };
@@ -209,6 +217,10 @@
 	}
 
 	function startCreating() {
+		if (saving) return;
+		formKey += 1;
+		formSaveError = '';
+		savedFormProduct = null;
 		activeView = 'productos';
 		editingProduct = null;
 		showProductForm = true;
@@ -219,6 +231,8 @@
 	}
 
 	function cancelEditing() {
+		if (saving) return;
+		savedFormProduct = null;
 		editingProduct = null;
 		showProductForm = false;
 	}
@@ -615,57 +629,80 @@
 		}
 	}
 
-	async function saveProduct(payload) {
+	async function saveProduct(payload, image = null) {
 		if (!token) {
-			error = 'Debes iniciar sesión nuevamente.';
-			return;
+			formSaveError = 'Debes iniciar sesión nuevamente.';
+			error = formSaveError;
+			return { success: false };
 		}
+		if (saving) return { success: false };
 
 		saving = true;
+		formSaveError = '';
 		error = '';
+		notice = '';
+		const existingProduct = savedFormProduct || editingProduct;
 
 		try {
-			const method = editingProduct?.id ? 'PUT' : 'POST';
-			const endpoint = editingProduct?.id
-				? backendUrl(`/admin/products/${editingProduct.id}`)
-				: backendUrl('/admin/products');
-			const response = await fetch(endpoint, {
-				method,
-				headers: {
-					'content-type': 'application/json',
-					Authorization: `Bearer ${token}`
-				},
-				body: JSON.stringify(payload)
+			const data = await saveProductWithImage({
+				payload,
+				image,
+				existingProduct,
+				token,
+				url: backendUrl,
+				onProductSaved: upsertProduct
 			});
 
-			if (response.status === 401) {
-				logout('Tu sesión expiró. Vuelve a iniciar sesión.');
-				return;
-			}
-
-			const data = await response.json().catch(() => ({}));
-			if (!response.ok) {
-				throw new Error(data?.error || 'No se pudo guardar el producto.');
-			}
-
 			upsertProduct(data);
-			if (!editingProduct?.id) {
+			if (!existingProduct?.id) {
 				lastAdded = data?.nombre || lastAdded;
 			}
 
-			notice = editingProduct?.id
-				? 'Producto actualizado correctamente.'
-				: 'Producto creado correctamente.';
+			notice = image
+				? 'Producto e imagen guardados correctamente.'
+				: existingProduct?.id
+					? 'Producto actualizado correctamente.'
+					: 'Producto creado correctamente.';
+			savedFormProduct = null;
 			editingProduct = null;
 			showProductForm = false;
+			return { success: true };
 		} catch (saveError) {
-			error = saveError instanceof Error ? saveError.message : 'Error guardando producto.';
+			if (saveError?.savedProduct) {
+				savedFormProduct = saveError.savedProduct;
+				// A network error may follow an image commit. Refresh before asking to retry.
+				try {
+					const response = await fetch(
+						backendUrl(`/admin/products/${encodeURIComponent(savedFormProduct.id)}`),
+						{
+							headers: { Authorization: `Bearer ${token}` }
+						}
+					);
+					if (response.ok) {
+						const refreshedProduct = await response.json();
+						if (String(refreshedProduct?.id) === String(savedFormProduct.id)) {
+							savedFormProduct = { ...savedFormProduct, ...refreshedProduct };
+							upsertProduct(savedFormProduct);
+						}
+					}
+				} catch {
+					// Keep the confirmed product ID and the selected file for a manual retry.
+				}
+			}
+			if ([401, 403].includes(saveError?.status)) {
+				logout('Tu sesión expiró o no tiene acceso. Vuelve a iniciar sesión.');
+				return { success: false };
+			}
+			formSaveError = saveError instanceof Error ? saveError.message : 'Error guardando producto.';
+			error = formSaveError;
+			return { success: false, imageFailed: Boolean(saveError?.imageFailed) };
 		} finally {
 			saving = false;
 		}
 	}
 
 	async function toggleStatus(product) {
+		if (saving) return;
 		const nextStatus = product.estado === 'disponible' ? 'sin stock' : 'disponible';
 		actionLoadingId = `${product.id}-status`;
 		error = '';
@@ -700,6 +737,7 @@
 	}
 
 	async function deleteProduct(product) {
+		if (saving) return;
 		if (!window.confirm(`¿Eliminar ${product.nombre}?`)) return;
 
 		actionLoadingId = `${product.id}-delete`;
@@ -747,8 +785,11 @@
 			<h1>Dashboard VGV</h1>
 			<p>Productos y cotizaciones actualizados periódicamente.</p>
 		</div>
-		<button class="logout" type="button" onclick={() => logout('Sesión cerrada correctamente.')}
-			>Cerrar sesión</button
+		<button
+			class="logout"
+			type="button"
+			disabled={saving}
+			onclick={() => logout('Sesión cerrada correctamente.')}>Cerrar sesión</button
 		>
 	</header>
 
@@ -779,18 +820,21 @@
 		<div class="view-tabs" role="group" aria-label="Secciones de administración">
 			<button
 				type="button"
+				disabled={saving}
 				aria-pressed={activeView === 'cotizaciones'}
 				class:active={activeView === 'cotizaciones'}
 				onclick={() => (activeView = 'cotizaciones')}>Cotizaciones</button
 			>
 			<button
 				type="button"
+				disabled={saving}
 				aria-pressed={activeView === 'productos'}
 				class:active={activeView === 'productos'}
 				onclick={() => (activeView = 'productos')}>Productos</button
 			>
 			<button
 				type="button"
+				disabled={saving}
 				aria-pressed={activeView === 'imagenes'}
 				class:active={activeView === 'imagenes'}
 				onclick={() => (activeView = 'imagenes')}>Importar imágenes</button
@@ -891,13 +935,17 @@
 			{:else}
 				{#if showProductForm}
 					<div bind:this={productFormAnchor} class="form-anchor">
-						<ProductForm
-							product={editingProduct}
-							{products}
-							loading={saving}
-							onSubmit={saveProduct}
-							onCancel={cancelEditing}
-						/>
+						{#key formKey}
+							<ProductForm
+								product={editingProduct}
+								{products}
+								loading={saving}
+								saveError={formSaveError}
+								savedProduct={savedFormProduct}
+								onSubmit={saveProduct}
+								onCancel={cancelEditing}
+							/>
+						{/key}
 					</div>
 				{/if}
 
