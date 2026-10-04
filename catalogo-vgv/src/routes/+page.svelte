@@ -18,20 +18,8 @@
 		import: 'default'
 	});
 
-	function bannerImage(name) {
-		for (const extension of ['png', 'jpg', 'jpeg']) {
-			const entry = Object.entries(bannerFiles).find(([path]) =>
-				path.toLowerCase().endsWith(`/${name.toLowerCase()}.${extension}`)
-			);
-			// SvelteKit serves static files at the root, without the /static prefix.
-			if (entry) return entry[0].replace(/^\/static\//, '/');
-		}
-		return `/assets/Banners/${name}.jpg`;
-	}
-
-	const slides = [
-		{
-			image: bannerImage('banner1'),
+	const bannerContent = {
+		banner1: {
 			alt: 'Fachada VGV con marcas de proveedores',
 			title: 'Materiales de construcción para proyectos que duran',
 			description: 'Soluciones y asesoría para tu proyecto en Talcahuano.',
@@ -40,17 +28,35 @@
 			secondaryHref: 'mailto:ventas@vgv.cl',
 			secondaryText: 'Cotizar ahora'
 		},
-		{
-			image: bannerImage('banner2'),
+		banner2: {
 			alt: 'VGV Punto Hidráulico',
 			imageOnly: true
 		},
-		{
-			image: bannerImage('banner3'),
+		banner3: {
 			alt: 'VGV Punto Hidráulico celebra 10 años conectando proyectos con confianza',
 			anniversary: true
 		}
-	];
+	};
+
+	// Discover actual files, keeping one image per basename (PNG > JPG > JPEG).
+	const bannersByName = Object.create(null);
+	const formatPriority = { png: 0, jpg: 1, jpeg: 2 };
+	for (const path of Object.keys(bannerFiles).sort()) {
+		const filename = path.split('/').pop();
+		const name = filename.replace(/\.[^.]+$/, '');
+		const extension = filename.split('.').pop().toLowerCase();
+		const key = name.toLowerCase();
+		const previous = bannersByName[key];
+		if (!previous || formatPriority[extension] < formatPriority[previous.extension]) {
+			bannersByName[key] = { name, extension, image: path.replace(/^\/static\//, '/') };
+		}
+	}
+	const slides = Object.entries(bannersByName)
+		.sort(([a], [b]) => a.localeCompare(b, 'es', { numeric: true }))
+		.map(([key, banner]) => ({
+			image: banner.image,
+			...(bannerContent[key] ?? { alt: `VGV · ${banner.name}`, imageOnly: true })
+		}));
 
 	let activeSlide = $state(0);
 	const productosDestacados = [
@@ -111,6 +117,7 @@
 	let reducedMotion;
 
 	function showSlide(index, manual = true) {
+		if (slides.length < 2) return;
 		activeSlide = (index + slides.length) % slides.length;
 		if (manual) {
 			clearInterval(autoSlideInterval);
@@ -193,7 +200,7 @@
 		carouselTrack.addEventListener('pointerdown', onPointerDown);
 		window.addEventListener('pointerup', onPointerUp);
 		window.addEventListener('pointercancel', onPointerUp);
-		autoSlideInterval = setInterval(nextSlide, 5000);
+		if (slides.length > 1) autoSlideInterval = setInterval(nextSlide, 5000);
 		autoCarouselInterval = setInterval(() => {
 			if (
 				!document.hidden &&
@@ -275,87 +282,91 @@
 	</nav>
 </header>
 
-<section
-	class="banner-slider"
-	aria-label="Novedades VGV"
-	onmouseenter={() => (bannerHovered = true)}
-	onmouseleave={() => (bannerHovered = false)}
-	onfocusin={() => (bannerFocused = true)}
-	onfocusout={(event) => (bannerFocused = event.currentTarget.contains(event.relatedTarget))}
->
-	{#each slides as slide, index (slide.image)}
-		<div
-			class="slide slide--{index + 1} {activeSlide === index ? 'active' : ''}"
-			class:anniversary={slide.anniversary || slide.imageOnly}
-			aria-hidden={activeSlide !== index}
-			inert={activeSlide !== index}
-		>
-			<img
-				class="slide-bg"
-				src={slide.image}
-				alt={slide.alt}
-				width={index === 0 ? 4083 : index === 1 ? 3780 : 1920}
-				height={index === 0 ? 2054 : index === 1 ? 1890 : 640}
-				loading="eager"
-				decoding="async"
-				fetchpriority={index === 0 ? 'high' : 'low'}
-			/>
-			{#if !slide.anniversary && !slide.imageOnly}
-				<div class="banner-content">
-					<h1>{slide.title}</h1>
-					<p>{slide.description}</p>
-					<a href={resolve(slide.ctaHref)} class="btn">{slide.ctaText}</a>
-					{#if slide.secondaryHref}
-						<a href={slide.secondaryHref} rel="external" class="btn">{slide.secondaryText}</a>
-					{/if}
-				</div>
-			{/if}
-		</div>
-	{/each}
-	<button
-		class="banner-arrow banner-arrow--prev"
-		type="button"
-		aria-label="Banner anterior"
-		onclick={() => showSlide(activeSlide - 1)}
+{#if slides.length}
+	<section
+		class="banner-slider"
+		aria-label="Novedades VGV"
+		onmouseenter={() => (bannerHovered = true)}
+		onmouseleave={() => (bannerHovered = false)}
+		onfocusin={() => (bannerFocused = true)}
+		onfocusout={(event) => (bannerFocused = event.currentTarget.contains(event.relatedTarget))}
 	>
-		<svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-			<path
-				d="m14 6-6 6 6 6"
-				stroke="currentColor"
-				stroke-width="1.8"
-				stroke-linecap="round"
-				stroke-linejoin="round"
-			/>
-		</svg>
-	</button>
-	<button
-		class="banner-arrow banner-arrow--next"
-		type="button"
-		aria-label="Banner siguiente"
-		onclick={() => showSlide(activeSlide + 1)}
-	>
-		<svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-			<path
-				d="m10 6 6 6-6 6"
-				stroke="currentColor"
-				stroke-width="1.8"
-				stroke-linecap="round"
-				stroke-linejoin="round"
-			/>
-		</svg>
-	</button>
-	<div class="banner-dots" aria-label="Navegación del banner">
 		{#each slides as slide, index (slide.image)}
-			<button
-				class="dot {activeSlide === index ? 'active' : ''}"
-				type="button"
-				aria-label={`Ir al banner ${index + 1}`}
-				aria-pressed={activeSlide === index}
-				onclick={() => showSlide(index)}
-			></button>
+			<div
+				class="slide slide--{index + 1} {activeSlide === index ? 'active' : ''}"
+				class:anniversary={slide.anniversary || slide.imageOnly}
+				aria-hidden={activeSlide !== index}
+				inert={activeSlide !== index}
+			>
+				<img
+					class="slide-bg"
+					src={slide.image}
+					alt={slide.alt}
+					width={index === 0 ? 4083 : index === 1 ? 3780 : 1920}
+					height={index === 0 ? 2054 : index === 1 ? 1890 : 640}
+					loading="eager"
+					decoding="async"
+					fetchpriority={index === 0 ? 'high' : 'low'}
+				/>
+				{#if !slide.anniversary && !slide.imageOnly}
+					<div class="banner-content">
+						<h1>{slide.title}</h1>
+						<p>{slide.description}</p>
+						<a href={resolve(slide.ctaHref)} class="btn">{slide.ctaText}</a>
+						{#if slide.secondaryHref}
+							<a href={slide.secondaryHref} rel="external" class="btn">{slide.secondaryText}</a>
+						{/if}
+					</div>
+				{/if}
+			</div>
 		{/each}
-	</div>
-</section>
+		{#if slides.length > 1}
+			<button
+				class="banner-arrow banner-arrow--prev"
+				type="button"
+				aria-label="Banner anterior"
+				onclick={() => showSlide(activeSlide - 1)}
+			>
+				<svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+					<path
+						d="m14 6-6 6 6 6"
+						stroke="currentColor"
+						stroke-width="1.8"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					/>
+				</svg>
+			</button>
+			<button
+				class="banner-arrow banner-arrow--next"
+				type="button"
+				aria-label="Banner siguiente"
+				onclick={() => showSlide(activeSlide + 1)}
+			>
+				<svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+					<path
+						d="m10 6 6 6-6 6"
+						stroke="currentColor"
+						stroke-width="1.8"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					/>
+				</svg>
+			</button>
+			<div class="banner-dots" aria-label="Navegación del banner">
+				{#each slides as slide, index (slide.image)}
+					<button
+						class="dot {activeSlide === index ? 'active' : ''}"
+						type="button"
+						aria-label={`Ir al banner ${index + 1}`}
+						aria-pressed={activeSlide === index}
+						onclick={() => showSlide(index)}
+					></button>
+				{/each}
+			</div>
+		{/if}
+	</section>
+{/if}
 
 <section class="productos-titulo">
 	<h2>Nuestras líneas de producto</h2>
