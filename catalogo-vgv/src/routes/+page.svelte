@@ -17,7 +17,7 @@
 			image: '/assets/Banners/banner1.jpg',
 			alt: 'Fachada VGV con marcas de proveedores',
 			title: 'Materiales de construcción para proyectos que duran',
-			description: '+9 años de experiencia en Talcahuano',
+			description: 'Soluciones y asesoría para tu proyecto en Talcahuano.',
 			ctaHref: '/catalogo',
 			ctaText: 'Ver catálogo',
 			secondaryHref: 'mailto:ventas@vgv.cl',
@@ -39,47 +39,159 @@
 	];
 
 	let activeSlide = $state(0);
+	const productosDestacados = [
+		{ id: 1, image: 'canaleta_blanca.png', title: 'Canaleta PVC Blanca', description: '' },
+		{
+			id: 2,
+			image: 'drenpro.png',
+			title: 'Tubería DrenPro',
+			description: '6Mts x 250mm (consultar otras medidas)'
+		},
+		{ id: 3, image: 'hdpe.png', title: 'Tubo HDPE', description: 'Consultar medidas disponibles' },
+		{
+			id: 4,
+			image: 'colector.png',
+			title: 'Tubo Colector',
+			description: 'Sn4-Sn8 (consultar medidas disponibles)'
+		},
+		{
+			id: 5,
+			image: 'tubo_cobre.png',
+			title: 'Cañería de Cobre',
+			description: 'Consulte stock y medidas'
+		},
+		{
+			id: 6,
+			image: 'Peg_montaje.png',
+			title: 'Sin clavos ni tornillos',
+			description: 'Adhesivo de montaje Soudal'
+		},
+		{
+			id: 7,
+			image: 'sika_ceram.png',
+			title: 'Pegamento cerámico y porcelanato',
+			description: 'Adhesivo para cerámica y porcelanato'
+		},
+		{ id: 8, image: 'Silirub_ac.png', title: 'Silirub AC', description: 'Silicona acética' },
+		{ id: 9, image: 'adesilex.png', title: 'Adesilex P9', description: 'Aditivo para concreto' },
+		{
+			id: 10,
+			image: 'termo.png',
+			title: 'Termo eléctrico muro',
+			description: 'Termo eléctrico para muros'
+		}
+	];
 	let carouselTrack;
 	let btnTopVisible = $state(false);
 	let autoSlideInterval;
 	let autoCarouselInterval;
+	let carouselScrollTimeout;
+	let carouselMoving = false;
+	let carouselHovered = false;
+	let carouselFocused = false;
+	let carouselDragging = false;
+	let bannerHovered = false;
+	let bannerFocused = false;
+	let carouselStep = 0;
+	let carouselCycle = 0;
+	let reducedMotion;
 
-	function showSlide(index) {
+	function showSlide(index, manual = true) {
 		activeSlide = (index + slides.length) % slides.length;
+		if (manual) {
+			clearInterval(autoSlideInterval);
+			autoSlideInterval = setInterval(nextSlide, 5000);
+		}
 	}
 
 	function nextSlide() {
-		showSlide(activeSlide + 1);
+		if (!document.hidden && !reducedMotion.matches && !bannerHovered && !bannerFocused) {
+			showSlide(activeSlide + 1, false);
+		}
+	}
+
+	// Recenter between identical sets only when scrolling stops, without reversing direction.
+	function normalizeCarousel() {
+		if (!carouselCycle || carouselDragging) return;
+		const left = carouselTrack.scrollLeft;
+		if (left < carouselCycle - 1 || left >= carouselCycle * 2 - 1) {
+			const offset = ((left % carouselCycle) + carouselCycle) % carouselCycle;
+			carouselTrack.scrollTo({ left: carouselCycle + offset, behavior: 'instant' });
+		}
+	}
+
+	function finishCarouselScroll() {
+		clearTimeout(carouselScrollTimeout);
+		carouselMoving = false;
+		normalizeCarousel();
+	}
+
+	function onCarouselScroll() {
+		clearTimeout(carouselScrollTimeout);
+		// Fallback for browsers without scrollend support.
+		carouselScrollTimeout = setTimeout(finishCarouselScroll, 180);
+	}
+
+	function measureCarousel() {
+		const cards = carouselTrack.children;
+		if (cards.length < productosDestacados.length * 3) return;
+		const previousStep = carouselStep;
+		const position = previousStep
+			? carouselTrack.scrollLeft / previousStep
+			: productosDestacados.length;
+		carouselStep = cards[1].offsetLeft - cards[0].offsetLeft;
+		carouselCycle = cards[productosDestacados.length].offsetLeft - cards[0].offsetLeft;
+		if (previousStep !== carouselStep) {
+			carouselTrack.scrollTo({ left: position * carouselStep, behavior: 'instant' });
+			finishCarouselScroll();
+		}
 	}
 
 	function moveCarousel(direction) {
-		if (!carouselTrack || !carouselTrack.children.length) return;
-		const maxScroll = carouselTrack.scrollWidth - carouselTrack.clientWidth;
-		if (maxScroll <= 0) return;
-		if (direction > 0 && carouselTrack.scrollLeft >= maxScroll - 2) {
-			carouselTrack.scrollTo({ left: 0, behavior: 'instant' });
-			return;
-		}
-		if (direction < 0 && carouselTrack.scrollLeft <= 2) {
-			carouselTrack.scrollTo({ left: maxScroll, behavior: 'instant' });
-			return;
-		}
-		const first = carouselTrack.children[0];
-		const styles = getComputedStyle(carouselTrack);
-		const gap = Number.parseFloat(styles.gap || styles.columnGap || '0') || 0;
-		const step = first.getBoundingClientRect().width + gap;
-		if (!step) return;
-		carouselTrack.scrollBy({ left: direction * step, behavior: 'smooth' });
+		if (!carouselStep || carouselMoving || carouselDragging) return;
+		normalizeCarousel();
+		carouselMoving = true;
+		const target = (Math.round(carouselTrack.scrollLeft / carouselStep) + direction) * carouselStep;
+		carouselTrack.scrollTo({
+			left: target,
+			behavior: reducedMotion.matches ? 'instant' : 'smooth'
+		});
+		onCarouselScroll();
 	}
 
 	onMount(() => {
+		reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+		measureCarousel();
+		const resizeObserver = new ResizeObserver(measureCarousel);
+		resizeObserver.observe(carouselTrack);
+		const onPointerDown = () => {
+			carouselDragging = true;
+		};
+		const onPointerUp = () => {
+			carouselDragging = false;
+			onCarouselScroll();
+		};
 		const onScroll = () => {
 			btnTopVisible = window.scrollY > 300;
 		};
 
 		window.addEventListener('scroll', onScroll);
+		carouselTrack.addEventListener('pointerdown', onPointerDown);
+		window.addEventListener('pointerup', onPointerUp);
+		window.addEventListener('pointercancel', onPointerUp);
 		autoSlideInterval = setInterval(nextSlide, 5000);
-		autoCarouselInterval = setInterval(() => moveCarousel(1), 3000);
+		autoCarouselInterval = setInterval(() => {
+			if (
+				!document.hidden &&
+				!reducedMotion.matches &&
+				!carouselHovered &&
+				!carouselFocused &&
+				!carouselDragging
+			) {
+				const rect = carouselTrack.getBoundingClientRect();
+				if (rect.bottom > 0 && rect.top < window.innerHeight) moveCarousel(1);
+			}
+		}, 3000);
 
 		const observer = new IntersectionObserver(
 			(entries) => {
@@ -90,15 +202,20 @@
 			{ threshold: 0.2 }
 		);
 
-		document.querySelectorAll('section, .card, .stat').forEach((el) => {
+		document.querySelectorAll('section:not(.banner-slider), .card').forEach((el) => {
 			el.classList.add('fade-in');
 			observer.observe(el);
 		});
 
 		return () => {
 			window.removeEventListener('scroll', onScroll);
+			carouselTrack.removeEventListener('pointerdown', onPointerDown);
+			window.removeEventListener('pointerup', onPointerUp);
+			window.removeEventListener('pointercancel', onPointerUp);
 			clearInterval(autoSlideInterval);
 			clearInterval(autoCarouselInterval);
+			clearTimeout(carouselScrollTimeout);
+			resizeObserver.disconnect();
 			observer.disconnect();
 		};
 	});
@@ -144,53 +261,28 @@
 	</nav>
 </header>
 
-<style>
-	header nav {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 1rem;
-		padding: 1rem 2rem;
-	}
-
-	header nav ul {
-		display: flex;
-		align-items: center;
-		flex-wrap: wrap;
-		gap: 1.8rem;
-		list-style: none;
-		margin: 0;
-		padding: 0;
-	}
-
-	header .logo img {
-		height: 55px;
-		width: auto;
-	}
-
-	@media (max-width: 700px) {
-		header nav {
-			flex-direction: column;
-			align-items: flex-start;
-		}
-
-		header nav ul {
-			width: 100%;
-			gap: 0.4rem;
-		}
-	}
-</style>
-
-<section class="banner-slider">
+<section
+	class="banner-slider"
+	aria-label="Novedades VGV"
+	onmouseenter={() => (bannerHovered = true)}
+	onmouseleave={() => (bannerHovered = false)}
+	onfocusin={() => (bannerFocused = true)}
+	onfocusout={(event) => (bannerFocused = event.currentTarget.contains(event.relatedTarget))}
+>
 	{#each slides as slide, index (slide.image)}
-		<div class="slide slide--{index + 1} {activeSlide === index ? 'active' : ''}" class:anniversary={slide.anniversary}>
+		<div
+			class="slide slide--{index + 1} {activeSlide === index ? 'active' : ''}"
+			class:anniversary={slide.anniversary}
+			aria-hidden={activeSlide !== index}
+			inert={activeSlide !== index}
+		>
 			<img
 				class="slide-bg"
 				src={slide.image}
 				alt={slide.alt}
-				width="1920"
-				height={slide.anniversary ? 640 : 760}
-				loading={index === 0 ? 'eager' : 'lazy'}
+				width={index === 0 ? 4083 : index === 1 ? 3780 : 1920}
+				height={index === 0 ? 2054 : index === 1 ? 1890 : 640}
+				loading="eager"
 				decoding="async"
 				fetchpriority={index === 0 ? 'high' : 'low'}
 			/>
@@ -200,36 +292,54 @@
 					<p>{slide.description}</p>
 					<a href={resolve(slide.ctaHref)} class="btn">{slide.ctaText}</a>
 					{#if slide.secondaryHref}
-						<a href={slide.secondaryHref} class="btn">{slide.secondaryText}</a>
+						<a href="mailto:ventas@vgv.cl" class="btn">{slide.secondaryText}</a>
 					{/if}
 				</div>
 			{/if}
 		</div>
 	{/each}
+	<button
+		class="banner-arrow banner-arrow--prev"
+		type="button"
+		aria-label="Banner anterior"
+		onclick={() => showSlide(activeSlide - 1)}
+	>
+		<svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+			<path
+				d="m14 6-6 6 6 6"
+				stroke="currentColor"
+				stroke-width="1.8"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+			/>
+		</svg>
+	</button>
+	<button
+		class="banner-arrow banner-arrow--next"
+		type="button"
+		aria-label="Banner siguiente"
+		onclick={() => showSlide(activeSlide + 1)}
+	>
+		<svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+			<path
+				d="m10 6 6 6-6 6"
+				stroke="currentColor"
+				stroke-width="1.8"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+			/>
+		</svg>
+	</button>
 	<div class="banner-dots" aria-label="Navegación del banner">
 		{#each slides as slide, index (slide.image)}
 			<button
 				class="dot {activeSlide === index ? 'active' : ''}"
 				type="button"
 				aria-label={`Ir al banner ${index + 1}`}
+				aria-pressed={activeSlide === index}
 				onclick={() => showSlide(index)}
 			></button>
 		{/each}
-	</div>
-</section>
-
-<section class="stats">
-	<div class="stat">
-		<strong>+9</strong>
-		<p>Años en el mercado</p>
-	</div>
-	<div class="stat">
-		<strong>+500</strong>
-		<p>Clientes atendidos</p>
-	</div>
-	<div class="stat">
-		<strong>+200</strong>
-		<p>Obras fidelizadas</p>
 	</div>
 </section>
 
@@ -251,160 +361,67 @@
 					fetchpriority="low"
 				/>
 				<h3>{familia.nombre}</h3>
-				<p>{familia.subfamilias.slice(0, 3).map((item) => item.nombre).join(' · ')}</p>
+				<p>
+					{familia.subfamilias
+						.slice(0, 3)
+						.map((item) => item.nombre)
+						.join(' · ')}
+				</p>
 			</a>
 		{/each}
 	</div>
 </section>
 
-<section class="carrusel-productos">
+<section
+	class="carrusel-productos"
+	aria-label="Productos destacados"
+	onmouseenter={() => (carouselHovered = true)}
+	onmouseleave={() => (carouselHovered = false)}
+	onfocusin={() => (carouselFocused = true)}
+	onfocusout={(event) => (carouselFocused = event.currentTarget.contains(event.relatedTarget))}
+>
 	<h2>Productos Destacados</h2>
 	<div class="carousel-container">
-		<button class="carousel-btn left" type="button" onclick={() => moveCarousel(-1)}>&#8249;</button
+		<button
+			class="carousel-btn left"
+			type="button"
+			aria-label="Producto anterior"
+			onclick={() => moveCarousel(-1)}>&#8249;</button
 		>
-		<div class="carousel-track" bind:this={carouselTrack}>
-			<div class="product-card">
-				<img
-					src="/assets/Carousel/canaleta_blanca.png"
-					alt="Canaleta PVC Blanca"
-					width="240"
-					height="240"
-					loading="lazy"
-					decoding="async"
-					fetchpriority="low"
-				/>
-				<h3>Canaleta PVC Blanca</h3>
-				<p>&nbsp;</p>
-				<a class="btn-agregar" href={resolve('/producto/1')}>Ver producto</a>
-			</div>
-			<div class="product-card">
-				<img
-					src="/assets/Carousel/drenpro.png"
-					alt="Tubería DrenPro"
-					width="240"
-					height="240"
-					loading="lazy"
-					decoding="async"
-					fetchpriority="low"
-				/>
-				<h3>Tubería DrenPro</h3>
-				<p>6Mts x 250mm (consultar otras medidas)</p>
-				<a class="btn-agregar" href={resolve('/producto/2')}>Ver producto</a>
-			</div>
-			<div class="product-card">
-				<img
-					src="/assets/Carousel/hdpe.png"
-					alt="Tubo HDPE"
-					width="240"
-					height="240"
-					loading="lazy"
-					decoding="async"
-					fetchpriority="low"
-				/>
-				<h3>Tubo HDPE</h3>
-				<p>Consultar medidas disponibles</p>
-				<a class="btn-agregar" href={resolve('/producto/3')}>Ver producto</a>
-			</div>
-			<div class="product-card">
-				<img
-					src="/assets/Carousel/colector.png"
-					alt="Tubo Colector"
-					width="240"
-					height="240"
-					loading="lazy"
-					decoding="async"
-					fetchpriority="low"
-				/>
-				<h3>Tubo Colector</h3>
-				<p>Sn4-Sn8 (consultar medidas disponibles)</p>
-				<a class="btn-agregar" href={resolve('/producto/4')}>Ver producto</a>
-			</div>
-			<div class="product-card">
-				<img
-					src="/assets/Carousel/tubo_cobre.png"
-					alt="Cañería de Cobre"
-					width="240"
-					height="240"
-					loading="lazy"
-					decoding="async"
-					fetchpriority="low"
-				/>
-				<h3>Cañería de Cobre</h3>
-				<p>Consulte stock y medidas</p>
-				<a class="btn-agregar" href={resolve('/producto/5')}>Ver producto</a>
-			</div>
-			<div class="product-card">
-				<img
-					src="/assets/Carousel/Peg_montaje.png"
-					alt="Adhesivo de Montaje"
-					width="240"
-					height="240"
-					loading="lazy"
-					decoding="async"
-					fetchpriority="low"
-				/>
-				<h3>Sin clavos ni tornillos</h3>
-				<p>Adhesivo de montaje Soudal</p>
-				<a class="btn-agregar" href={resolve('/producto/6')}>Ver producto</a>
-			</div>
-			<div class="product-card">
-				<img
-					src="/assets/Carousel/sika_ceram.png"
-					alt="Pegamento Cerámico"
-					width="240"
-					height="240"
-					loading="lazy"
-					decoding="async"
-					fetchpriority="low"
-				/>
-				<h3>Pegamento cerámico y porcelanato</h3>
-				<p>Adhesivo para cerámica y porcelanato</p>
-				<a class="btn-agregar" href={resolve('/producto/7')}>Ver producto</a>
-			</div>
-			<div class="product-card">
-				<img
-					src="/assets/Carousel/Silirub_ac.png"
-					alt="Silirub AC"
-					width="240"
-					height="240"
-					loading="lazy"
-					decoding="async"
-					fetchpriority="low"
-				/>
-				<h3>Silirub AC</h3>
-				<p>Silicona acética</p>
-				<a class="btn-agregar" href={resolve('/producto/8')}>Ver producto</a>
-			</div>
-			<div class="product-card">
-				<img
-					src="/assets/Carousel/adesilex.png"
-					alt="Adesilex P9"
-					width="240"
-					height="240"
-					loading="lazy"
-					decoding="async"
-					fetchpriority="low"
-				/>
-				<h3>Adesilex P9</h3>
-				<p>Aditivo para concreto</p>
-				<a class="btn-agregar" href={resolve('/producto/9')}>Ver producto</a>
-			</div>
-			<div class="product-card">
-				<img
-					src="/assets/Carousel/termo.png"
-					alt="Termo Eléctrico Muro"
-					width="240"
-					height="240"
-					loading="lazy"
-					decoding="async"
-					fetchpriority="low"
-				/>
-				<h3>Termo eléctrico muro</h3>
-				<p>Termo eléctrico para muros</p>
-				<a class="btn-agregar" href={resolve('/producto/10')}>Ver producto</a>
-			</div>
+		<div
+			class="carousel-track"
+			bind:this={carouselTrack}
+			onscroll={onCarouselScroll}
+			onscrollend={finishCarouselScroll}
+		>
+			{#each [0, 1, 2] as copy (copy)}
+				{#each productosDestacados as producto (`${copy}-${producto.id}`)}
+					<div class="product-card" aria-hidden={copy !== 1}>
+						<img
+							src={`/assets/Carousel/${producto.image}`}
+							alt={producto.title}
+							width="240"
+							height="240"
+							loading="lazy"
+							decoding="async"
+							fetchpriority="low"
+						/>
+						<h3>{producto.title}</h3>
+						<p>{producto.description || '\u00a0'}</p>
+						<a
+							class="btn-agregar"
+							href={resolve(`/producto/${producto.id}`)}
+							tabindex={copy === 1 ? 0 : -1}>Ver producto</a
+						>
+					</div>
+				{/each}
+			{/each}
 		</div>
-		<button class="carousel-btn right" type="button" onclick={() => moveCarousel(1)}>&#8250;</button
+		<button
+			class="carousel-btn right"
+			type="button"
+			aria-label="Producto siguiente"
+			onclick={() => moveCarousel(1)}>&#8250;</button
 		>
 	</div>
 </section>
@@ -447,3 +464,40 @@
 		>↑</button
 	>
 {/if}
+
+<style>
+	header nav {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		padding: 1rem 2rem;
+	}
+
+	header nav ul {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 1.8rem;
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+
+	header .logo img {
+		height: 55px;
+		width: auto;
+	}
+
+	@media (max-width: 700px) {
+		header nav {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+
+		header nav ul {
+			width: 100%;
+			gap: 0.4rem;
+		}
+	}
+</style>

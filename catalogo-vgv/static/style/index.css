@@ -7,8 +7,8 @@
   position: relative;
   width: 100%;
   height: auto;
-  min-height: 210px;
-  aspect-ratio: 2.42 / 1;
+  aspect-ratio: 3 / 1; /* Referencia panorámica: 1920 × 640 */
+  max-height: 640px;
   overflow: hidden;
   background: #0b2f4d;
   box-shadow: 0 4px 20px rgba(0,0,0,0.15);
@@ -20,13 +20,18 @@
   display: block;
   width: 100%;
   height: 100%;
+  padding: 0;
   overflow: hidden;
   opacity: 0;
-  transition: opacity 1s ease-in-out;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.65s ease-in-out, visibility 0.65s;
 }
 
 .banner-slider .slide.active {
   opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .banner-slider .slide-bg {
@@ -34,9 +39,16 @@
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center;
   display: block;
+  filter: none;
+  transform: none;
+}
+
+.banner-slider .slide-bg:hover {
+  filter: none;
+  transform: none;
 }
 
 .banner-slider .slide::after {
@@ -47,28 +59,31 @@
 }
 
 .banner-slider .slide.anniversary::after { display: none; }
-.banner-slider .slide.anniversary .slide-bg { object-fit: cover; object-position: center; }
+.banner-slider .slide.anniversary { background: #edf8f8; }
+.banner-slider .slide.anniversary .slide-bg { object-fit: contain; object-position: center; }
 
 .banner-content {
   position: absolute;
-  bottom: 50px;
-  left: 60px;
+  top: 50%;
+  transform: translateY(-50%);
+  left: clamp(80px, 6vw, 120px);
   right: 20px;
   z-index: 2;
   color: #fff;
-  max-width: 500px;
+  max-width: 620px;
   text-shadow: 0 2px 8px rgba(0,0,0,0.4);
 }
 
 .banner-content h1 {
-  font-size: 2.6rem;
+  font-size: clamp(1.5rem, 2.6vw, 3rem);
+  line-height: 1.15;
   margin-bottom: 10px;
   font-weight: 700;
   color: #ffffff;
 }
 
 .banner-content p {
-  font-size: 1.3rem;
+  font-size: clamp(1rem, 1.3vw, 1.25rem);
   margin-bottom: 20px;
   color: #ffffff;
 }
@@ -95,8 +110,51 @@
   bottom: 16px;
   transform: translateX(-50%);
   display: flex;
+  align-items: center;
   gap: 0.55rem;
+  padding: 10px 14px;
+  min-height: 32px;
+  border-radius: 999px;
+  background: rgba(6, 40, 69, 0.55);
+  backdrop-filter: blur(8px);
   z-index: 3;
+}
+
+.banner-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  background: rgba(6, 40, 69, 0.42);
+  color: #fff;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 16px rgba(6, 40, 69, 0.14);
+  cursor: pointer;
+  z-index: 3;
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.banner-arrow--prev { left: 18px; }
+.banner-arrow--next { right: 18px; }
+
+.banner-arrow:hover {
+  background: rgba(6, 40, 69, 0.8);
+  border-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 6px 20px rgba(6, 40, 69, 0.25);
+}
+
+.banner-arrow:active { background: var(--azul); }
+
+.banner-slider button:focus-visible,
+.carousel-btn:focus-visible {
+  outline: 3px solid var(--verde);
+  outline-offset: 3px;
 }
 
 .banner-dots .dot {
@@ -120,45 +178,11 @@
 }
 
 /* ============================
-   ESTADÍSTICAS
-============================ */
-.stats {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 2rem;
-  padding: 3rem 2rem;
-  background: var(--gris);
-  text-align: center;
-}
-
-.stat {
-  background: #fff;
-  border-radius: 10px;
-  padding: 1.8rem;
-  max-width: 260px;
-  flex: 1 1 200px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-  transition: transform .3s ease;
-}
-
-.stat:hover {
-  transform: translateY(-6px);
-}
-
-.stat strong {
-  display: block;
-  font-size: 2.4rem;
-  color: var(--azul);
-  margin-bottom: 0.5rem;
-}
-
-/* ============================
    TÍTULO DE PRODUCTOS
 ============================ */
 .productos-titulo {
   text-align: center;
-  padding: 2.5rem 1rem;
+  padding: 1.5rem 1rem 1rem;
 }
 
 .productos-titulo h2 {
@@ -252,8 +276,9 @@
   scroll-snap-type: x mandatory;
   scroll-padding-inline: 10px;
   scroll-behavior: auto;
+  scrollbar-width: none;
+  overflow-anchor: none;
   padding: 20px 10px;
-  transition: transform 0.5s ease;
 }
 
 .carousel-track::-webkit-scrollbar {
@@ -343,10 +368,14 @@
 .carousel-btn.right { right: 0; }
 
 @media (max-width: 900px) {
+  .banner-slider {
+    aspect-ratio: 16 / 7;
+  }
+
   .banner-content {
-    left: 24px;
-    bottom: 26px;
-    max-width: min(500px, calc(100% - 48px));
+    left: 76px;
+    max-width: min(500px, calc(100% - 152px));
+    padding-bottom: 24px;
   }
 
   .banner-content h1 {
@@ -361,11 +390,6 @@
     bottom: 12px;
   }
 
-  .stats {
-    padding: 2rem 1rem;
-    gap: 1rem;
-  }
-
   .carousel-btn {
     font-size: 24px;
     padding: 4px 10px;
@@ -373,12 +397,26 @@
 }
 
 @media (max-width: 600px) {
-  .banner-slider .slide.anniversary .slide-bg { object-position: 72% center; }
-  .banner-slider:has(.anniversary.active) .banner-dots { bottom: 2px; }
+  .banner-slider {
+    aspect-ratio: 4 / 3;
+    min-height: 280px;
+  }
+
+  .banner-arrow {
+    top: auto;
+    bottom: 8px;
+    transform: none;
+    width: 40px;
+    height: 40px;
+  }
+
+  .banner-arrow--prev { left: calc(50% - 100px); }
+  .banner-arrow--next { right: calc(50% - 100px); }
+
   .banner-content {
     left: 14px;
     right: 14px;
-    bottom: 32px;
+    padding-bottom: 36px;
     max-width: calc(100% - 28px);
   }
 
@@ -427,7 +465,8 @@
   }
 
   .carousel-btn {
-    display: none;
+    width: 36px;
+    height: 44px;
   }
 
   .product-card img {
@@ -477,13 +516,6 @@
   justify-content: space-between; /* distribuye contenido */
   align-items: center;
   text-align: center;
-  flex: 0 0 clamp(220px, 24vw, 260px);
-  width: auto;
-  min-height: 320px;
-  background: #fff;
-  border-radius: 12px;
-  padding: 15px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
 }
 
 .product-card h3 {
@@ -599,4 +631,19 @@
 
 .quienes-contacto a:hover {
   text-decoration: underline;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .banner-slider .slide,
+  .carousel-track,
+  .product-card,
+  .banner-arrow,
+  .banner-slider .dot {
+    transition: none;
+    scroll-behavior: auto;
+  }
+
+  .slider-track {
+    animation: none;
+  }
 }
