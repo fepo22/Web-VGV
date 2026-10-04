@@ -26,7 +26,11 @@
 						<small>ID {product.id}</small>
 					</td>
 					<td>
-						{[product.familia || product.categoria, product.subfamilia, product.familia ? product.categoria : '']
+						{[
+							product.familia || product.categoria,
+							product.subfamilia,
+							product.familia ? product.categoria : ''
+						]
 							.filter(Boolean)
 							.join(' / ') || 'Sin clasificar'}
 					</td>

@@ -18,7 +18,9 @@ export function mapProduct(producto) {
 		descripcion: producto.descripcion || '',
 		imagen: producto.imagen || '/images/placeholder.png',
 		familia: producto.familia || producto.categoria || 'Sin categoria',
-		familiaSlug: normalizeFamiliaSlug(producto.familiaSlug || producto.categoriaSlug || 'sin-categoria'),
+		familiaSlug: normalizeFamiliaSlug(
+			producto.familiaSlug || producto.categoriaSlug || 'sin-categoria'
+		),
 		subfamilia: producto.subfamilia || '',
 		subfamiliaSlug: producto.subfamiliaSlug || '',
 		categoria: producto.familia ? producto.categoria || '' : '',

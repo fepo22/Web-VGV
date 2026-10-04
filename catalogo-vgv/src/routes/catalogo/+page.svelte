@@ -18,7 +18,9 @@
 	}
 
 	const familiaActiva = $derived(
-		normalizeFamiliaSlug($page.url.searchParams.get('familia') ?? $page.url.searchParams.get('linea') ?? 'todas')
+		normalizeFamiliaSlug(
+			$page.url.searchParams.get('familia') ?? $page.url.searchParams.get('linea') ?? 'todas'
+		)
 	);
 	const subfamiliaActiva = $derived($page.url.searchParams.get('subfamilia') ?? '');
 	const categoriaActiva = $derived($page.url.searchParams.get('categoria') ?? '');
@@ -29,7 +31,9 @@
 	const productosDisponibles = $derived(productos.filter(productoDisponible));
 	const productosPorCategoria = $derived(
 		productosDisponibles.filter((producto) => {
-			const productoFamilia = normalizeFamiliaSlug(producto.familiaSlug || producto.categoriaSlug || '');
+			const productoFamilia = normalizeFamiliaSlug(
+				producto.familiaSlug || producto.categoriaSlug || ''
+			);
 			if (familiaActiva !== 'todas' && productoFamilia !== familiaActiva) return false;
 			if (subfamiliaActiva && producto.subfamiliaSlug !== subfamiliaActiva) return false;
 			if (categoriaActiva && producto.categoriaSlug !== categoriaActiva) return false;
@@ -88,7 +92,10 @@
 			<div class="taxonomy-options">
 				<a class:active={familiaActiva === 'todas'} href={resolve(catalogoHref())}>Todas</a>
 				{#each familias as familia (familia.slug)}
-					<a class:active={familiaActiva === familia.slug} href={resolve(catalogoHref(familia.slug))}>{familia.nombre}</a>
+					<a
+						class:active={familiaActiva === familia.slug}
+						href={resolve(catalogoHref(familia.slug))}>{familia.nombre}</a
+					>
 				{/each}
 			</div>
 		</div>
@@ -99,7 +106,10 @@
 				<div class="taxonomy-options">
 					<a class:active={!subfamiliaActiva} href={resolve(catalogoHref(familiaActiva))}>Todas</a>
 					{#each familiaSeleccionada.subfamilias as subfamilia (subfamilia.slug)}
-						<a class:active={subfamiliaActiva === subfamilia.slug} href={resolve(catalogoHref(familiaActiva, subfamilia.slug))}>{subfamilia.nombre}</a>
+						<a
+							class:active={subfamiliaActiva === subfamilia.slug}
+							href={resolve(catalogoHref(familiaActiva, subfamilia.slug))}>{subfamilia.nombre}</a
+						>
 					{/each}
 				</div>
 			</div>
@@ -109,9 +119,16 @@
 			<div class="taxonomy-level">
 				<h2>Categoría</h2>
 				<div class="taxonomy-options">
-					<a class:active={!categoriaActiva} href={resolve(catalogoHref(familiaActiva, subfamiliaActiva))}>Todas</a>
+					<a
+						class:active={!categoriaActiva}
+						href={resolve(catalogoHref(familiaActiva, subfamiliaActiva))}>Todas</a
+					>
 					{#each subfamiliaSeleccionada.categorias as categoria (categoria.slug)}
-						<a class:active={categoriaActiva === categoria.slug} href={resolve(catalogoHref(familiaActiva, subfamiliaActiva, categoria.slug))}>{categoria.nombre}</a>
+						<a
+							class:active={categoriaActiva === categoria.slug}
+							href={resolve(catalogoHref(familiaActiva, subfamiliaActiva, categoria.slug))}
+							>{categoria.nombre}</a
+						>
 					{/each}
 				</div>
 			</div>
