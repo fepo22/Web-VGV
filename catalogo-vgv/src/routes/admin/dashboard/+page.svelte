@@ -82,13 +82,22 @@
 		});
 	});
 
-	const pendingQuotations = $derived(quotations.filter((quotation) => (quotation.estado || 'pendiente') === 'pendiente').length);
+	const pendingQuotations = $derived(
+		quotations.filter((quotation) => (quotation.estado || 'pendiente') === 'pendiente').length
+	);
 	const filteredQuotations = $derived.by(() => {
 		const term = quoteSearchTerm.trim().toLowerCase();
 		return quotations.filter((quotation) => {
-			if (quoteStatus !== 'todas' && (quotation.estado || 'pendiente') !== quoteStatus) return false;
-			return !term || [quotation.nombre, quotation.empresa, quotation.correo, quotation.rut]
-				.some((value) => String(value || '').toLowerCase().includes(term));
+			if (quoteStatus !== 'todas' && (quotation.estado || 'pendiente') !== quoteStatus)
+				return false;
+			return (
+				!term ||
+				[quotation.nombre, quotation.empresa, quotation.correo, quotation.rut].some((value) =>
+					String(value || '')
+						.toLowerCase()
+						.includes(term)
+				)
+			);
 		});
 	});
 
@@ -187,7 +196,9 @@
 		editingProduct = { ...product };
 		error = '';
 		notice = '';
-		void tick().then(() => productFormAnchor?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+		void tick().then(() =>
+			productFormAnchor?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+		);
 	}
 
 	function startCreating() {
@@ -195,7 +206,9 @@
 		editingProduct = null;
 		showProductForm = true;
 		error = '';
-		void tick().then(() => productFormAnchor?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+		void tick().then(() =>
+			productFormAnchor?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+		);
 	}
 
 	function cancelEditing() {
@@ -218,7 +231,8 @@
 			if (!response.ok) throw new Error('No se pudieron cargar las cotizaciones.');
 			quotations = await response.json();
 		} catch (loadError) {
-			quotationsError = loadError instanceof Error ? loadError.message : 'Error cargando cotizaciones.';
+			quotationsError =
+				loadError instanceof Error ? loadError.message : 'Error cargando cotizaciones.';
 		} finally {
 			quotationsLoading = false;
 			quotationsLoaded = true;
@@ -227,9 +241,14 @@
 
 	async function changeQuotationStatus(quotation, estado) {
 		if (!estado || estado === (quotation.estado || 'pendiente')) return;
-		if (estado === 'confirmada' && !window.confirm('¿El cliente aceptó la cotización y ya se recibió el pago?')) return;
+		if (
+			estado === 'confirmada' &&
+			!window.confirm('¿El cliente aceptó la cotización y ya se recibió el pago?')
+		)
+			return;
 		if (estado === 'completada' && !window.confirm('¿El cliente ya recibió el pedido?')) return;
-		if (estado === 'desistida' && !window.confirm('¿Marcar esta cotización como desistida?')) return;
+		if (estado === 'desistida' && !window.confirm('¿Marcar esta cotización como desistida?'))
+			return;
 		changingStatusId = quotation._id;
 		quotationsError = '';
 		try {
@@ -241,9 +260,10 @@
 			if (response.status === 401) return logout('Tu sesión expiró. Vuelve a iniciar sesión.');
 			const data = await response.json().catch(() => ({}));
 			if (!response.ok) throw new Error(data.error || 'No se pudo cambiar el estado.');
-			quotations = quotations.map((entry) => entry._id === data._id ? data : entry);
+			quotations = quotations.map((entry) => (entry._id === data._id ? data : entry));
 		} catch (changeError) {
-			quotationsError = changeError instanceof Error ? changeError.message : 'Error actualizando estado.';
+			quotationsError =
+				changeError instanceof Error ? changeError.message : 'Error actualizando estado.';
 		} finally {
 			changingStatusId = '';
 		}
@@ -328,9 +348,10 @@
 		let text = String(value ?? '').replace(/[^\d,.-]/g, '');
 		if (!/\d/.test(text)) return Number.NaN;
 		if (text.includes(',') && text.includes('.')) {
-			text = text.lastIndexOf(',') > text.lastIndexOf('.')
-				? text.replace(/\./g, '').replace(',', '.')
-				: text.replace(/,/g, '');
+			text =
+				text.lastIndexOf(',') > text.lastIndexOf('.')
+					? text.replace(/\./g, '').replace(',', '.')
+					: text.replace(/,/g, '');
 		} else if (text.includes(',')) {
 			text = text.replace(',', '.');
 		} else if (/^\d{1,3}(\.\d{3})+$/.test(text)) {
@@ -355,7 +376,12 @@
 			sheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
 			sheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF174B3A' } };
 			sheet.columns = [
-				{ width: 20 }, { width: 34 }, { width: 28 }, { width: 28 }, { width: 26 }, { width: 18 }
+				{ width: 20 },
+				{ width: 34 },
+				{ width: 28 },
+				{ width: 28 },
+				{ width: 26 },
+				{ width: 18 }
 			];
 			sheet.views = [{ state: 'frozen', ySplit: 1 }];
 			const buffer = await workbook.xlsx.writeBuffer();
@@ -369,7 +395,10 @@
 			link.click();
 			URL.revokeObjectURL(url);
 		} catch (templateError) {
-			error = templateError instanceof Error ? templateError.message : 'No se pudo generar la plantilla Excel.';
+			error =
+				templateError instanceof Error
+					? templateError.message
+					: 'No se pudo generar la plantilla Excel.';
 		}
 	}
 
@@ -416,7 +445,10 @@
 			const columns = Object.fromEntries(
 				Object.entries(headerAliases).map(([key, aliases]) => [
 					key,
-					aliases.map(normalizeExcelLabel).map((alias) => headerIndexes[alias]).find(Boolean)
+					aliases
+						.map(normalizeExcelLabel)
+						.map((alias) => headerIndexes[alias])
+						.find(Boolean)
 				])
 			);
 			const missingHeaders = Object.entries(columns)
@@ -431,26 +463,49 @@
 			for (let rowNumber = 2; rowNumber <= sheet.rowCount; rowNumber += 1) {
 				const row = sheet.getRow(rowNumber);
 				const value = (key) => excelCellValue(row.getCell(columns[key]).value);
-				const codigo = String(value('codigo') ?? '').trim().toUpperCase();
+				const codigo = String(value('codigo') ?? '')
+					.trim()
+					.toUpperCase();
 				const nombre = String(value('nombre') ?? '').trim();
 				const familiaNombre = String(value('familia') ?? '').trim();
 				const subfamiliaNombre = String(value('subfamilia') ?? '').trim();
 				const categoriaNombre = String(value('categoria') ?? '').trim();
 				const rawCost = value('precioCosto');
-				if (![codigo, nombre, familiaNombre, subfamiliaNombre, categoriaNombre, rawCost].some((item) => String(item ?? '').trim())) continue;
+				if (
+					![codigo, nombre, familiaNombre, subfamiliaNombre, categoriaNombre, rawCost].some(
+						(item) => String(item ?? '').trim()
+					)
+				)
+					continue;
 
 				try {
-					const family = familias.find((item) => normalizeExcelLabel(item.nombre) === normalizeExcelLabel(familiaNombre));
-					if (!codigo || !nombre || !family || !subfamiliaNombre || rawCost === '' || rawCost == null) {
+					const family = familias.find(
+						(item) => normalizeExcelLabel(item.nombre) === normalizeExcelLabel(familiaNombre)
+					);
+					if (
+						!codigo ||
+						!nombre ||
+						!family ||
+						!subfamiliaNombre ||
+						rawCost === '' ||
+						rawCost == null
+					) {
 						throw new Error('Completa código, nombre, familia, subfamilia y precio costo.');
 					}
-					const subfamily = family.subfamilias.find((item) => normalizeExcelLabel(item.nombre) === normalizeExcelLabel(subfamiliaNombre));
+					const subfamily = family.subfamilias.find(
+						(item) => normalizeExcelLabel(item.nombre) === normalizeExcelLabel(subfamiliaNombre)
+					);
 					if (!subfamily) throw new Error(`Subfamilia no válida para ${family.nombre}.`);
-					const category = subfamily.categorias?.find((item) => normalizeExcelLabel(item.nombre) === normalizeExcelLabel(categoriaNombre));
-					if (subfamily.categorias?.length && !category) throw new Error(`Selecciona una categoría válida para ${subfamily.nombre}.`);
-					if (!subfamily.categorias?.length && categoriaNombre) throw new Error(`${subfamily.nombre} no lleva categoría adicional.`);
+					const category = subfamily.categorias?.find(
+						(item) => normalizeExcelLabel(item.nombre) === normalizeExcelLabel(categoriaNombre)
+					);
+					if (subfamily.categorias?.length && !category)
+						throw new Error(`Selecciona una categoría válida para ${subfamily.nombre}.`);
+					if (!subfamily.categorias?.length && categoriaNombre)
+						throw new Error(`${subfamily.nombre} no lleva categoría adicional.`);
 					const precioCosto = parseExcelCost(rawCost);
-					if (!Number.isFinite(precioCosto) || precioCosto < 0) throw new Error('Precio costo debe ser un número igual o mayor a cero.');
+					if (!Number.isFinite(precioCosto) || precioCosto < 0)
+						throw new Error('Precio costo debe ser un número igual o mayor a cero.');
 					const normalizedCode = codigo.replace(/\s+/g, '-').replace(/[^A-Z0-9-_]/g, '');
 					if (Object.hasOwn(seenCodes, normalizedCode)) {
 						throw new Error('Código duplicado dentro del archivo.');
@@ -469,11 +524,17 @@
 						precioCosto
 					});
 				} catch (rowError) {
-					rowErrors.push({ row: rowNumber, message: rowError instanceof Error ? rowError.message : 'Fila inválida.' });
+					rowErrors.push({
+						row: rowNumber,
+						message: rowError instanceof Error ? rowError.message : 'Fila inválida.'
+					});
 				}
 			}
 			if (!rows.length) {
-				const details = rowErrors.slice(0, 12).map((item) => `Fila ${item.row}: ${item.message}`).join('\n');
+				const details = rowErrors
+					.slice(0, 12)
+					.map((item) => `Fila ${item.row}: ${item.message}`)
+					.join('\n');
 				throw new Error(details || 'No hay filas válidas para importar.');
 			}
 			bulkTotal = rows.length;
@@ -496,11 +557,15 @@
 			await loadProducts();
 			notice = `Importación completada: ${created} nuevos y ${updated} actualizados.`;
 			if (rowErrors.length) {
-				error = rowErrors.slice(0, 12).map((item) => `Fila ${item.row}: ${item.message}`).join('\n');
+				error = rowErrors
+					.slice(0, 12)
+					.map((item) => `Fila ${item.row}: ${item.message}`)
+					.join('\n');
 				if (rowErrors.length > 12) error += `\nY ${rowErrors.length - 12} errores más.`;
 			}
 		} catch (importError) {
-			error = importError instanceof Error ? importError.message : 'No se pudo leer el archivo Excel.';
+			error =
+				importError instanceof Error ? importError.message : 'No se pudo leer el archivo Excel.';
 		} finally {
 			importingProducts = false;
 			input.value = '';
@@ -703,144 +768,269 @@
 		</section>
 
 		<div class="view-tabs" role="group" aria-label="Secciones de administración">
-			<button type="button" aria-pressed={activeView === 'cotizaciones'} class:active={activeView === 'cotizaciones'} onclick={() => activeView = 'cotizaciones'}>Cotizaciones</button>
-			<button type="button" aria-pressed={activeView === 'productos'} class:active={activeView === 'productos'} onclick={() => activeView = 'productos'}>Productos</button>
+			<button
+				type="button"
+				aria-pressed={activeView === 'cotizaciones'}
+				class:active={activeView === 'cotizaciones'}
+				onclick={() => (activeView = 'cotizaciones')}>Cotizaciones</button
+			>
+			<button
+				type="button"
+				aria-pressed={activeView === 'productos'}
+				class:active={activeView === 'productos'}
+				onclick={() => (activeView = 'productos')}>Productos</button
+			>
 		</div>
 		<section class="stacked">
 			{#if activeView === 'cotizaciones'}
-			<section class="panel card">
-				<div class="panel-head">
-					<div>
-						<h2>Cotizaciones solicitadas</h2>
-						<p>{filteredQuotations.length} de {quotations.length} solicitudes.</p>
+				<section class="panel card">
+					<div class="panel-head">
+						<div>
+							<h2>Cotizaciones solicitadas</h2>
+							<p>{filteredQuotations.length} de {quotations.length} solicitudes.</p>
+						</div>
+						<button class="refresh" type="button" onclick={loadQuotations}>Actualizar</button>
 					</div>
-					<button class="refresh" type="button" onclick={loadQuotations}>Actualizar</button>
-				</div>
-				<div class="quote-filters">
-					<label for="quote-status">Estado
-						<select id="quote-status" bind:value={quoteStatus}>
-							<option value="pendiente">Pendientes ({pendingQuotations})</option>
-							<option value="todas">Todas</option>
-							{#each Object.entries(statusLabels).filter(([key]) => key !== 'pendiente') as [key, label] (key)}
-								<option value={key}>{label}</option>
-							{/each}
-						</select>
-					</label>
-					<label for="quote-search">Buscar
-						<input id="quote-search" type="search" placeholder="Cliente, empresa, correo o RUT" bind:value={quoteSearchTerm} />
-					</label>
-				</div>
-				{#if quotationsError}<p class="feedback error">{quotationsError}</p>{/if}
-				{#if quotationsLoading}<Loader />{:else if filteredQuotations.length === 0 && !quotationsError}<p>Sin cotizaciones para este filtro.</p>{/if}
-				<div class="quotation-list">
-					{#each filteredQuotations as quotation (quotation._id)}
-						<details class="quotation">
-							<summary><strong>{quotation.nombre}</strong><span>{quotation.empresa || quotation.tipoCliente || 'Cliente'}</span><span class="quote-state">{statusLabels[quotation.estado || 'pendiente']}</span><time datetime={quotation.createdAt}>{new Date(quotation.createdAt).toLocaleDateString('es-CL')}</time></summary>
-							<div><a href={`mailto:${quotation.correo}`}>{quotation.correo}</a> · {quotation.contacto} · RUT {quotation.rut}</div>
-							<div>Despacho: {quotation.direccion}</div>
-							<ul>{#each quotation.productos as producto, position (position)}<li>{producto.nombre} · {producto.varianteSku || producto.id} × {producto.cantidad}</li>{/each}</ul>
-							<label class="quotation-status">Estado
-								<select value={quotation.estado || 'pendiente'} disabled={changingStatusId === quotation._id} onchange={(event) => { const nextStatus = event.currentTarget.value; event.currentTarget.value = quotation.estado || 'pendiente'; void changeQuotationStatus(quotation, nextStatus); }}>
-									<option value={quotation.estado || 'pendiente'}>{statusLabels[quotation.estado || 'pendiente']}</option>
-									{#each nextStatuses[quotation.estado || 'pendiente'] || [] as nextStatus (nextStatus)}
-										<option value={nextStatus}>{statusLabels[nextStatus]}</option>
-									{/each}
-								</select>
-							</label>
-						</details>
+					<div class="quote-filters">
+						<label for="quote-status"
+							>Estado
+							<select id="quote-status" bind:value={quoteStatus}>
+								<option value="pendiente">Pendientes ({pendingQuotations})</option>
+								<option value="todas">Todas</option>
+								{#each Object.entries(statusLabels).filter(([key]) => key !== 'pendiente') as [key, label] (key)}
+									<option value={key}>{label}</option>
+								{/each}
+							</select>
+						</label>
+						<label for="quote-search"
+							>Buscar
+							<input
+								id="quote-search"
+								type="search"
+								placeholder="Cliente, empresa, correo o RUT"
+								bind:value={quoteSearchTerm}
+							/>
+						</label>
+					</div>
+					{#if quotationsError}<p class="feedback error">{quotationsError}</p>{/if}
+					{#if quotationsLoading}<Loader
+						/>{:else if filteredQuotations.length === 0 && !quotationsError}<p>
+							Sin cotizaciones para este filtro.
+						</p>{/if}
+					<div class="quotation-list">
+						{#each filteredQuotations as quotation (quotation._id)}
+							<details class="quotation">
+								<summary
+									><strong>{quotation.nombre}</strong><span
+										>{quotation.empresa || quotation.tipoCliente || 'Cliente'}</span
+									><span class="quote-state">{statusLabels[quotation.estado || 'pendiente']}</span
+									><time datetime={quotation.createdAt}
+										>{new Date(quotation.createdAt).toLocaleDateString('es-CL')}</time
+									></summary
+								>
+								<div>
+									<a href={`mailto:${quotation.correo}`}>{quotation.correo}</a> · {quotation.contacto}
+									· RUT {quotation.rut}
+								</div>
+								<div>Despacho: {quotation.direccion}</div>
+								<ul>
+									{#each quotation.productos as producto, position (position)}<li>
+											{producto.nombre} · {producto.varianteSku || producto.id} × {producto.cantidad}
+										</li>{/each}
+								</ul>
+								<label class="quotation-status"
+									>Estado
+									<select
+										value={quotation.estado || 'pendiente'}
+										disabled={changingStatusId === quotation._id}
+										onchange={(event) => {
+											const nextStatus = event.currentTarget.value;
+											event.currentTarget.value = quotation.estado || 'pendiente';
+											void changeQuotationStatus(quotation, nextStatus);
+										}}
+									>
+										<option value={quotation.estado || 'pendiente'}
+											>{statusLabels[quotation.estado || 'pendiente']}</option
+										>
+										{#each nextStatuses[quotation.estado || 'pendiente'] || [] as nextStatus (nextStatus)}
+											<option value={nextStatus}>{statusLabels[nextStatus]}</option>
+										{/each}
+									</select>
+								</label>
+							</details>
 						{/each}
-				</div>
-			</section>
+					</div>
+				</section>
 			{:else}
-			{#if showProductForm}
-			<div bind:this={productFormAnchor} class="form-anchor">
-			<ProductForm
-				product={editingProduct}
-				loading={saving}
-				onSubmit={saveProduct}
-				onCancel={cancelEditing}
-			/>
-			</div>
-			{/if}
-
-			<section class="panel card">
-				<div class="panel-head">
-					<div>
-						<h2>Productos</h2>
-						<p>
-							{filteredProducts.length} de {products.length} productos
-							{searchTerm.trim() ? ' (filtrados)' : ' sincronizados'}.
-						</p>
+				{#if showProductForm}
+					<div bind:this={productFormAnchor} class="form-anchor">
+						<ProductForm
+							product={editingProduct}
+							loading={saving}
+							onSubmit={saveProduct}
+							onCancel={cancelEditing}
+						/>
 					</div>
-					<div class="panel-actions">
-						<button class="refresh" type="button" onclick={startCreating}>Nuevo producto</button>
-						<button class="refresh" type="button" onclick={downloadBulkTemplate}>Plantilla Excel</button>
-						<button class="refresh" type="button" disabled={importingProducts} onclick={() => bulkFileInput?.click()}>
-							{importingProducts
-								? bulkTotal ? `Importando ${bulkProgress}/${bulkTotal}...` : 'Preparando Excel...'
-								: 'Subir Excel'}
-						</button>
-						<button class="refresh" type="button" onclick={loadProducts}>Refrescar</button>
-						<button class="refresh" type="button" onclick={exportProductsCsv}>Exportar CSV</button>
-					</div>
-				</div>
-				<input bind:this={bulkFileInput} class="bulk-file-input" type="file" accept=".xlsx" onchange={importProductsFromExcel} />
-
-				<div class="search-row">
-					<label for="product-search">Buscar por código o nombre
-						<input id="product-search" type="search" placeholder="Ej: VGV-0049 o Codo 90" bind:value={searchTerm} />
-					</label>
-					<label for="product-status">Disponibilidad
-						<select id="product-status" bind:value={productStatus}>
-							<option value="todos">Todos</option>
-							<option value="disponible">Disponibles</option>
-							<option value="sin stock">Sin stock</option>
-						</select>
-					</label>
-				</div>
-
-				{#if error}
-					<p class="feedback error">{error}</p>
 				{/if}
 
-				{#if notice}
-					<p class="feedback ok">{notice}</p>
-				{/if}
-
-				{#if filteredProducts.length === 0}
-					<p>No hay productos para esta búsqueda.</p>
-				{:else}
-					<ProductTable
-						products={filteredProducts}
-						loadingId={actionLoadingId}
-						onEdit={startEditing}
-						onToggleStatus={toggleStatus}
-						onDelete={deleteProduct}
+				<section class="panel card">
+					<div class="panel-head">
+						<div>
+							<h2>Productos</h2>
+							<p>
+								{filteredProducts.length} de {products.length} productos
+								{searchTerm.trim() ? ' (filtrados)' : ' sincronizados'}.
+							</p>
+						</div>
+						<div class="panel-actions">
+							<button class="refresh" type="button" onclick={startCreating}>Nuevo producto</button>
+							<button class="refresh" type="button" onclick={downloadBulkTemplate}
+								>Plantilla Excel</button
+							>
+							<button
+								class="refresh"
+								type="button"
+								disabled={importingProducts}
+								onclick={() => bulkFileInput?.click()}
+							>
+								{importingProducts
+									? bulkTotal
+										? `Importando ${bulkProgress}/${bulkTotal}...`
+										: 'Preparando Excel...'
+									: 'Subir Excel'}
+							</button>
+							<button class="refresh" type="button" onclick={loadProducts}>Refrescar</button>
+							<button class="refresh" type="button" onclick={exportProductsCsv}>Exportar CSV</button
+							>
+						</div>
+					</div>
+					<input
+						bind:this={bulkFileInput}
+						class="bulk-file-input"
+						type="file"
+						accept=".xlsx"
+						onchange={importProductsFromExcel}
 					/>
-				{/if}
-			</section>
+
+					<div class="search-row">
+						<label for="product-search"
+							>Buscar por código o nombre
+							<input
+								id="product-search"
+								type="search"
+								placeholder="Ej: VGV-0049 o Codo 90"
+								bind:value={searchTerm}
+							/>
+						</label>
+						<label for="product-status"
+							>Disponibilidad
+							<select id="product-status" bind:value={productStatus}>
+								<option value="todos">Todos</option>
+								<option value="disponible">Disponibles</option>
+								<option value="sin stock">Sin stock</option>
+							</select>
+						</label>
+					</div>
+
+					{#if error}
+						<p class="feedback error">{error}</p>
+					{/if}
+
+					{#if notice}
+						<p class="feedback ok">{notice}</p>
+					{/if}
+
+					{#if filteredProducts.length === 0}
+						<p>No hay productos para esta búsqueda.</p>
+					{:else}
+						<ProductTable
+							products={filteredProducts}
+							loadingId={actionLoadingId}
+							onEdit={startEditing}
+							onToggleStatus={toggleStatus}
+							onDelete={deleteProduct}
+						/>
+					{/if}
+				</section>
 			{/if}
 		</section>
 	{/if}
 </section>
 
 <style>
-	.view-tabs { display: flex; gap: 0.3rem; border-bottom: 1px solid var(--vgv-border-soft); }
-	.view-tabs button { border: none; border-bottom: 3px solid transparent; background: transparent; color: var(--vgv-azul-oscuro); padding: 0.8rem 1.1rem; font-weight: 700; cursor: pointer; }
-	.view-tabs button.active { border-color: var(--vgv-verde); }
-	.form-anchor { scroll-margin-top: 1rem; }
-	.quotation-list { display: grid; }
-	.quotation { border-bottom: 1px solid #d9e5f2; padding: 0.85rem 0; overflow-wrap: anywhere; }
-	.quotation summary { display: grid; grid-template-columns: minmax(10rem, 1.4fr) minmax(8rem, 1fr) auto auto; align-items: center; gap: 0.8rem; cursor: pointer; }
-	.quotation summary strong { color: var(--vgv-azul-oscuro); }
-	.quotation summary time { color: var(--vgv-gris); white-space: nowrap; }
-	.quote-state { color: var(--vgv-verde-oscuro); font-weight: 700; }
-	.quotation div { margin: 0.55rem 0; }
-	.quotation ul { margin: 0.25rem 0; }
-	.quotation-status { display: flex; align-items: center; gap: 0.65rem; font-weight: 700; }
-	.quote-filters { display: grid; grid-template-columns: minmax(170px, 220px) minmax(220px, 1fr); gap: 1rem; }
-	.quote-filters label { display: grid; gap: 0.4rem; font-weight: 700; }
-	.quote-filters input, .quote-filters select { width: 100%; min-width: 0; }
+	.view-tabs {
+		display: flex;
+		gap: 0.3rem;
+		border-bottom: 1px solid var(--vgv-border-soft);
+	}
+	.view-tabs button {
+		border: none;
+		border-bottom: 3px solid transparent;
+		background: transparent;
+		color: var(--vgv-azul-oscuro);
+		padding: 0.8rem 1.1rem;
+		font-weight: 700;
+		cursor: pointer;
+	}
+	.view-tabs button.active {
+		border-color: var(--vgv-verde);
+	}
+	.form-anchor {
+		scroll-margin-top: 1rem;
+	}
+	.quotation-list {
+		display: grid;
+	}
+	.quotation {
+		border-bottom: 1px solid #d9e5f2;
+		padding: 0.85rem 0;
+		overflow-wrap: anywhere;
+	}
+	.quotation summary {
+		display: grid;
+		grid-template-columns: minmax(10rem, 1.4fr) minmax(8rem, 1fr) auto auto;
+		align-items: center;
+		gap: 0.8rem;
+		cursor: pointer;
+	}
+	.quotation summary strong {
+		color: var(--vgv-azul-oscuro);
+	}
+	.quotation summary time {
+		color: var(--vgv-gris);
+		white-space: nowrap;
+	}
+	.quote-state {
+		color: var(--vgv-verde-oscuro);
+		font-weight: 700;
+	}
+	.quotation div {
+		margin: 0.55rem 0;
+	}
+	.quotation ul {
+		margin: 0.25rem 0;
+	}
+	.quotation-status {
+		display: flex;
+		align-items: center;
+		gap: 0.65rem;
+		font-weight: 700;
+	}
+	.quote-filters {
+		display: grid;
+		grid-template-columns: minmax(170px, 220px) minmax(220px, 1fr);
+		gap: 1rem;
+	}
+	.quote-filters label {
+		display: grid;
+		gap: 0.4rem;
+		font-weight: 700;
+	}
+	.quote-filters input,
+	.quote-filters select {
+		width: 100%;
+		min-width: 0;
+	}
 	.admin-shell {
 		display: flex;
 		flex-direction: column;
@@ -934,7 +1124,8 @@
 		color: var(--vgv-azul-oscuro);
 	}
 
-	.search-row input, .search-row select {
+	.search-row input,
+	.search-row select {
 		width: 100%;
 		min-width: 0;
 	}
@@ -976,8 +1167,12 @@
 		color: var(--vgv-verde-oscuro);
 	}
 
-	.bulk-file-input { display: none; }
-	.feedback.error { white-space: pre-line; }
+	.bulk-file-input {
+		display: none;
+	}
+	.feedback.error {
+		white-space: pre-line;
+	}
 
 	@media (max-width: 1000px) {
 		.metrics-grid {
@@ -986,9 +1181,15 @@
 	}
 
 	@media (max-width: 700px) {
-		.quote-filters { grid-template-columns: 1fr; }
-		.quotation summary { grid-template-columns: 1fr auto; }
-		.search-row { grid-template-columns: 1fr; }
+		.quote-filters {
+			grid-template-columns: 1fr;
+		}
+		.quotation summary {
+			grid-template-columns: 1fr auto;
+		}
+		.search-row {
+			grid-template-columns: 1fr;
+		}
 		.hero,
 		.panel-head {
 			flex-direction: column;

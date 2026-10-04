@@ -3,7 +3,12 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { onDestroy, tick } from 'svelte';
-	import { actualizarCantidad, carrito, carritoLateralAbierto, eliminarDelCarrito } from '$lib/stores/carrito.js';
+	import {
+		actualizarCantidad,
+		carrito,
+		carritoLateralAbierto,
+		eliminarDelCarrito
+	} from '$lib/stores/carrito.js';
 	const { titulo = 'Catálogo VGV', admin = false } = $props();
 
 	const STORAGE_KEY = 'vgv_admin_token';
@@ -64,7 +69,12 @@
 			<a href={resolve('/catalogo')}>Catálogo</a>
 			<a href={resolve('/quienes-somos')}>Quiénes somos</a>
 			<a href={resolve('/cuenta')}>Mi cuenta</a>
-			<button class="cart-link link-btn" type="button" onclick={() => carritoLateralAbierto.set(true)} aria-label="Ver carrito">
+			<button
+				class="cart-link link-btn"
+				type="button"
+				onclick={() => carritoLateralAbierto.set(true)}
+				aria-label="Ver carrito"
+			>
 				Carrito
 				<span
 					class={`cart-count ${pulse ? 'pulse' : ''}`}
@@ -79,11 +89,21 @@
 
 <svelte:window onkeydown={(event) => panelAbierto && event.key === 'Escape' && cerrarPanel()} />
 {#if !admin && panelAbierto}
-	<button class="panel-backdrop" type="button" aria-label="Cerrar carrito" onclick={cerrarPanel}></button>
-	<div bind:this={panelElement} class="cart-panel" role="dialog" aria-modal="true" aria-label="Carrito de compras" tabindex="-1">
+	<button class="panel-backdrop" type="button" aria-label="Cerrar carrito" onclick={cerrarPanel}
+	></button>
+	<div
+		bind:this={panelElement}
+		class="cart-panel"
+		role="dialog"
+		aria-modal="true"
+		aria-label="Carrito de compras"
+		tabindex="-1"
+	>
 		<div class="panel-header">
 			<h2>Tu carrito ({itemsCount})</h2>
-			<button class="close-panel" type="button" aria-label="Cerrar carrito" onclick={cerrarPanel}>×</button>
+			<button class="close-panel" type="button" aria-label="Cerrar carrito" onclick={cerrarPanel}
+				>×</button
+			>
 		</div>
 		{#if items.length === 0}
 			<p>Tu carrito está vacío.</p>
@@ -95,12 +115,25 @@
 						<div class="item-details">
 							<strong>{item.nombre}</strong>
 							<div class="quantity-controls" aria-label={`Cantidad de ${item.nombre}`}>
-								<button type="button" aria-label={`Quitar una unidad de ${item.nombre}`} disabled={item.cantidad <= 1} onclick={() => actualizarCantidad(item.cartKey, item.cantidad - 1)}>−</button>
+								<button
+									type="button"
+									aria-label={`Quitar una unidad de ${item.nombre}`}
+									disabled={item.cantidad <= 1}
+									onclick={() => actualizarCantidad(item.cartKey, item.cantidad - 1)}>−</button
+								>
 								<span>{item.cantidad}</span>
-								<button type="button" aria-label={`Agregar una unidad de ${item.nombre}`} onclick={() => actualizarCantidad(item.cartKey, item.cantidad + 1)}>+</button>
+								<button
+									type="button"
+									aria-label={`Agregar una unidad de ${item.nombre}`}
+									onclick={() => actualizarCantidad(item.cartKey, item.cantidad + 1)}>+</button
+								>
 							</div>
 						</div>
-						<button type="button" aria-label={`Eliminar ${item.nombre}`} onclick={() => eliminarDelCarrito(item.cartKey)}>×</button>
+						<button
+							type="button"
+							aria-label={`Eliminar ${item.nombre}`}
+							onclick={() => eliminarDelCarrito(item.cartKey)}>×</button
+						>
 					</li>
 				{/each}
 			</ul>
@@ -135,26 +168,78 @@
 		box-shadow: -8px 0 30px rgba(0, 0, 0, 0.18);
 	}
 
-	.panel-header, .panel-items li, .panel-actions {
+	.panel-header,
+	.panel-items li,
+	.panel-actions {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
 		gap: 0.75rem;
 	}
 
-	.panel-header h2 { margin: 0; font-size: 1.25rem; }
-	.close-panel, .panel-items button { background: none; border: 0; font-size: 1.5rem; cursor: pointer; }
-	.panel-items { list-style: none; padding: 0; overflow-y: auto; flex: 1; }
-	.panel-items li { border-bottom: 1px solid #d9e5f2; padding: 0.8rem 0; }
-	.panel-items img { object-fit: contain; flex: none; }
-	.panel-items .item-details { flex: 1; min-width: 0; display: grid; gap: 0.4rem; }
-	.quantity-controls { display: flex; align-items: center; gap: 0.5rem; }
-	.quantity-controls button { width: 2rem; height: 2rem; border: 1px solid #d9e5f2; border-radius: 4px; font-size: 1rem; }
-	.quantity-controls button:disabled { opacity: 0.4; cursor: not-allowed; }
-	.quantity-controls span { min-width: 1.5rem; text-align: center; }
-	.panel-items span { font-size: 0.85rem; }
-	.panel-actions { margin-top: auto; padding-top: 1rem; flex-wrap: wrap; }
-	.panel-actions a { color: var(--vgv-azul-oscuro); font-weight: 700; }
+	.panel-header h2 {
+		margin: 0;
+		font-size: 1.25rem;
+	}
+	.close-panel,
+	.panel-items button {
+		background: none;
+		border: 0;
+		font-size: 1.5rem;
+		cursor: pointer;
+	}
+	.panel-items {
+		list-style: none;
+		padding: 0;
+		overflow-y: auto;
+		flex: 1;
+	}
+	.panel-items li {
+		border-bottom: 1px solid #d9e5f2;
+		padding: 0.8rem 0;
+	}
+	.panel-items img {
+		object-fit: contain;
+		flex: none;
+	}
+	.panel-items .item-details {
+		flex: 1;
+		min-width: 0;
+		display: grid;
+		gap: 0.4rem;
+	}
+	.quantity-controls {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+	.quantity-controls button {
+		width: 2rem;
+		height: 2rem;
+		border: 1px solid #d9e5f2;
+		border-radius: 4px;
+		font-size: 1rem;
+	}
+	.quantity-controls button:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
+	.quantity-controls span {
+		min-width: 1.5rem;
+		text-align: center;
+	}
+	.panel-items span {
+		font-size: 0.85rem;
+	}
+	.panel-actions {
+		margin-top: auto;
+		padding-top: 1rem;
+		flex-wrap: wrap;
+	}
+	.panel-actions a {
+		color: var(--vgv-azul-oscuro);
+		font-weight: 700;
+	}
 
 	.nav {
 		display: flex;

@@ -28,7 +28,9 @@
 
 	onMount(async () => {
 		try {
-			const response = await fetch(backendUrl('/api/clientes/mi-perfil'), { credentials: 'include' });
+			const response = await fetch(backendUrl('/api/clientes/mi-perfil'), {
+				credentials: 'include'
+			});
 			if (!response.ok) return;
 			const { customer } = await response.json();
 			if (!customer?.profileComplete) return;
@@ -62,7 +64,15 @@
 		const rut = String(formData.get('rut') || '').trim();
 		const direccion = String(formData.get('direccion') || '').trim();
 
-		if (!nombre || !tipoCliente || (tipoCliente === 'constructora' && !empresa) || !correo || !contacto || !rut || !direccion) {
+		if (
+			!nombre ||
+			!tipoCliente ||
+			(tipoCliente === 'constructora' && !empresa) ||
+			!correo ||
+			!contacto ||
+			!rut ||
+			!direccion
+		) {
 			errorEnvio = 'Completa todos los campos antes de enviar la solicitud.';
 			enviando = false;
 			return;
@@ -82,9 +92,19 @@
 					'content-type': 'application/json'
 				},
 				body: JSON.stringify({
-					nombre, tipoCliente, correo, empresa, rut, contacto, direccion,
+					nombre,
+					tipoCliente,
+					correo,
+					empresa,
+					rut,
+					contacto,
+					direccion,
 					productos: items.map(({ id, nombre, cantidad, varianteSku, varianteMedida }) => ({
-						id, nombre, cantidad, varianteSku, varianteMedida
+						id,
+						nombre,
+						cantidad,
+						varianteSku,
+						varianteMedida
 					}))
 				})
 			});
@@ -145,12 +165,20 @@
 			<select id="tipo-cliente" name="tipoCliente" bind:value={formValues.tipoCliente} required>
 				<option value="" disabled>Selecciona una opción</option>
 				<option value="constructora">Constructora</option>
-				<option value="instalador/contratista/arquitecto">Instalador / contratista / arquitecto</option>
+				<option value="instalador/contratista/arquitecto"
+					>Instalador / contratista / arquitecto</option
+				>
 				<option value="particular">Particular</option>
 			</select>
 
 			<label for="empresa">Empresa</label>
-			<input id="empresa" name="empresa" type="text" bind:value={formValues.empresa} required={formValues.tipoCliente === 'constructora'} />
+			<input
+				id="empresa"
+				name="empresa"
+				type="text"
+				bind:value={formValues.empresa}
+				required={formValues.tipoCliente === 'constructora'}
+			/>
 
 			<label for="rut">RUT</label>
 			<input

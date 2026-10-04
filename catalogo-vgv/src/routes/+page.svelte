@@ -144,46 +144,12 @@
 	</nav>
 </header>
 
-<style>
-	header nav {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 1rem;
-		padding: 1rem 2rem;
-	}
-
-	header nav ul {
-		display: flex;
-		align-items: center;
-		flex-wrap: wrap;
-		gap: 1.8rem;
-		list-style: none;
-		margin: 0;
-		padding: 0;
-	}
-
-	header .logo img {
-		height: 55px;
-		width: auto;
-	}
-
-	@media (max-width: 700px) {
-		header nav {
-			flex-direction: column;
-			align-items: flex-start;
-		}
-
-		header nav ul {
-			width: 100%;
-			gap: 0.4rem;
-		}
-	}
-</style>
-
 <section class="banner-slider">
 	{#each slides as slide, index (slide.image)}
-		<div class="slide slide--{index + 1} {activeSlide === index ? 'active' : ''}" class:anniversary={slide.anniversary}>
+		<div
+			class="slide slide--{index + 1} {activeSlide === index ? 'active' : ''}"
+			class:anniversary={slide.anniversary}
+		>
 			<img
 				class="slide-bg"
 				src={slide.image}
@@ -251,7 +217,12 @@
 					fetchpriority="low"
 				/>
 				<h3>{familia.nombre}</h3>
-				<p>{familia.subfamilias.slice(0, 3).map((item) => item.nombre).join(' · ')}</p>
+				<p>
+					{familia.subfamilias
+						.slice(0, 3)
+						.map((item) => item.nombre)
+						.join(' · ')}
+				</p>
 			</a>
 		{/each}
 	</div>
@@ -447,3 +418,40 @@
 		>↑</button
 	>
 {/if}
+
+<style>
+	header nav {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		padding: 1rem 2rem;
+	}
+
+	header nav ul {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 1.8rem;
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+
+	header .logo img {
+		height: 55px;
+		width: auto;
+	}
+
+	@media (max-width: 700px) {
+		header nav {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+
+		header nav ul {
+			width: 100%;
+			gap: 0.4rem;
+		}
+	}
+</style>
