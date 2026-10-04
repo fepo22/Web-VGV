@@ -166,7 +166,7 @@
 					<p>{slide.description}</p>
 					<a href={resolve(slide.ctaHref)} class="btn">{slide.ctaText}</a>
 					{#if slide.secondaryHref}
-						<a href={slide.secondaryHref} class="btn">{slide.secondaryText}</a>
+						<a href={slide.secondaryHref} rel="external" class="btn">{slide.secondaryText}</a>
 					{/if}
 				</div>
 			{/if}

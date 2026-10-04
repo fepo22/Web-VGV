@@ -16,15 +16,6 @@
 	let variantes = $state([]);
 	let nextVariantKey = 0;
 
-	function slugify(value) {
-		return String(value ?? '')
-			.normalize('NFD')
-			.replace(/[\u0300-\u036f]/g, '')
-			.toLowerCase()
-			.replace(/[^a-z0-9]+/g, '-')
-			.replace(/(^-|-$)/g, '');
-	}
-
 	function findFamilia(slug) {
 		return familias.find((item) => item.slug === slug);
 	}
