@@ -17,8 +17,16 @@ export function mapProduct(producto) {
 		nombre: producto.nombre,
 		descripcion: producto.descripcion || '',
 		imagen: producto.imagen || '/images/placeholder.png',
+		relatedProductIds: Array.isArray(producto.relatedProductIds)
+			? producto.relatedProductIds.map(String)
+			: [],
+		relatedProducts: Array.isArray(producto.relatedProducts)
+			? producto.relatedProducts.map(mapProduct)
+			: [],
 		familia: producto.familia || producto.categoria || 'Sin categoria',
-		familiaSlug: normalizeFamiliaSlug(producto.familiaSlug || producto.categoriaSlug || 'sin-categoria'),
+		familiaSlug: normalizeFamiliaSlug(
+			producto.familiaSlug || producto.categoriaSlug || 'sin-categoria'
+		),
 		subfamilia: producto.subfamilia || '',
 		subfamiliaSlug: producto.subfamiliaSlug || '',
 		categoria: producto.familia ? producto.categoria || '' : '',

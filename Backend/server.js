@@ -21,6 +21,7 @@ import productsRoutes from "./routes/products.routes.js";
 import contactRoutes from "./routes/contact.routes.js";
 import cotizarRoutes from "./routes/cotizar.routes.js";
 import customerRoutes from "./routes/customer.routes.js";
+import productImagesRoutes from "./routes/product-images.routes.js";
 
 // ===============================
 // FIX para __dirname en ES Modules
@@ -119,6 +120,7 @@ if (hasFrontendBuild) {
 // ===============================
 app.use("/auth", authRoutes);
 app.use("/admin/products", productsRoutes);
+app.use("/api/product-images", productImagesRoutes);
 app.use("/api/products", publicProductsRoutes);
 app.use("/api/productos", publicProductsRoutes);
 app.use("/api/contacto", contactRoutes);

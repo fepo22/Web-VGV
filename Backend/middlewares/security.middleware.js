@@ -16,7 +16,9 @@ export const applySecurity = app => {
         directives: {
           "frame-src": ["'self'", "https://www.google.com", "https://maps.google.com"],
           // SvelteKit static injecta un script inline minimo para bootstrapping/hidratacion.
-          "script-src": ["'self'", "'unsafe-inline'"]
+          "script-src": ["'self'", "'unsafe-inline'"],
+          // Previews locales del uploader y URLs absolutas del backend separado.
+          "img-src": ["'self'", "data:", "blob:", "https:", ...(process.env.NODE_ENV !== "production" ? ["http:"] : [])]
         }
       }
     })

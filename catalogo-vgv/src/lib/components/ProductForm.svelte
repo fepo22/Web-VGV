@@ -1,7 +1,8 @@
 <script>
 	import { familias, normalizeFamiliaSlug } from '$lib/data/categorias.js';
+	import RelatedProductSelector from '$lib/components/RelatedProductSelector.svelte';
 
-	const { product = null, loading = false, onSubmit, onCancel } = $props();
+	const { product = null, products = [], loading = false, onSubmit, onCancel } = $props();
 
 	let nombre = $state('');
 	let codigo = $state('');
@@ -14,16 +15,8 @@
 	let stock = $state('1');
 	let estado = $state('disponible');
 	let variantes = $state([]);
+	let relatedProductIds = $state([]);
 	let nextVariantKey = 0;
-
-	function slugify(value) {
-		return String(value ?? '')
-			.normalize('NFD')
-			.replace(/[\u0300-\u036f]/g, '')
-			.toLowerCase()
-			.replace(/[^a-z0-9]+/g, '-')
-			.replace(/(^-|-$)/g, '');
-	}
 
 	function findFamilia(slug) {
 		return familias.find((item) => item.slug === slug);
@@ -44,8 +37,9 @@
 		precioCosto = String(product?.precioCosto ?? 0);
 		familiaSlug = normalizeFamiliaSlug(product?.familiaSlug ?? product?.categoriaSlug ?? '');
 		subfamiliaSlug = product?.subfamiliaSlug ?? '';
-		categoriaSlug = product?.familiaSlug ? product?.categoriaSlug ?? '' : '';
+		categoriaSlug = product?.familiaSlug ? (product?.categoriaSlug ?? '') : '';
 		imagen = product?.imagen ?? '';
+		relatedProductIds = [...(product?.relatedProductIds ?? [])].map(String);
 		stock = String(product?.stock ?? 1);
 		estado = product?.estado === 'sin stock' ? 'sin stock' : 'disponible';
 		variantes = Array.isArray(product?.variantes)
@@ -66,7 +60,9 @@
 	async function handleSubmit(event) {
 		event.preventDefault();
 		const variantesPayload = variantes.map(({ sku, medida, minima }) => ({
-			sku: sku.trim(), medida: medida.trim(), minima: Number(minima)
+			sku: sku.trim(),
+			medida: medida.trim(),
+			minima: Number(minima)
 		}));
 
 		await onSubmit?.({
@@ -78,9 +74,13 @@
 			familiaSlug,
 			subfamilia: labelDesdeSlug(findFamilia(familiaSlug)?.subfamilias, subfamiliaSlug),
 			subfamiliaSlug,
-			categoria: labelDesdeSlug(findSubfamilia(familiaSlug, subfamiliaSlug)?.categorias, categoriaSlug),
+			categoria: labelDesdeSlug(
+				findSubfamilia(familiaSlug, subfamiliaSlug)?.categorias,
+				categoriaSlug
+			),
 			categoriaSlug,
 			imagen: imagen.trim(),
+			relatedProductIds,
 			stock: Number(stock),
 			estado,
 			...(product || variantes.length ? { variantes: variantesPayload } : {})
@@ -197,18 +197,48 @@
 		<div class="variants full">
 			<div class="variants-head">
 				<h3>Variantes</h3>
-				<button class="ghost" type="button" onclick={() => variantes = [...variantes, { key: ++nextVariantKey, sku: '', medida: '', minima: 1 }]}>Agregar variante</button>
+				<button
+					class="ghost"
+					type="button"
+					onclick={() =>
+						(variantes = [...variantes, { key: ++nextVariantKey, sku: '', medida: '', minima: 1 }])}
+					>Agregar variante</button
+				>
 			</div>
 			{#each variantes as variante (variante.key)}
 				<div class="variant-row">
 					<label>SKU <input bind:value={variante.sku} required placeholder="DP-20" /></label>
-					<label>Medida <input bind:value={variante.medida} required placeholder="20 mm x 6 m" /></label>
-					<label>Cantidad mínima <input type="number" min="1" step="1" bind:value={variante.minima} required /></label>
-					<button class="remove-variant" type="button" title="Eliminar variante" aria-label={`Eliminar variante ${variante.sku || variante.key}`} onclick={() => variantes = variantes.filter((item) => item.key !== variante.key)}>×</button>
+					<label
+						>Medida <input bind:value={variante.medida} required placeholder="20 mm x 6 m" /></label
+					>
+					<label
+						>Cantidad mínima <input
+							type="number"
+							min="1"
+							step="1"
+							bind:value={variante.minima}
+							required
+						/></label
+					>
+					<button
+						class="remove-variant"
+						type="button"
+						title="Eliminar variante"
+						aria-label={`Eliminar variante ${variante.sku || variante.key}`}
+						onclick={() => (variantes = variantes.filter((item) => item.key !== variante.key))}
+						>×</button
+					>
 				</div>
 			{/each}
 		</div>
 	</div>
+
+	<RelatedProductSelector
+		{products}
+		currentId={product?.id ?? ''}
+		selectedIds={relatedProductIds}
+		onchange={(ids) => (relatedProductIds = ids)}
+	/>
 
 	<button class="submit" type="submit" disabled={loading}>
 		{loading ? 'Guardando...' : product ? 'Guardar cambios' : 'Crear producto'}
@@ -273,10 +303,33 @@
 		gap: 1rem;
 	}
 
-	.variants-head { display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; }
-	.variants-head h3 { margin: 0; font-size: 1rem; }
-	.variant-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 120px 40px; align-items: end; gap: 0.6rem; margin-top: 0.5rem; }
-	.remove-variant { width: 40px; height: 40px; border: 1px solid var(--vgv-border-soft); border-radius: 4px; background: transparent; color: var(--vgv-danger); font-size: 1.5rem; cursor: pointer; }
+	.variants-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.8rem;
+	}
+	.variants-head h3 {
+		margin: 0;
+		font-size: 1rem;
+	}
+	.variant-row {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 120px 40px;
+		align-items: end;
+		gap: 0.6rem;
+		margin-top: 0.5rem;
+	}
+	.remove-variant {
+		width: 40px;
+		height: 40px;
+		border: 1px solid var(--vgv-border-soft);
+		border-radius: 4px;
+		background: transparent;
+		color: var(--vgv-danger);
+		font-size: 1.5rem;
+		cursor: pointer;
+	}
 
 	label {
 		display: flex;
@@ -343,6 +396,8 @@
 		}
 	}
 	@media (max-width: 650px) {
-		.variant-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+		.variant-row {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
 	}
 </style>

@@ -3,10 +3,12 @@ import {
   bulkUpsertProductsByCode,
   deleteProductById,
   getProductById as findProductById,
+  getProductsByIds,
   listProducts,
   updateProductById
 } from "../data/products.store.js";
 import { emitProductEvent } from "../realtime/socket.js";
+import { validateRelatedProductIds } from "../utils/related-products.js";
 
 function normalizeEstado(input) {
   const estado = String(input ?? "disponible").toLowerCase().trim();
@@ -140,6 +142,7 @@ function buildUpdatePayload(body = {}, currentProduct) {
   const hasCategoria = Object.prototype.hasOwnProperty.call(body, "categoria");
   const hasCategoriaSlug = Object.prototype.hasOwnProperty.call(body, "categoriaSlug");
   const hasPrecioCosto = Object.prototype.hasOwnProperty.call(body, "precioCosto");
+  const hasRelatedProducts = Object.prototype.hasOwnProperty.call(body, "relatedProductIds");
 
   const hasAnyField =
     hasCodigo ||
@@ -155,7 +158,8 @@ function buildUpdatePayload(body = {}, currentProduct) {
     hasSubfamiliaSlug ||
     hasCategoria ||
     hasCategoriaSlug ||
-    hasPrecioCosto;
+    hasPrecioCosto ||
+    hasRelatedProducts;
 
   if (!hasAnyField) {
     throw new Error("Debes enviar datos para actualizar el producto.");
@@ -266,7 +270,8 @@ export const getProductById = async (req, res) => {
       return res.status(404).json({ error: "Producto no encontrado" });
     }
 
-    return res.json(withoutCost(product));
+    const relatedProducts = await getProductsByIds(product.relatedProductIds || []);
+    return res.json({ ...withoutCost(product), relatedProducts: relatedProducts.map(withoutCost) });
   } catch (error) {
     return res.status(500).json({ error: "No se pudo obtener el producto." });
   }
@@ -354,6 +359,9 @@ export const bulkImportProductsController = async (req, res) => {
 export const createProductController = async (req, res) => {
   try {
     const payload = buildCreatePayload(req.body);
+    payload.relatedProductIds = await validateRelatedProductIds(
+      req.body?.relatedProductIds ?? [], undefined, getProductsByIds
+    );
     const created = await createProduct(payload);
 
     emitProductEvent("productAdded", withoutCost(created));
@@ -372,6 +380,11 @@ export const updateProductController = async (req, res) => {
     }
 
     const patch = buildUpdatePayload(req.body, currentProduct);
+    if (Object.prototype.hasOwnProperty.call(req.body, "relatedProductIds")) {
+      patch.relatedProductIds = await validateRelatedProductIds(
+        req.body.relatedProductIds, currentProduct.id, getProductsByIds
+      );
+    }
     const updated = await updateProductById(req.params.id, patch);
 
     emitProductEvent("productUpdated", withoutCost(updated));

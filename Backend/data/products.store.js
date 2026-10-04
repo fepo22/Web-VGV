@@ -20,6 +20,7 @@ const productSchema = new mongoose.Schema(
 		nombre: { type: String, required: true },
 		descripcion: { type: String, default: "" },
 		imagen: { type: String, required: true },
+		relatedProductIds: { type: [String], default: [] },
 		familia: { type: String, default: "Sin categoria" },
 		familiaSlug: { type: String, default: "sin-categoria" },
 		subfamilia: { type: String, default: "" },
@@ -111,6 +112,9 @@ function normalizeEstado(producto) {
 		nombre: String(producto.nombre ?? "").trim(),
 		descripcion: String(producto.descripcion ?? ""),
 		imagen: String(producto.imagen ?? ""),
+		relatedProductIds: Array.isArray(producto.relatedProductIds)
+			? [...new Set(producto.relatedProductIds.map(String))].filter((relatedId) => relatedId !== id)
+			: [],
 		familia,
 		familiaSlug,
 		subfamilia: String(producto.subfamilia ?? ""),
@@ -183,11 +187,13 @@ export async function syncSeedProducts({ removeMissing = false } = {}) {
 	const seedIds = normalizedSeed.map((product) => String(product.id));
 
 	for (const product of normalizedSeed) {
+		// Seed sync must not erase relationships or images managed in administration.
+		const { relatedProductIds, imagen, ...seedFields } = product;
 		await ProductModel.updateOne(
 			{ id: String(product.id) },
 			{
-				$set: product,
-				$setOnInsert: { createdAt: new Date() }
+				$set: seedFields,
+				$setOnInsert: { createdAt: new Date(), relatedProductIds, imagen }
 			},
 			{ upsert: true }
 		);
@@ -216,6 +222,14 @@ export async function getProductById(id) {
 	await ensureReady();
 	const product = await ProductModel.findOne({ id: String(id) }).lean();
 	return toProductDTO(product);
+}
+
+export async function getProductsByIds(ids) {
+	if (!ids.length) return [];
+	await ensureReady();
+	const products = await ProductModel.find({ id: { $in: ids } }).lean();
+	const byId = new Map(products.map((product) => [String(product.id), toProductDTO(product)]));
+	return ids.map((id) => byId.get(String(id))).filter(Boolean);
 }
 
 export async function createProduct(payload) {
@@ -303,5 +317,9 @@ export async function deleteProductById(id) {
 		return null;
 	}
 
+	await ProductModel.updateMany(
+		{ relatedProductIds: String(id) },
+		{ $pull: { relatedProductIds: String(id) } }
+	);
 	return toProductDTO(deleted);
 }

@@ -1,10 +1,14 @@
 <script>
 	import { browser } from '$app/environment';
 	import { agregarAlCarrito } from '$lib/stores/carrito.js';
+	import ProductCard from '$lib/components/ProductCard.svelte';
 
 	const { data } = $props();
 	const producto = $derived(data?.producto ?? null);
 	const variantes = $derived(Array.isArray(producto?.variantes) ? producto.variantes : []);
+	const relacionados = $derived(
+		Array.isArray(producto?.relatedProducts) ? producto.relatedProducts : []
+	);
 	let ultimoProductoRegistrado = $state(null);
 	let cantidadesPorVariante = $state({});
 
@@ -115,11 +119,34 @@
 			{/if}
 		</div>
 	</section>
+	{#if relacionados.length}
+		<section class="related-section" aria-label="Productos relacionados">
+			<h2>Productos relacionados</h2>
+			<div class="related-grid">
+				{#each relacionados as relacionado (relacionado.id)}
+					<ProductCard producto={relacionado} />
+				{/each}
+			</div>
+		</section>
+	{/if}
 {:else}
 	<p class="empty">No se encontró el producto.</p>
 {/if}
 
 <style>
+	.related-section {
+		margin: 2rem 0;
+	}
+	.related-section h2 {
+		margin-bottom: 1rem;
+		color: var(--vgv-azul-oscuro);
+	}
+	.related-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+		gap: 1rem;
+	}
+
 	.producto {
 		display: grid;
 		grid-template-columns: 1fr 1fr;
