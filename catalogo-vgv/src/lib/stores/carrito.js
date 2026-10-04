@@ -16,7 +16,8 @@ function normalizeCartItem(item) {
 		varianteSku: item.varianteSku,
 		varianteMedida: item.varianteMedida,
 		minima: item.minima,
-		cartKey: item.cartKey || (item.varianteSku ? `${item.id}:${item.varianteSku}` : String(item.id)),
+		cartKey:
+			item.cartKey || (item.varianteSku ? `${item.id}:${item.varianteSku}` : String(item.id)),
 		cantidad: Math.max(1, Number(item.cantidad ?? 1))
 	};
 }
@@ -29,11 +30,19 @@ function readCart() {
 		localStorage.removeItem(LEGACY_STORAGE_KEY);
 		if (saved !== null) {
 			const stored = JSON.parse(saved);
-			if (!Array.isArray(stored?.items) || !Number.isFinite(stored.expiresAt) || stored.expiresAt <= Date.now() || stored.expiresAt - Date.now() > CART_TTL_MS) {
+			if (
+				!Array.isArray(stored?.items) ||
+				!Number.isFinite(stored.expiresAt) ||
+				stored.expiresAt <= Date.now() ||
+				stored.expiresAt - Date.now() > CART_TTL_MS
+			) {
 				localStorage.removeItem(STORAGE_KEY);
 				return empty;
 			}
-			return { items: stored.items.filter(Boolean).map(normalizeCartItem), expiresAt: stored.expiresAt };
+			return {
+				items: stored.items.filter(Boolean).map(normalizeCartItem),
+				expiresAt: stored.expiresAt
+			};
 		}
 		return empty;
 	} catch {

@@ -108,7 +108,7 @@ export const productos = [
 		descripcion: 'Equipo portátil frío/calor para climatización eficiente en espacios interiores.',
 		imagen: '/images/ofertas/portable_9000.jpg',
 		categoria: 'Calefont y calefacción',
-		categoriaSlug: 'calefont-calefaccion',
+		categoriaSlug: 'calefont-calefaccion'
 	},
 	{
 		id: '15',
@@ -117,7 +117,7 @@ export const productos = [
 			'Climatizador portátil con conectividad WiFi y mayor capacidad para ambientes amplios.',
 		imagen: '/images/ofertas/portable_12000_wifi.jpg',
 		categoria: 'Calefont y calefacción',
-		categoriaSlug: 'calefont-calefaccion',
+		categoriaSlug: 'calefont-calefaccion'
 	},
 	{
 		id: '16',
@@ -125,7 +125,7 @@ export const productos = [
 		descripcion: 'Jarra de filtrado para mejorar sabor y calidad del agua de consumo diario.',
 		imagen: '/images/ofertas/jarra_purificadora.jpg',
 		categoria: 'Griferías y sanitarios',
-		categoriaSlug: 'griferias-sanitarios',
+		categoriaSlug: 'griferias-sanitarios'
 	},
 	{
 		id: '17',
@@ -133,7 +133,7 @@ export const productos = [
 		descripcion: 'Sistema de purificación de tres etapas para agua más limpia en el hogar.',
 		imagen: '/images/ofertas/filtro_purificador_triple.png',
 		categoria: 'Griferías y sanitarios',
-		categoriaSlug: 'griferias-sanitarios',
+		categoriaSlug: 'griferias-sanitarios'
 	},
 	{
 		id: '18',
@@ -141,7 +141,7 @@ export const productos = [
 		descripcion: 'Accesorio de conexión para instalaciones sanitarias y de canalización.',
 		imagen: '/images/ofertas/pomel_1x104.jpg',
 		categoria: 'Consumibles de obra',
-		categoriaSlug: 'consumibles-obra',
+		categoriaSlug: 'consumibles-obra'
 	},
 	{
 		id: '20',
