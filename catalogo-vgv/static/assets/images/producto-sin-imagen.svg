@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-labelledby="title desc">
+	<title id="title">Producto sin imagen</title>
+	<desc id="desc">Ilustración genérica para productos sin fotografía disponible.</desc>
+	<defs>
+		<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+			<stop offset="0%" stop-color="#eaf1f8" />
+			<stop offset="100%" stop-color="#dfe9f4" />
+		</linearGradient>
+	</defs>
+	<rect width="800" height="600" fill="url(#bg)" />
+	<rect x="120" y="100" width="560" height="400" rx="24" fill="#ffffff" stroke="#c8d8eb" stroke-width="8" />
+	<path
+		d="M260 370l90-110 80 90 65-70 105 130H200z"
+		fill="#bcd3e9"
+		stroke="#8eb3d5"
+		stroke-width="6"
+		stroke-linejoin="round"
+	/>
+	<circle cx="315" cy="220" r="36" fill="#8eb3d5" />
+	<text x="400" y="455" text-anchor="middle" font-size="34" font-family="Arial, sans-serif" fill="#2b5d86">
+		Sin imagen disponible
+	</text>
+</svg>

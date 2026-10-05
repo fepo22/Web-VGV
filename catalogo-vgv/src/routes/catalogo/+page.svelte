@@ -5,7 +5,6 @@
 	import { familias, normalizeFamiliaSlug } from '$lib/data/categorias.js';
 	import Loader from '$lib/components/Loader.svelte';
 	import ProductGrid from '$lib/components/ProductGrid.svelte';
-	import { backendUrl } from '$lib/utils/backend-url.js';
 
 	let productos = $state([]);
 	let cargando = $state(true);
@@ -63,7 +62,7 @@
 		cargando = true;
 		errorCarga = '';
 		try {
-			const respuesta = await fetch(backendUrl('/api/products'));
+			const respuesta = await fetch('/api/products');
 			if (!respuesta.ok) throw new Error(`El servidor respondió ${respuesta.status}`);
 			const data = await respuesta.json();
 			if (!Array.isArray(data)) throw new Error('La respuesta del catálogo no es válida');

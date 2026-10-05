@@ -18,7 +18,9 @@ export async function GET() {
 		}
 
 		const data = await respuesta.json();
-		const productos = Array.isArray(data) ? data.map(mapProduct) : [];
+		const productos = Array.isArray(data)
+			? data.map((producto) => mapProduct(producto, { backendBase: BACKEND_URL }))
+			: [];
 
 		return new Response(JSON.stringify(productos), {
 			headers: { 'content-type': 'application/json' }

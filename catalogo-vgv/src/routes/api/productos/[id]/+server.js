@@ -24,7 +24,7 @@ export async function GET({ params }) {
 
 		const data = await respuesta.json();
 
-		return new Response(JSON.stringify(mapProduct(data)), {
+		return new Response(JSON.stringify(mapProduct(data, { backendBase: BACKEND_URL })), {
 			headers: { 'content-type': 'application/json' }
 		});
 	} catch (error) {
