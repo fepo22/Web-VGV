@@ -7,10 +7,16 @@ export const familias = [
 			{ slug: 'astm', nombre: 'ASTM' },
 			{ slug: 'ppr', nombre: 'PPR' },
 			{ slug: 'galvanizado', nombre: 'Galvanizado' },
-			{ slug: 'hdpe', nombre: 'HDPE' },
+			{
+				slug: 'hdpe',
+				nombre: 'HDPE',
+				categorias: [
+					{ slug: 'liso', nombre: 'HDPE Liso' },
+					{ slug: 'corrugado', nombre: 'HDPE Corrugado' }
+				]
+			},
 			{ slug: 'cobre', nombre: 'Cobre' },
 			{ slug: 'bronce', nombre: 'Bronce' },
-			{ slug: 'corrugada', nombre: 'Corrugada' },
 			{
 				slug: 'pvc',
 				nombre: 'PVC',
