@@ -44,11 +44,6 @@
 		}
 	});
 
-	async function volverAlInicio() {
-		if (!browser) return;
-		await goto(resolve('/'));
-	}
-
 	async function cerrarSesionAdmin() {
 		if (!browser) return;
 		localStorage.removeItem(STORAGE_KEY);
@@ -57,7 +52,20 @@
 </script>
 
 <nav class="nav">
-	<div class="logo">{titulo}</div>
+	{#if !admin}
+		<a class="logo logo-image" href={resolve('/')} aria-label="VGV SPA, inicio">
+			<img
+				src="/assets/Logo-preview.png"
+				alt="Logo VGV SPA"
+				width="220"
+				height="72"
+				decoding="async"
+				fetchpriority="high"
+			/>
+		</a>
+	{:else}
+		<div class="logo">{titulo}</div>
+	{/if}
 
 	<div class="links">
 		{#if admin}
@@ -65,10 +73,10 @@
 			<a href={resolve('/catalogo')}>Ver catálogo</a>
 			<button class="link-btn" type="button" onclick={cerrarSesionAdmin}>Cerrar sesión</button>
 		{:else}
-			<button class="link-btn" type="button" onclick={volverAlInicio}>Volver al inicio</button>
 			<a href={resolve('/catalogo')}>Catálogo</a>
-			<a href={resolve('/quienes-somos')}>Quiénes somos</a>
 			<a href={resolve('/cuenta')}>Mi cuenta</a>
+			<a href={resolve('/quienes-somos')}>Quiénes somos</a>
+			<a href={resolve('/contacto')}>Contacto</a>
 			<button
 				class="cart-link link-btn"
 				type="button"
@@ -245,6 +253,7 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
+		gap: 0;
 		padding: 1rem 2rem;
 		background: var(--vgv-azul-oscuro);
 		color: var(--vgv-blanco);
@@ -253,6 +262,16 @@
 	.logo {
 		font-size: 1.3rem;
 		font-weight: bold;
+	}
+
+	.logo-image {
+		display: flex;
+		align-items: center;
+	}
+
+	.logo img {
+		width: auto;
+		height: 55px;
 	}
 
 	.links a {

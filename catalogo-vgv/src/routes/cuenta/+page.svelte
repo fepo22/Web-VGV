@@ -180,7 +180,11 @@
 	});
 </script>
 
-<svelte:head><title>Mi cuenta | VGV</title></svelte:head>
+<svelte:head>
+	<title>Mi cuenta de cliente | VGV SPA</title>
+	<meta name="description" content="Accede a tu cuenta VGV SPA y consulta tus cotizaciones." />
+	<meta name="robots" content="noindex, follow" />
+</svelte:head>
 
 <section class="account">
 	<header class="account-header">

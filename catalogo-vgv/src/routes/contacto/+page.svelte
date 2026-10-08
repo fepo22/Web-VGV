@@ -132,10 +132,10 @@
 </script>
 
 <svelte:head>
-	<title>Contacto | VGV SPA</title>
+	<title>Contacto y cotizaciones | VGV SPA Talcahuano</title>
 	<meta
 		name="description"
-		content="Contáctanos por correo, teléfono o WhatsApp para cotizaciones rápidas. Atención personalizada en Talcahuano."
+		content="Contacta a VGV SPA en Talcahuano para consultas y cotizaciones de tuberías, calefacción, grifería y materiales de construcción. Escríbenos o visítanos."
 	/>
 	<link rel="canonical" href="https://www.vgv.cl/contacto" />
 	<link rel="stylesheet" href="/style/base.css" />

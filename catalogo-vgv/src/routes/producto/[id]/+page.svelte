@@ -9,6 +9,14 @@
 	const relacionados = $derived(
 		Array.isArray(producto?.relatedProducts) ? producto.relatedProducts : []
 	);
+	const seoTitle = $derived(
+		producto ? `${producto.nombre} | VGV SPA Talcahuano` : 'Producto no encontrado | VGV SPA'
+	);
+	const seoDescription = $derived(
+		producto
+			? `${producto.descripcion || `Conoce ${producto.nombre} en el catálogo de VGV SPA.`} Consulta disponibilidad y solicita una cotización en Talcahuano.`
+			: 'No encontramos este producto. Explora el catálogo de tuberías, calefacción, grifería y materiales de construcción de VGV SPA.'
+	);
 	let ultimoProductoRegistrado = $state(null);
 	let cantidadesPorVariante = $state({});
 
@@ -68,6 +76,16 @@
 		ultimoProductoRegistrado = producto.id;
 	});
 </script>
+
+<svelte:head>
+	<title>{seoTitle}</title>
+	<meta name="description" content={seoDescription} />
+	{#if producto}
+		<link rel="canonical" href={`https://www.vgv.cl/producto/${encodeURIComponent(producto.id)}`} />
+	{:else}
+		<meta name="robots" content="noindex, follow" />
+	{/if}
+</svelte:head>
 
 {#if producto}
 	<section class="producto">

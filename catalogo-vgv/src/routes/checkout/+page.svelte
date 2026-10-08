@@ -142,6 +142,15 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Solicitar cotización | VGV SPA</title>
+	<meta
+		name="description"
+		content="Completa tus datos y envía a VGV SPA tu solicitud de cotización para los productos seleccionados."
+	/>
+	<meta name="robots" content="noindex, follow" />
+</svelte:head>
+
 <section class="checkout">
 	<header class="cabecera">
 		<h1>Solicitar cotización</h1>

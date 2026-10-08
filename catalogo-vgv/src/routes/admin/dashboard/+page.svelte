@@ -776,6 +776,7 @@
 
 <svelte:head>
 	<title>Dashboard Admin VGV</title>
+	<meta name="robots" content="noindex, nofollow" />
 </svelte:head>
 
 <section class="admin-shell">

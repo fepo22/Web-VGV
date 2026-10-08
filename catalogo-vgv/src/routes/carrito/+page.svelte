@@ -61,6 +61,15 @@
 	]);
 </script>
 
+<svelte:head>
+	<title>Carrito de cotización | VGV SPA</title>
+	<meta
+		name="description"
+		content="Revisa los productos seleccionados para tu solicitud de cotización a VGV SPA."
+	/>
+	<meta name="robots" content="noindex, follow" />
+</svelte:head>
+
 <section class="carrito">
 	<h1>Carrito de Compras</h1>
 

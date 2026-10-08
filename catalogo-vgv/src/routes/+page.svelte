@@ -243,13 +243,10 @@
 </script>
 
 <svelte:head>
-	<title
-		>VGV SPA | Calefacción, Canalización y Materiales de construccion en Talcahuano, bio bio
-		Concepcion</title
-	>
+	<title>Tuberías, calefacción y materiales de construcción | VGV SPA</title>
 	<meta
 		name="description"
-		content="VGV SPA ofrece calefont, radiadores, tuberías, griferías, accesorios y soluciones técnicas en Talcahuano. Cotiza rápido por WhatsApp o correo."
+		content="Encuentra tuberías y fittings, calefacción, grifería, baño, cocina y materiales para construcción. Cotiza con VGV SPA en Talcahuano, Región del Biobío."
 	/>
 	<link rel="canonical" href="https://www.vgv.cl/" />
 	<link rel="stylesheet" href="/style/base.css" />
@@ -258,29 +255,6 @@
 	<link rel="stylesheet" href="/style/index.css" />
 	<link rel="stylesheet" href="/style/proveedores.css" />
 </svelte:head>
-
-<header>
-	<nav>
-		<div class="logo">
-			<a href={resolve('/')}>
-				<img
-					src="/assets/Logo-preview.png"
-					alt="Logo VGV SPA"
-					width="220"
-					height="72"
-					decoding="async"
-					fetchpriority="high"
-				/>
-			</a>
-		</div>
-		<ul>
-			<li><a href={resolve('/catalogo')}>Catálogo</a></li>
-			<li><a href={resolve('/cuenta')}>Mi cuenta</a></li>
-			<li><a href={resolve('/quienes-somos')}>Quiénes somos</a></li>
-			<li><a href={resolve('/contacto')}>Contacto</a></li>
-		</ul>
-	</nav>
-</header>
 
 {#if slides.length}
 	<section
@@ -480,49 +454,8 @@
 	</div>
 </section>
 
-<footer>
-	<p>© 2016 VGV SPA — Comercializadora y distribuidora, Talcahuano</p>
-</footer>
-
 {#if btnTopVisible}
 	<button id="btnTop" type="button" onclick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
 		>↑</button
 	>
 {/if}
-
-<style>
-	header nav {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 1rem;
-		padding: 1rem 2rem;
-	}
-
-	header nav ul {
-		display: flex;
-		align-items: center;
-		flex-wrap: wrap;
-		gap: 1.8rem;
-		list-style: none;
-		margin: 0;
-		padding: 0;
-	}
-
-	header .logo img {
-		height: 55px;
-		width: auto;
-	}
-
-	@media (max-width: 700px) {
-		header nav {
-			flex-direction: column;
-			align-items: flex-start;
-		}
-
-		header nav ul {
-			width: 100%;
-			gap: 0.4rem;
-		}
-	}
-</style>

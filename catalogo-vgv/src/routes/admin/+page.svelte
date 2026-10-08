@@ -10,6 +10,7 @@
 
 <svelte:head>
 	<title>Redirigiendo...</title>
+	<meta name="robots" content="noindex, nofollow" />
 </svelte:head>
 
 <section class="redirect-card card">

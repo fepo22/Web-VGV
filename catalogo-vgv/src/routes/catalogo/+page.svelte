@@ -48,6 +48,16 @@
 			.filter(Boolean)
 			.join(' / ') || 'Todas las familias'
 	);
+	const seoTitle = $derived(
+		tituloCategoria === 'Todas las familias'
+			? 'Catálogo de materiales de construcción | VGV SPA'
+			: `${tituloCategoria} | VGV SPA`
+	);
+	const seoDescription = $derived(
+		tituloCategoria === 'Todas las familias'
+			? 'Explora tuberías y fittings, calefacción, grifería, baño, cocina, adhesivos y consumibles de obra. Consulta productos y solicita una cotización a VGV SPA en Talcahuano.'
+			: `Consulta el catálogo de ${tituloCategoria.replaceAll(' / ', ', ')}, productos para construcción e instalaciones. Solicita una cotización a VGV SPA en Talcahuano.`
+	);
 
 	function catalogoHref(familia = '', subfamilia = '', categoria = '') {
 		const params = [
@@ -80,6 +90,12 @@
 		void cargarProductos();
 	});
 </script>
+
+<svelte:head>
+	<title>{seoTitle}</title>
+	<meta name="description" content={seoDescription} />
+	<link rel="canonical" href={`https://www.vgv.cl${$page.url.pathname}${$page.url.search}`} />
+</svelte:head>
 
 <section class="catalogo">
 	<h1>Catálogo virtual VGV</h1>

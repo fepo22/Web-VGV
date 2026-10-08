@@ -3,10 +3,10 @@
 </script>
 
 <svelte:head>
-	<title>Quiénes somos | VGV SPA</title>
+	<title>VGV SPA | Materiales de construcción en Talcahuano</title>
 	<meta
 		name="description"
-		content="Conoce la historia, misión, visión y valores de VGV SPA. Soluciones en canalización y calefacción desde Talcahuano."
+		content="Conoce VGV SPA, empresa especializada en soluciones para construcción, canalización, calefacción, baño y cocina, encuentranos en Talcahuano"
 	/>
 	<link rel="canonical" href="https://www.vgv.cl/quienes-somos" />
 </svelte:head>

@@ -7,22 +7,24 @@
 
 	const { children } = $props();
 	const isAdminRoute = $derived(page.url.pathname.startsWith('/admin'));
-	const isLegacyPage = $derived(page.url.pathname === '/' || page.url.pathname === '/contacto');
+	const isHomeRoute = $derived(page.url.pathname === '/');
+	const isContactRoute = $derived(page.url.pathname === '/contacto');
+	const isLegacyPage = $derived(isHomeRoute || isContactRoute);
 </script>
 
 <svelte:head>
 	<link rel="icon" href="/favicon.ico" sizes="any" />
 </svelte:head>
 
-{#if !isAdminRoute && !isLegacyPage}
-	<Navbar titulo="Catálogo VGV" />
+{#if !isAdminRoute && !isContactRoute}
+	<Navbar />
 {/if}
 
 <main class:contenido={!isLegacyPage}>
 	{@render children()}
 </main>
 
-{#if !isAdminRoute && !isLegacyPage}
+{#if !isAdminRoute && !isContactRoute}
 	<Footer />
 {/if}
 
