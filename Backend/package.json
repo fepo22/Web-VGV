@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "node --watch server.js",
     "start": "node server.js",
-    "sync:seed": "node scripts/sync-products.js"
+    "sync:seed": "node scripts/sync-products.js",
+    "test": "node --test"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

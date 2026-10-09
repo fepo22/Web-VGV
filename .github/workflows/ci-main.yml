@@ -66,3 +66,5 @@ jobs:
           node --check routes/products.routes.js
           node --check routes/products.public.routes.js
           node --check data/products.store.js
+      - name: Tests
+        run: npm test

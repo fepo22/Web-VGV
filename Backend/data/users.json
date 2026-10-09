@@ -1,11 +1,3 @@
 {
-	"users": [
-		{
-			"id": "1",
-			"username": "admin",
-			"passwordHash": "$2b$10$YpTiFCexR33ryXbIXx1dvev2V9Grd3XWPyzi.NyGPN0OAv9YCLr1m",
-			"role": "admin",
-			"active": true
-		}
-	]
+	"users": []
 }

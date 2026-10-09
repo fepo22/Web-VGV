@@ -7,7 +7,7 @@
 
 	const STORAGE_KEY = 'vgv_admin_token';
 
-	let username = $state('admin');
+	let username = $state('');
 	let password = $state('');
 	let loading = $state(false);
 	let error = $state('');
