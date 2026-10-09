@@ -20,7 +20,6 @@ import publicProductsRoutes from "./routes/products.public.routes.js";
 import productsRoutes from "./routes/products.routes.js";
 import contactRoutes from "./routes/contact.routes.js";
 import cotizarRoutes from "./routes/cotizar.routes.js";
-import customerRoutes from "./routes/customer.routes.js";
 import productImagesRoutes from "./routes/product-images.routes.js";
 
 // ===============================
@@ -125,7 +124,10 @@ app.use("/api/products", publicProductsRoutes);
 app.use("/api/productos", publicProductsRoutes);
 app.use("/api/contacto", contactRoutes);
 app.use("/api/cotizar", cotizarRoutes);
-app.use("/api/clientes", customerRoutes);
+// Cuenta de clientes desactivada: restaurar customerRoutes y su app.use al reactivar el flujo.
+app.use("/api/clientes", (_req, res) => {
+  return res.status(404).json({ error: "Recurso no encontrado." });
+});
 
 // Healthcheck explicito para monitoreo
 app.get("/health", (req, res) => {

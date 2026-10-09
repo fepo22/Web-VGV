@@ -153,7 +153,8 @@
 		</div>
 		<ul>
 			<li><a href={resolve('/catalogo')}>Catálogo</a></li>
-			<li><a href={resolve('/cuenta')}>Mi cuenta</a></li>
+			<!-- Opción reversible: retirar este comentario para reactivar Mi cuenta. -->
+			<!-- <li><a href={resolve('/cuenta')}>Mi cuenta</a></li> -->
 			<li><a href={resolve('/quienes-somos')}>Quiénes somos</a></li>
 			<li><a href={resolve('/contacto')} class="active">Contacto</a></li>
 		</ul>

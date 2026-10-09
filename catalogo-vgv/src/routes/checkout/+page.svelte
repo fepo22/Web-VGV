@@ -1,6 +1,4 @@
 <script>
-	import { onMount } from 'svelte';
-	import { resolve } from '$app/paths';
 	import { carrito, vaciarCarrito } from '$lib/stores/carrito.js';
 	import { backendUrl } from '$lib/utils/backend-url.js';
 
@@ -26,27 +24,31 @@
 		return () => unsub();
 	});
 
-	onMount(async () => {
-		try {
-			const response = await fetch(backendUrl('/api/clientes/mi-perfil'), {
-				credentials: 'include'
-			});
-			if (!response.ok) return;
-			const { customer } = await response.json();
-			if (!customer?.profileComplete) return;
-			formValues = {
-				nombreApellido: customer.nombre,
-				tipoCliente: customer.tipoCliente,
-				empresa: customer.empresa,
-				rut: customer.rut,
-				direccion: customer.direccionDespacho,
-				contacto: customer.telefono,
-				mail: customer.email
-			};
-		} catch {
-			// El checkout de invitado sigue disponible sin sesión.
-		}
-	});
+	/*
+		Opción reversible: descomentar este bloque y el import de onMount
+		cuando se reactive Mi cuenta y su prellenado del checkout.
+		onMount(async () => {
+			try {
+				const response = await fetch(backendUrl('/api/clientes/mi-perfil'), {
+					credentials: 'include'
+				});
+				if (!response.ok) return;
+				const { customer } = await response.json();
+				if (!customer?.profileComplete) return;
+				formValues = {
+					nombreApellido: customer.nombre,
+					tipoCliente: customer.tipoCliente,
+					empresa: customer.empresa,
+					rut: customer.rut,
+					direccion: customer.direccionDespacho,
+					contacto: customer.telefono,
+					mail: customer.email
+				};
+			} catch {
+				// El checkout de invitado sigue disponible sin sesión.
+			}
+		});
+	*/
 
 	async function enviarFormulario(event) {
 		event.preventDefault();
@@ -221,7 +223,8 @@
 			{#if enviado}
 				<p class="ok">
 					Solicitud enviada. En breve el equipo VGV te contactará con tu cotización.
-					<a href={resolve('/cuenta')}>Ver historial o crear cuenta</a>
+					<!-- Opción reversible: reactivar el enlace cuando vuelva Mi cuenta. -->
+					<!-- <a href="/cuenta">Ver historial o crear cuenta</a> -->
 				</p>
 			{/if}
 

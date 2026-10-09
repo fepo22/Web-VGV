@@ -74,7 +74,8 @@
 			<button class="link-btn" type="button" onclick={cerrarSesionAdmin}>Cerrar sesión</button>
 		{:else}
 			<a href={resolve('/catalogo')}>Catálogo</a>
-			<a href={resolve('/cuenta')}>Mi cuenta</a>
+			<!-- Opción reversible: retirar este comentario para reactivar Mi cuenta. -->
+			<!-- <a href={resolve('/cuenta')}>Mi cuenta</a> -->
 			<a href={resolve('/quienes-somos')}>Quiénes somos</a>
 			<a href={resolve('/contacto')}>Contacto</a>
 			<button
