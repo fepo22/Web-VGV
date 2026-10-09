@@ -8,7 +8,10 @@ const BCRYPT_HASH_PATTERN = /^\$2[aby]\$(0[4-9]|[12]\d|3[01])\$[./A-Za-z0-9]{53}
 
 class AdminAuthConfigurationError extends Error {}
 
-function readUsers() {
+let configuredPassword;
+let configuredPasswordHash;
+
+async function readUsers() {
 	if (process.env.USERS_FILE) {
 		const raw = fs.readFileSync(process.env.USERS_FILE, "utf8");
 		const parsed = JSON.parse(raw);
@@ -25,9 +28,20 @@ function readUsers() {
 	}
 
 	const username = String(process.env.ADMIN_USERNAME ?? "").trim();
-	const passwordHash = String(process.env.ADMIN_PASSWORD_HASH ?? "");
+	const password = process.env.ADMIN_PASSWORD;
+	let passwordHash = String(process.env.ADMIN_PASSWORD_HASH ?? "");
+	if (password) {
+		if (Buffer.byteLength(password, "utf8") > 72) {
+			throw new AdminAuthConfigurationError("ADMIN_PASSWORD no puede superar 72 bytes.");
+		}
+		if (password !== configuredPassword) {
+			configuredPassword = password;
+			configuredPasswordHash = bcrypt.hash(password, 12);
+		}
+		passwordHash = await configuredPasswordHash;
+	}
 	if (!username && !passwordHash) {
-		throw new AdminAuthConfigurationError("Faltan ADMIN_USERNAME y ADMIN_PASSWORD_HASH.");
+		throw new AdminAuthConfigurationError("Faltan ADMIN_USERNAME y ADMIN_PASSWORD o ADMIN_PASSWORD_HASH.");
 	}
 
 	if (!username || !BCRYPT_HASH_PATTERN.test(passwordHash)) {
@@ -49,7 +63,7 @@ export async function loginAuth(req, res) {
 
 	let users;
 	try {
-		users = readUsers();
+		users = await readUsers();
 	} catch (error) {
 		if (error instanceof AdminAuthConfigurationError) {
 			console.error(`Autenticación administrativa no configurada: ${error.message}`);
