@@ -5,6 +5,7 @@
 
 	const { producto } = $props();
 	let added = $state(false);
+	let cartError = $state('');
 
 	function tieneVariantes() {
 		return Array.isArray(producto.variantes) && producto.variantes.length > 0;
@@ -31,7 +32,13 @@
 			return;
 		}
 
-		agregarAlCarrito(producto);
+		cartError = '';
+		try {
+			agregarAlCarrito(producto);
+		} catch (failure) {
+			cartError = failure.message;
+			return;
+		}
 		added = true;
 		setTimeout(() => (added = false), 1200);
 	}
@@ -77,6 +84,7 @@
 		{#if added}
 			<span class="toast" role="status" aria-live="polite">Agregado</span>
 		{/if}
+		{#if cartError}<p role="alert">{cartError}</p>{/if}
 	</div>
 </article>
 

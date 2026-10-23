@@ -1,5 +1,6 @@
 import { browser } from '$app/environment';
 import { writable } from 'svelte/store';
+import { cartIdentity, cartItemIdentityError } from '$lib/utils/variant-identity.js';
 
 const STORAGE_KEY = 'vgv_cart_v2';
 const LEGACY_STORAGE_KEY = 'vgv_cart';
@@ -16,8 +17,7 @@ function normalizeCartItem(item) {
 		varianteSku: item.varianteSku,
 		varianteMedida: item.varianteMedida,
 		minima: item.minima,
-		cartKey:
-			item.cartKey || (item.varianteSku ? `${item.id}:${item.varianteSku}` : String(item.id)),
+		cartKey: cartItemIdentityError(item) ? item.cartKey || String(item.id) : cartIdentity(item),
 		cantidad: Math.max(1, Number(item.cantidad ?? 1))
 	};
 }
@@ -112,14 +112,17 @@ function createCartStore() {
 	return {
 		subscribe,
 		agregar(producto) {
+			const cartKey = cartIdentity(producto);
 			updateFresh((items) => {
-				const cartKey =
-					producto.cartKey ||
-					(producto.varianteSku ? `${producto.id}:${producto.varianteSku}` : String(producto.id));
 				const incremento = Math.max(1, Number(producto.cantidad ?? 1));
 				const existing = items.find((item) => item.cartKey === cartKey);
 
 				if (existing) {
+					if ((existing.varianteMedida ?? '') !== (producto.varianteMedida ?? '')) {
+						throw new Error(
+							'El carrito contiene otra medida con el mismo SKU. Revisa esa línea antes de continuar.'
+						);
+					}
 					return items.map((item) =>
 						item.cartKey === cartKey ? { ...item, cantidad: item.cantidad + incremento } : item
 					);
@@ -132,13 +135,20 @@ function createCartStore() {
 			checkExpiration();
 			return countItems(readCart().items);
 		},
-		eliminar(cartKey) {
-			updateFresh((items) => items.filter((item) => item.cartKey !== cartKey));
-		},
-		actualizarCantidad(cartKey, cantidad) {
+		eliminar(cartKey, rowIndex) {
 			updateFresh((items) =>
-				items.map((item) =>
-					item.cartKey === cartKey ? { ...item, cantidad: Math.max(1, cantidad) } : item
+				items.filter(
+					(item, index) =>
+						item.cartKey !== cartKey || (rowIndex !== undefined && index !== rowIndex)
+				)
+			);
+		},
+		actualizarCantidad(cartKey, cantidad, rowIndex) {
+			updateFresh((items) =>
+				items.map((item, index) =>
+					item.cartKey === cartKey && (rowIndex === undefined || index === rowIndex)
+						? { ...item, cantidad: Math.max(1, cantidad) }
+						: item
 				)
 			);
 		},
@@ -156,12 +166,12 @@ export function agregarAlCarrito(producto) {
 	carritoLateralAbierto.set(true);
 }
 
-export function eliminarDelCarrito(id) {
-	carrito.eliminar(id);
+export function eliminarDelCarrito(id, rowIndex) {
+	carrito.eliminar(id, rowIndex);
 }
 
-export function actualizarCantidad(id, cantidad) {
-	carrito.actualizarCantidad(id, cantidad);
+export function actualizarCantidad(id, cantidad, rowIndex) {
+	carrito.actualizarCantidad(id, cantidad, rowIndex);
 }
 
 export function vaciarCarrito() {

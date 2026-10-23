@@ -11,8 +11,6 @@ Este proyecto puede publicarse completo (frontend + backend + auth + sockets) de
    - `PORT=3000`
    - `MONGO_URI=<uri de atlas>`
    - `MONGO_DB_NAME=vgv`
-   - `AUTO_SYNC_SEED=true` (sincroniza el seed a Mongo al iniciar)
-   - `AUTO_SYNC_REMOVE_MISSING=false` (opcional: elimina en Mongo lo que no exista en seed)
    - `JWT_SECRET=<secreto largo>`
    - `JWT_EXPIRES_IN=8h`
    - `CLIENT_ORIGIN=<url publica del servicio>`
@@ -35,6 +33,7 @@ Con esta configuracion, el backend sirve:
 
 - GitHub Pages no sirve backend Node, por eso no alcanza para demo completa.
 - Este flujo evita separar frontend y backend para la presentacion.
+- Las lecturas y el inicio del backend no cargan ni sincronizan productos de ejemplo. El comando de seed está limitado a una MongoDB local y nunca elimina productos ausentes.
 
 ## Vercel Services (alternativa)
 

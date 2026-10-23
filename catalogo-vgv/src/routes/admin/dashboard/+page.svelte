@@ -10,7 +10,13 @@
 	import ProductTable from '$lib/components/ProductTable.svelte';
 	import { familias } from '$lib/data/categorias.js';
 	import { backendUrl, getBackendUrl } from '$lib/utils/backend-url.js';
-	import { saveProductWithImage } from '$lib/utils/save-product.js';
+	import { saveProductWithImage, shouldRefreshSavedProduct } from '$lib/utils/save-product.js';
+	import { parseExcelNumber } from '$lib/utils/import-number.js';
+	import {
+		importRecoveryState,
+		canResubmitRejectedImport,
+		sendImportBatch
+	} from '$lib/utils/import-recovery.js';
 
 	const STORAGE_KEY = 'vgv_admin_token';
 
@@ -42,6 +48,11 @@
 	let importingProducts = $state(false);
 	let bulkProgress = $state(0);
 	let bulkTotal = $state(0);
+	let pendingImport = $state(null);
+	let importReport = $state(null);
+	const importRecovery = $derived(importRecoveryState(pendingImport, importReport));
+	const canResubmitImport = $derived(canResubmitRejectedImport(pendingImport, importReport));
+	const IMPORT_RECEIPT_KEY = 'vgv-e0-pending-import';
 	let bulkFileInput = $state();
 	const statusLabels = {
 		pendiente: 'Pendiente',
@@ -130,14 +141,14 @@
 		socket.on('connect_error', teardownSocket);
 
 		socket.on('productAdded', (product) => {
-			upsertProduct(product);
+			void loadProducts();
 			lastAdded = product?.nombre || lastAdded;
 			notice = `Producto agregado: ${product?.nombre || ''}`.trim();
 		});
 
-		socket.on('productUpdated', (product) => {
-			upsertProduct(product);
-			notice = `Producto actualizado: ${product?.nombre || ''}`.trim();
+		socket.on('productUpdated', () => {
+			// Public events omit cost and image events omit the version; reload the admin snapshot.
+			void loadProducts();
 		});
 
 		socket.on('productDeleted', ({ id }) => {
@@ -166,6 +177,12 @@
 		if (!browser) return;
 
 		token = localStorage.getItem(STORAGE_KEY) || '';
+		try {
+			pendingImport = JSON.parse(sessionStorage.getItem(IMPORT_RECEIPT_KEY) || 'null');
+		} catch {
+			error =
+				'No se pudo recuperar la identidad de la importación; consulta el recibo antes de reenviar.';
+		}
 		if (!token) {
 			goto(resolve('/admin/login'));
 			return;
@@ -322,8 +339,8 @@
 				product.familia || product.categoria || '',
 				product.subfamilia || '',
 				Number(product.precioCosto ?? 0),
-				Number(product.stock ?? 0),
-				product.estado || (Number(product.stock ?? 0) > 0 ? 'disponible' : 'sin stock'),
+				product.stock ?? '',
+				product.estado || 'disponible',
 				product.categoria || ''
 			];
 		});
@@ -364,23 +381,6 @@
 		return value;
 	}
 
-	function parseExcelCost(value) {
-		if (typeof value === 'number') return value;
-		let text = String(value ?? '').replace(/[^\d,.-]/g, '');
-		if (!/\d/.test(text)) return Number.NaN;
-		if (text.includes(',') && text.includes('.')) {
-			text =
-				text.lastIndexOf(',') > text.lastIndexOf('.')
-					? text.replace(/\./g, '').replace(',', '.')
-					: text.replace(/,/g, '');
-		} else if (text.includes(',')) {
-			text = text.replace(',', '.');
-		} else if (/^\d{1,3}(\.\d{3})+$/.test(text)) {
-			text = text.replace(/\./g, '');
-		}
-		return Number(text);
-	}
-
 	async function downloadBulkTemplate() {
 		try {
 			const ExcelJS = (await import('exceljs')).default;
@@ -392,7 +392,8 @@
 				'FAMILIA',
 				'SUBFAMILIA',
 				'CATEGORIA',
-				'PRECIO COSTO'
+				'PRECIO COSTO',
+				'STOCK'
 			]);
 			sheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
 			sheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF174B3A' } };
@@ -423,10 +424,107 @@
 		}
 	}
 
+	function persistPendingImport(pending) {
+		sessionStorage.setItem(IMPORT_RECEIPT_KEY, JSON.stringify(pending));
+		pendingImport = pending;
+	}
+
+	async function reconcileImport(retry = false, resubmit = false) {
+		if (!pendingImport || importingProducts) return;
+		if (resubmit && !canResubmitImport) return;
+		if (retry && !importRecovery.canRetry) return;
+		importingProducts = true;
+		try {
+			const retryRows = retry ? importRecovery.retryRows : undefined;
+			if (
+				retry &&
+				!window.confirm(
+					'Reintentar solo las filas no aplicadas conocidas, sin repetir confirmadas ni ambiguas?'
+				)
+			)
+				return;
+			if (
+				resubmit &&
+				!window.confirm(
+					'La solicitud fue rechazada antes de importar. ¿Reenviar el mismo lote con su batchId original?'
+				)
+			)
+				return;
+			let response;
+			let report;
+			if (retry || resubmit) {
+				const result = await sendImportBatch({
+					pending: pendingImport,
+					retryRows,
+					token,
+					url: backendUrl,
+					persist: persistPendingImport
+				});
+				response = result.response;
+				report = result.data;
+			} else {
+				response = await fetch(
+					backendUrl(`/admin/products/bulk/${encodeURIComponent(pendingImport.batchId)}`),
+					{
+						headers: { Authorization: `Bearer ${token}` }
+					}
+				);
+				report = await response.json();
+			}
+			if ([401, 403].includes(response.status))
+				return logout(
+					'Tu sesión expiró o no tiene acceso. Vuelve a iniciar sesión; se conserva el lote.'
+				);
+			if (response.status === 404)
+				throw new Error(
+					'No se encontró el recibo. Esto no confirma ausencia de cambios. Solo una solicitud con rechazo previo acreditado puede reenviarse con el mismo batchId.'
+				);
+			if (!response.ok) throw new Error(report.error || 'No se pudo consultar el lote.');
+			if (report.batchId !== pendingImport.batchId || !Array.isArray(report.rows))
+				throw new Error(
+					'El servidor no confirmó el recibo solicitado. No reintentes una operación ambigua.'
+				);
+			importReport = report;
+			persistPendingImport({
+				...pendingImport,
+				submission: report.complete ? 'confirmed' : 'started'
+			});
+			if (report.complete) {
+				sessionStorage.removeItem(IMPORT_RECEIPT_KEY);
+				pendingImport = null;
+			}
+			await loadProducts({ throwOnError: true });
+			notice = report.complete
+				? 'Lote confirmado; no se repitieron filas confirmadas.'
+				: 'Lote parcial: revisa cada fila antes de continuar.';
+		} catch (failure) {
+			error = failure instanceof Error ? failure.message : 'No se pudo reconciliar el lote.';
+		} finally {
+			importingProducts = false;
+		}
+	}
+
+	function archiveImport() {
+		if (!importRecovery.canArchive) return;
+		if (
+			!window.confirm(
+				'Conservar el batchId del informe y cerrar este lote revisado? Un archivo corregido será una operación nueva; no reenviar filas confirmadas.'
+			)
+		)
+			return;
+		sessionStorage.removeItem(IMPORT_RECEIPT_KEY);
+		pendingImport = null;
+	}
+
 	async function importProductsFromExcel(event) {
 		const input = event.currentTarget;
 		const file = input.files?.[0];
 		if (!file) return;
+		if (pendingImport) {
+			error = `Hay un lote pendiente (${pendingImport.batchId}); consulta su estado antes de importar otro archivo.`;
+			input.value = '';
+			return;
+		}
 		importingProducts = true;
 		bulkProgress = 0;
 		bulkTotal = 0;
@@ -461,7 +559,8 @@
 				familia: ['familia'],
 				subfamilia: ['subfamilia'],
 				categoria: ['categoria'],
-				precioCosto: ['precio costo', 'precio de costo', 'preciocosto']
+				precioCosto: ['precio costo', 'precio de costo', 'preciocosto'],
+				stock: ['stock']
 			};
 			const columns = Object.fromEntries(
 				Object.entries(headerAliases).map(([key, aliases]) => [
@@ -473,7 +572,7 @@
 				])
 			);
 			const missingHeaders = Object.entries(columns)
-				.filter(([, column]) => !column)
+				.filter(([key, column]) => key === 'codigo' && !column)
 				.map(([key]) => key);
 			if (missingHeaders.length) {
 				throw new Error(`Faltan columnas requeridas: ${missingHeaders.join(', ')}.`);
@@ -483,7 +582,8 @@
 			const seenCodes = Object.create(null);
 			for (let rowNumber = 2; rowNumber <= sheet.rowCount; rowNumber += 1) {
 				const row = sheet.getRow(rowNumber);
-				const value = (key) => excelCellValue(row.getCell(columns[key]).value);
+				const value = (key) =>
+					columns[key] ? excelCellValue(row.getCell(columns[key]).value) : '';
 				const codigo = String(value('codigo') ?? '')
 					.trim()
 					.toUpperCase();
@@ -492,58 +592,115 @@
 				const subfamiliaNombre = String(value('subfamilia') ?? '').trim();
 				const categoriaNombre = String(value('categoria') ?? '').trim();
 				const rawCost = value('precioCosto');
+				const rawStock = value('stock');
 				if (
-					![codigo, nombre, familiaNombre, subfamiliaNombre, categoriaNombre, rawCost].some(
-						(item) => String(item ?? '').trim()
-					)
+					![
+						codigo,
+						nombre,
+						familiaNombre,
+						subfamiliaNombre,
+						categoriaNombre,
+						rawCost,
+						rawStock
+					].some((item) => String(item ?? '').trim())
 				)
 					continue;
 
 				try {
-					const family = familias.find(
-						(item) => normalizeExcelLabel(item.nombre) === normalizeExcelLabel(familiaNombre)
-					);
-					if (
-						!codigo ||
-						!nombre ||
-						!family ||
-						!subfamiliaNombre ||
-						rawCost === '' ||
-						rawCost == null
-					) {
-						throw new Error('Completa código, nombre, familia, subfamilia y precio costo.');
+					if (!codigo) throw new Error('El código es obligatorio para identificar el producto.');
+					if (!/^[A-Z0-9_-]+$/.test(codigo.replace(/\s+/g, '-'))) {
+						throw new Error(
+							'El código no puede contener caracteres que se descarten al identificar el producto.'
+						);
 					}
-					const subfamily = family.subfamilias.find(
-						(item) => normalizeExcelLabel(item.nombre) === normalizeExcelLabel(subfamiliaNombre)
-					);
-					if (!subfamily) throw new Error(`Subfamilia no válida para ${family.nombre}.`);
-					const category = subfamily.categorias?.find(
-						(item) => normalizeExcelLabel(item.nombre) === normalizeExcelLabel(categoriaNombre)
-					);
-					if (subfamily.categorias?.length && !category)
-						throw new Error(`Selecciona una categoría válida para ${subfamily.nombre}.`);
-					if (!subfamily.categorias?.length && categoriaNombre)
-						throw new Error(`${subfamily.nombre} no lleva categoría adicional.`);
-					const precioCosto = parseExcelCost(rawCost);
-					if (!Number.isFinite(precioCosto) || precioCosto < 0)
-						throw new Error('Precio costo debe ser un número igual o mayor a cero.');
 					const normalizedCode = codigo.replace(/\s+/g, '-').replace(/[^A-Z0-9-_]/g, '');
 					if (Object.hasOwn(seenCodes, normalizedCode)) {
 						throw new Error('Código duplicado dentro del archivo.');
 					}
 					seenCodes[normalizedCode] = true;
-					rows.push({
-						rowNumber,
-						codigo,
-						nombre,
-						familia: family.nombre,
-						familiaSlug: family.slug,
-						subfamilia: subfamily.nombre,
-						subfamiliaSlug: subfamily.slug,
-						categoria: category?.nombre ?? '',
-						categoriaSlug: category?.slug ?? '',
-						precioCosto
-					});
+					const existing = products.find(
+						(product) =>
+							String(product.codigo ?? '')
+								.trim()
+								.toUpperCase()
+								.replace(/\s+/g, '-')
+								.replace(/[^A-Z0-9-_]/g, '') === normalizedCode
+					);
+					const existingFamily =
+						existing &&
+						familias.find((item) => item.slug === (existing.familiaSlug || existing.categoriaSlug));
+					const family = familiaNombre
+						? familias.find(
+								(item) => normalizeExcelLabel(item.nombre) === normalizeExcelLabel(familiaNombre)
+							)
+						: existingFamily;
+					if (familiaNombre && !family) throw new Error(`Familia no válida: ${familiaNombre}.`);
+
+					const existingSubfamily =
+						existing && family?.subfamilias.find((item) => item.slug === existing.subfamiliaSlug);
+					const subfamily = subfamiliaNombre
+						? family?.subfamilias.find(
+								(item) => normalizeExcelLabel(item.nombre) === normalizeExcelLabel(subfamiliaNombre)
+							)
+						: existingSubfamily;
+					if (subfamiliaNombre && !subfamily) {
+						throw new Error(
+							`Subfamilia no válida para ${family?.nombre || 'la familia indicada'}.`
+						);
+					}
+
+					const category = categoriaNombre
+						? subfamily?.categorias?.find(
+								(item) => normalizeExcelLabel(item.nombre) === normalizeExcelLabel(categoriaNombre)
+							)
+						: null;
+					if (categoriaNombre && !category) {
+						throw new Error(
+							`Categoría no válida para ${subfamily?.nombre || 'la subfamilia indicada'}.`
+						);
+					}
+					if (subfamily?.categorias?.length && subfamiliaNombre && !categoriaNombre && !existing) {
+						throw new Error(`Selecciona una categoría válida para ${subfamily.nombre}.`);
+					}
+
+					const rowPayload = { rowNumber, codigo };
+					if (nombre) rowPayload.nombre = nombre;
+					if (familiaNombre && family) {
+						rowPayload.familia = family.nombre;
+						rowPayload.familiaSlug = family.slug;
+					}
+					if (subfamiliaNombre && subfamily) {
+						rowPayload.subfamilia = subfamily.nombre;
+						rowPayload.subfamiliaSlug = subfamily.slug;
+					}
+					if (categoriaNombre && category) {
+						rowPayload.categoria = category.nombre;
+						rowPayload.categoriaSlug = category.slug;
+					}
+					if (String(rawCost ?? '').trim()) {
+						const precioCosto = parseExcelNumber(rawCost);
+						if (!Number.isFinite(precioCosto) || precioCosto < 0)
+							throw new Error('Precio costo debe ser un número igual o mayor a cero.');
+						rowPayload.precioCosto = precioCosto;
+					}
+					if (String(rawStock ?? '').trim()) {
+						const stock = parseExcelNumber(rawStock);
+						if (!Number.isFinite(stock) || stock < 0)
+							throw new Error('Stock debe ser un número igual o mayor a cero.');
+						rowPayload.stock = stock;
+					}
+					if (
+						!existing &&
+						(!rowPayload.nombre ||
+							!rowPayload.familia ||
+							!rowPayload.subfamilia ||
+							!Object.hasOwn(rowPayload, 'precioCosto'))
+					) {
+						throw new Error(
+							'Para productos nuevos completa nombre, familia, subfamilia y precio costo.'
+						);
+					}
+					rows.push(rowPayload);
 				} catch (rowError) {
 					rowErrors.push({
 						row: rowNumber,
@@ -561,18 +718,38 @@
 			bulkTotal = rows.length;
 
 			for (let start = 0; start < rows.length; start += 100) {
-				const response = await fetch(backendUrl('/admin/products/bulk'), {
-					method: 'POST',
-					headers: { 'content-type': 'application/json', Authorization: `Bearer ${token}` },
-					body: JSON.stringify({ products: rows.slice(start, start + 100) })
+				importReport = null;
+				persistPendingImport({
+					batchId: crypto.randomUUID(),
+					products: rows.slice(start, start + 100),
+					submission: 'notSent'
 				});
-				if (response.status === 401) return logout('Tu sesión expiró. Vuelve a iniciar sesión.');
-				const data = await response.json().catch(() => ({}));
+				const { response, data } = await sendImportBatch({
+					pending: pendingImport,
+					token,
+					url: backendUrl,
+					persist: persistPendingImport
+				});
+				if ([401, 403].includes(response.status))
+					return logout(
+						'Tu sesión expiró o no tiene acceso. Vuelve a iniciar sesión; se conserva el lote.'
+					);
 				if (!response.ok) throw new Error(data.error || 'No se pudo importar el lote.');
+				if (data.batchId !== pendingImport.batchId || !Array.isArray(data.rows))
+					throw new Error(
+						'El servidor no confirmó el recibo solicitado. Consulta el lote antes de continuar.'
+					);
+				importReport = data;
 				created += Number(data.created ?? 0);
 				updated += Number(data.updated ?? 0);
 				rowErrors.push(...(data.errors ?? []));
 				bulkProgress = Math.min(start + 100, rows.length);
+				if (!data.complete)
+					throw new Error(
+						`Lote ${data.batchId} parcial: consulta las filas confirmadas, fallidas o desconocidas. No se enviaron los lotes siguientes.`
+					);
+				sessionStorage.removeItem(IMPORT_RECEIPT_KEY);
+				pendingImport = null;
 			}
 
 			await loadProducts();
@@ -587,6 +764,15 @@
 		} catch (importError) {
 			error =
 				importError instanceof Error ? importError.message : 'No se pudo leer el archivo Excel.';
+			if (bulkTotal > 0) {
+				const importMessage = `${error} La importación puede ser parcial; no reintentes automáticamente. Lotes confirmados: ${created} nuevos y ${updated} actualizados.`;
+				try {
+					await loadProducts({ throwOnError: true });
+					error = `${importMessage} La lista se actualizó para revisar el resultado.`;
+				} catch {
+					error = `${importMessage} No se pudo actualizar la lista; recarga el panel antes de continuar.`;
+				}
+			}
 		} finally {
 			importingProducts = false;
 			input.value = '';
@@ -668,7 +854,8 @@
 			showProductForm = false;
 			return { success: true };
 		} catch (saveError) {
-			if (saveError?.savedProduct) {
+			let recoveryWarning = '';
+			if (shouldRefreshSavedProduct(saveError)) {
 				savedFormProduct = saveError.savedProduct;
 				// A network error may follow an image commit. Refresh before asking to retry.
 				try {
@@ -678,22 +865,41 @@
 							headers: { Authorization: `Bearer ${token}` }
 						}
 					);
-					if (response.ok) {
-						const refreshedProduct = await response.json();
-						if (String(refreshedProduct?.id) === String(savedFormProduct.id)) {
-							savedFormProduct = { ...savedFormProduct, ...refreshedProduct };
-							upsertProduct(savedFormProduct);
-						}
+					if (!response.ok)
+						throw new Error('No se pudo consultar la imagen actual.', { cause: saveError });
+					const refreshedProduct = await response.json();
+					if (String(refreshedProduct?.id) !== String(savedFormProduct.id)) {
+						throw new Error('El servidor no confirmó el producto solicitado.', {
+							cause: saveError
+						});
 					}
+					savedFormProduct = { ...savedFormProduct, imagen: refreshedProduct.imagen };
+					upsertProduct(refreshedProduct);
 				} catch {
-					// Keep the confirmed product ID and the selected file for a manual retry.
+					recoveryWarning =
+						' No se pudo confirmar la imagen actual; revisa la ficha antes de reintentar.';
 				}
+			}
+			if ([409, 428].includes(saveError?.status) && !saveError.imageFailed) {
+				formSaveError =
+					saveError.status === 409
+						? 'La ficha cambió desde que la abriste. Copia tus cambios, cancela la edición y vuelve a abrir el producto actualizado antes de guardarlos.'
+						: 'El servidor requiere una versión actual de la ficha. No se aplicaron estos cambios; cancela la edición y vuelve a abrir el producto antes de reintentar.';
+				error = formSaveError;
+				try {
+					await loadProducts({ throwOnError: true });
+				} catch {
+					formSaveError += ' No se pudo actualizar la lista; recarga el panel antes de reintentar.';
+					error = formSaveError;
+				}
+				return { success: false };
 			}
 			if ([401, 403].includes(saveError?.status)) {
 				logout('Tu sesión expiró o no tiene acceso. Vuelve a iniciar sesión.');
 				return { success: false };
 			}
 			formSaveError = saveError instanceof Error ? saveError.message : 'Error guardando producto.';
+			formSaveError += recoveryWarning;
 			error = formSaveError;
 			return { success: false, imageFailed: Boolean(saveError?.imageFailed) };
 		} finally {
@@ -714,7 +920,10 @@
 					'content-type': 'application/json',
 					Authorization: `Bearer ${token}`
 				},
-				body: JSON.stringify({ estado: nextStatus })
+				body: JSON.stringify({
+					estado: nextStatus,
+					_expectedUpdatedAt: product.updatedAt ?? null
+				})
 			});
 
 			if (response.status === 401) {
@@ -723,6 +932,19 @@
 			}
 
 			const data = await response.json().catch(() => ({}));
+			if ([409, 428].includes(response.status)) {
+				const conflictMessage = data?.error || 'El producto cambió desde que lo cargaste.';
+				try {
+					await loadProducts({ throwOnError: true });
+					error =
+						response.status === 409
+							? `${conflictMessage} La lista se actualizó; vuelve a intentarlo sobre el producto actual.`
+							: 'El servidor requiere una versión actual. La lista se actualizó; vuelve a cambiar el estado sobre el producto actual.';
+				} catch {
+					error = `${conflictMessage} No se pudo actualizar la lista; recarga el panel antes de reintentar.`;
+				}
+				return;
+			}
 			if (!response.ok) {
 				throw new Error(data?.error || 'No se pudo actualizar el producto.');
 			}
@@ -1015,6 +1237,55 @@
 
 					{#if notice}
 						<p class="feedback ok">{notice}</p>
+					{/if}
+					{#if pendingImport || importReport}
+						<section aria-label="Reconciliación de importación">
+							<p>Lote: {pendingImport?.batchId || importReport?.batchId}</p>
+							{#if pendingImport}
+								<p role="status">
+									{pendingImport.submission === 'rejected'
+										? 'Solicitud rechazada antes del controlador. Se conserva la identidad para un reenvío explícito.'
+										: 'Conserva este batchId. Un recibo ausente no confirma que no hubo cambios; consulta antes de actuar.'}
+								</p>
+								{#if canResubmitImport}
+									<button
+										type="button"
+										disabled={importingProducts}
+										onclick={() => reconcileImport(false, true)}
+										>Reenviar solicitud rechazada con el mismo batchId</button
+									>
+								{/if}
+								<button type="button" disabled={importingProducts} onclick={() => reconcileImport()}
+									>Consultar recibo</button
+								>
+								<button
+									type="button"
+									disabled={importingProducts || !importRecovery.canRetry}
+									onclick={() => reconcileImport(true)}
+									>Reintentar solo filas no aplicadas conocidas</button
+								>
+								<button
+									type="button"
+									disabled={importingProducts || !importRecovery.canArchive}
+									onclick={archiveImport}>Cerrar lote revisado</button
+								>
+							{/if}
+							{#if importReport}
+								<p>
+									Recibidas: {importReport.received}; confirmadas: {importReport.confirmed};
+									rechazadas: {importReport.rejected}; fallidas: {importReport.failed}; conflictos: {importReport.conflicts};
+									desconocidas: {importReport.unknown}; no intentadas: {importReport.unattempted}.
+								</p>
+								<ul>
+									{#each importReport.rows as row (row.position)}
+										<li>
+											Fila {row.rowNumber} · {row.codigo || 'sin código'} · {row.status} · {row.productId ||
+												'sin ID'} · {row.message || row.action}
+										</li>
+									{/each}
+								</ul>
+							{/if}
+						</section>
 					{/if}
 
 					{#if filteredProducts.length === 0}

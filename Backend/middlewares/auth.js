@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { importRejection } from "../utils/import-rejection.js";
 
   const configuredJwtSecret = process.env.JWT_SECRET;
   if (!configuredJwtSecret && (process.env.VERCEL || process.env.NODE_ENV === "production")) {
@@ -25,6 +26,7 @@ export const authMiddleware = (req, res, next) => {
 
     if (!token) {
       return res.status(401).json({
+        ...importRejection(req),
         status: 401,
         error: "Acceso no autorizado. Falta token."
       });
@@ -32,16 +34,17 @@ export const authMiddleware = (req, res, next) => {
 
     const decoded = verifyJwtToken(token);
     if (decoded.role !== "admin") {
-      return res.status(403).json({ error: "Acceso exclusivo para administradores." });
+      return res.status(403).json({ ...importRejection(req), error: "Acceso exclusivo para administradores." });
     }
     req.user = decoded;
-    next();
   } catch (error) {
     return res.status(401).json({
+      ...importRejection(req),
       status: 401,
       error: "Token inválido o expirado."
     });
   }
+  next();
 };
 
 export { extractBearerToken };

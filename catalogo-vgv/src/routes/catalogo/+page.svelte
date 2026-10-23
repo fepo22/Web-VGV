@@ -11,9 +11,7 @@
 	let errorCarga = $state('');
 
 	function productoDisponible(producto) {
-		return (
-			Number(producto?.stock ?? 0) > 0 && String(producto?.estado ?? 'disponible') !== 'sin stock'
-		);
+		return String(producto?.estado ?? 'disponible') !== 'sin stock';
 	}
 
 	const familiaActiva = $derived(

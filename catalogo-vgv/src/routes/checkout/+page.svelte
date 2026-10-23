@@ -1,6 +1,7 @@
 <script>
 	import { carrito, vaciarCarrito } from '$lib/stores/carrito.js';
 	import { backendUrl } from '$lib/utils/backend-url.js';
+	import { cartIdentityError } from '$lib/utils/variant-identity.js';
 
 	let items = $state([]);
 	let enviado = $state(false);
@@ -82,6 +83,12 @@
 
 		if (items.length === 0) {
 			errorEnvio = 'Agrega productos al carrito antes de solicitar una cotización.';
+			enviando = false;
+			return;
+		}
+		const identityError = cartIdentityError(items);
+		if (identityError) {
+			errorEnvio = identityError;
 			enviando = false;
 			return;
 		}
@@ -229,7 +236,7 @@
 			{/if}
 
 			{#if errorEnvio}
-				<p class="error">{errorEnvio}</p>
+				<p class="error" role="alert">{errorEnvio}</p>
 			{/if}
 		</form>
 
@@ -240,7 +247,7 @@
 				<p class="vacio">No hay productos en el carrito.</p>
 			{:else}
 				<ul class="lista">
-					{#each items as item (item.cartKey)}
+					{#each items as item, index (index)}
 						<li>
 							<span>{item.nombre} x {item.cantidad}</span>
 						</li>

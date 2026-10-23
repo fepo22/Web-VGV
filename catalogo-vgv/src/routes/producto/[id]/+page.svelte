@@ -2,10 +2,13 @@
 	import { browser } from '$app/environment';
 	import { agregarAlCarrito } from '$lib/stores/carrito.js';
 	import ProductCard from '$lib/components/ProductCard.svelte';
+	import { variantChoices } from '$lib/utils/variant-identity.js';
 
 	const { data } = $props();
 	const producto = $derived(data?.producto ?? null);
 	const variantes = $derived(Array.isArray(producto?.variantes) ? producto.variantes : []);
+	const choices = $derived(variantChoices(variantes));
+	let selectionError = $state('');
 	const relacionados = $derived(
 		Array.isArray(producto?.relatedProducts) ? producto.relatedProducts : []
 	);
@@ -21,8 +24,11 @@
 	let cantidadesPorVariante = $state({});
 
 	function agregar() {
-		if (producto) {
-			agregarAlCarrito(producto);
+		selectionError = '';
+		try {
+			if (producto) agregarAlCarrito(producto);
+		} catch (failure) {
+			selectionError = failure.message;
 		}
 	}
 
@@ -37,22 +43,30 @@
 	function agregarVariantes() {
 		if (!producto || !variantes.length) return;
 
-		for (const variante of variantes) {
-			const cantidad = Number(cantidadesPorVariante[variante.sku] ?? 0);
-			if (!Number.isFinite(cantidad) || cantidad <= 0) continue;
+		selectionError = '';
+		try {
+			for (const [index, { variant: variante, selectable }] of choices.entries()) {
+				const cantidad = Number(cantidadesPorVariante[index] ?? 0);
+				if (!Number.isFinite(cantidad) || cantidad <= 0) continue;
+				if (!selectable)
+					throw new Error('No se puede agregar una medida sin SKU único. Contacta a VGV.');
 
-			agregarAlCarrito({
-				id: producto.id,
-				nombre: `${producto.nombre} · ${variante.medida}`,
-				descripcion: `${producto.descripcion} (SKU ${variante.sku})`,
-				imagen: producto.imagen,
-				categoria: producto.categoria,
-				categoriaSlug: producto.categoriaSlug,
-				varianteSku: variante.sku,
-				varianteMedida: variante.medida,
-				minima: Math.max(1, Number(variante.minima ?? 1)),
-				cantidad
-			});
+				agregarAlCarrito({
+					id: producto.id,
+					nombre: `${producto.nombre} · ${variante.medida}`,
+					descripcion: `${producto.descripcion} (SKU ${variante.sku})`,
+					imagen: producto.imagen,
+					categoria: producto.categoria,
+					categoriaSlug: producto.categoriaSlug,
+					varianteSku: variante.sku,
+					varianteMedida: variante.medida,
+					variantes,
+					minima: Math.max(1, Number(variante.minima ?? 1)),
+					cantidad
+				});
+			}
+		} catch (failure) {
+			selectionError = failure.message;
 		}
 	}
 
@@ -113,28 +127,36 @@
 						<span>SKU</span>
 						<span>Cantidad</span>
 					</div>
-					{#each variantes as variante (variante.sku)}
+					{#each choices as { variant: variante, selectable, issue }, index (index)}
 						<div class="variante-row">
 							<div>
 								<strong>{variante.medida}</strong>
 								<small>Cantidad minima: {variante.minima}</small>
 							</div>
 							<span class="sku">{variante.sku}</span>
+							{#if issue}<p role="status">{issue}</p>{/if}
 							<input
 								type="number"
 								min="0"
 								step="1"
-								value={cantidadesPorVariante[variante.sku] ?? 0}
-								oninput={(e) => actualizarCantidadVariante(variante.sku, e.currentTarget.value)}
+								aria-label={`Cantidad para ${variante.medida} (${variante.sku || 'sin SKU'})`}
+								disabled={!selectable}
+								value={cantidadesPorVariante[index] ?? 0}
+								oninput={(e) => actualizarCantidadVariante(index, e.currentTarget.value)}
 							/>
 						</div>
 					{/each}
-					<button class="btn" type="button" onclick={agregarVariantes}>Agregar seleccionadas</button
+					<button
+						class="btn"
+						type="button"
+						disabled={!choices.some((choice) => choice.selectable)}
+						onclick={agregarVariantes}>Agregar seleccionadas</button
 					>
 				</div>
 			{:else}
 				<button class="btn" type="button" onclick={agregar}>Agregar al carrito</button>
 			{/if}
+			{#if selectionError}<p role="alert">{selectionError}</p>{/if}
 		</div>
 	</section>
 	{#if relacionados.length}

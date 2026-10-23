@@ -9,12 +9,14 @@
 		carritoLateralAbierto,
 		eliminarDelCarrito
 	} from '$lib/stores/carrito.js';
+	import { cartIdentityError } from '$lib/utils/variant-identity.js';
 	const { titulo = 'Catálogo VGV', admin = false } = $props();
 
 	const STORAGE_KEY = 'vgv_admin_token';
 
 	let itemsCount = $state(0);
 	let items = $state([]);
+	const identityError = $derived(cartIdentityError(items));
 	let panelAbierto = $state(false);
 	let panelElement = $state();
 	let pulse = $state(false);
@@ -118,7 +120,7 @@
 			<p>Tu carrito está vacío.</p>
 		{:else}
 			<ul class="panel-items">
-				{#each items as item (item.cartKey)}
+				{#each items as item, index (index)}
 					<li>
 						<img src={item.imagen} alt="" width="64" height="64" />
 						<div class="item-details">
@@ -128,27 +130,32 @@
 									type="button"
 									aria-label={`Quitar una unidad de ${item.nombre}`}
 									disabled={item.cantidad <= 1}
-									onclick={() => actualizarCantidad(item.cartKey, item.cantidad - 1)}>−</button
+									onclick={() => actualizarCantidad(item.cartKey, item.cantidad - 1, index)}
+									>−</button
 								>
 								<span>{item.cantidad}</span>
 								<button
 									type="button"
 									aria-label={`Agregar una unidad de ${item.nombre}`}
-									onclick={() => actualizarCantidad(item.cartKey, item.cantidad + 1)}>+</button
+									onclick={() => actualizarCantidad(item.cartKey, item.cantidad + 1, index)}
+									>+</button
 								>
 							</div>
 						</div>
 						<button
 							type="button"
 							aria-label={`Eliminar ${item.nombre}`}
-							onclick={() => eliminarDelCarrito(item.cartKey)}>×</button
+							onclick={() => eliminarDelCarrito(item.cartKey, index)}>×</button
 						>
 					</li>
 				{/each}
 			</ul>
+			{#if identityError}<p role="alert">{identityError}</p>{/if}
 			<div class="panel-actions">
 				<a href={resolve('/carrito')} onclick={cerrarPanel}>Ver carrito</a>
-				<a href={resolve('/checkout')} onclick={cerrarPanel}>Solicitar cotización</a>
+				{#if !identityError}<a href={resolve('/checkout')} onclick={cerrarPanel}
+						>Solicitar cotización</a
+					>{/if}
 			</div>
 		{/if}
 	</div>

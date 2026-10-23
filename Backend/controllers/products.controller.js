@@ -1,6 +1,5 @@
 import {
   createProduct,
-  bulkUpsertProductsByCode,
   deleteProductById,
   getProductById as findProductById,
   getProductsByIds,
@@ -9,6 +8,8 @@ import {
 } from "../data/products.store.js";
 import { emitProductEvent } from "../realtime/socket.js";
 import { validateRelatedProductIds } from "../utils/related-products.js";
+import { canonicalProductCode, duplicateCodeError } from "../utils/product-code.js";
+import { runProductImport, getProductImport } from "../data/product-imports.store.js";
 
 function normalizeEstado(input) {
   const estado = String(input ?? "disponible").toLowerCase().trim();
@@ -20,26 +21,25 @@ function normalizeEstado(input) {
 }
 
 function normalizeCodigo(value) {
-  const codigo = String(value ?? "")
-    .trim()
-    .toUpperCase()
-    .replace(/\s+/g, "-")
-    .replace(/[^A-Z0-9-_]/g, "");
-
-  if (!codigo) {
-    throw new Error("El codigo es obligatorio.");
-  }
-
-  return codigo;
+  return canonicalProductCode(value);
 }
 
 function parsePositiveNumber(value, fieldName) {
+  if ((typeof value !== "number" && typeof value !== "string") ||
+      String(value).trim() === "") {
+    throw new Error(`El campo ${fieldName} debe ser un número válido mayor o igual a 0.`);
+  }
   const parsed = Number(value);
   if (!Number.isFinite(parsed) || parsed < 0) {
     throw new Error(`El campo ${fieldName} debe ser un número válido mayor o igual a 0.`);
   }
 
   return parsed;
+}
+
+function parseStock(value) {
+  if (value === undefined || value === null || (typeof value === "string" && value.trim() === "")) return null;
+  return parsePositiveNumber(value, "stock");
 }
 
 function slugify(value) {
@@ -65,7 +65,7 @@ function normalizeVariantesInput(value) {
 
   return value
     .map((variante, index) => {
-      const sku = String(variante?.sku ?? `VAR-${index + 1}`).trim();
+      const sku = String(variante?.sku ?? "").trim();
       const medida = String(variante?.medida ?? "").trim();
       const minima = Math.max(1, Math.floor(parsePositiveNumber(variante?.minima ?? 1, `variantes[${index}].minima`)));
 
@@ -75,10 +75,10 @@ function normalizeVariantesInput(value) {
 
       return { sku, medida, minima };
     })
-    .filter((variante) => variante.sku && variante.medida);
+    .filter((variante) => variante.medida);
 }
 
-function buildCreatePayload(body = {}) {
+export function buildCreatePayload(body = {}) {
   const nombre = String(body.nombre ?? body.name ?? "").trim();
   const codigo = normalizeCodigo(body.codigo ?? body.code ?? body.sku ?? body.id ?? nombre);
   const descripcion = String(body.descripcion ?? "").trim();
@@ -90,7 +90,8 @@ function buildCreatePayload(body = {}) {
   const categoriaSlug = body.familia ? String(body.categoriaSlug ?? "").trim() || slugify(categoria) : "";
   const imagen = String(body.imagen ?? body.image ?? "").trim();
 	const precioCosto = parsePositiveNumber(body.precioCosto ?? 0, "precioCosto");
-  const stock = parsePositiveNumber(body.stock, "stock");
+  const hasStock = Object.prototype.hasOwnProperty.call(body, "stock");
+  const stock = hasStock ? parseStock(body.stock) : undefined;
   const estado = normalizeEstado(body.estado);
   const variantes = normalizeVariantesInput(body.variantes);
 
@@ -100,10 +101,6 @@ function buildCreatePayload(body = {}) {
 
   if (!imagen) {
     throw new Error("La imagen es obligatoria.");
-  }
-
-  if (estado === "disponible" && stock <= 0) {
-    throw new Error("Un producto disponible debe tener stock mayor a 0.");
   }
 
   return {
@@ -119,12 +116,12 @@ function buildCreatePayload(body = {}) {
     precioCosto,
     imagen,
     ...(variantes ? { variantes } : {}),
-    stock: estado === "sin stock" ? 0 : stock,
+    ...(hasStock ? { stock } : {}),
     estado
   };
 }
 
-function buildUpdatePayload(body = {}, currentProduct) {
+export function buildUpdatePayload(body = {}, currentProduct) {
   const hasCodigo =
     Object.prototype.hasOwnProperty.call(body, "codigo") ||
     Object.prototype.hasOwnProperty.call(body, "code") ||
@@ -199,49 +196,80 @@ function buildUpdatePayload(body = {}, currentProduct) {
     patch.variantes = normalizeVariantesInput(body.variantes) ?? currentProduct.variantes;
   }
 
-  if (hasFamilia || hasFamiliaSlug || hasSubfamilia || hasSubfamiliaSlug) {
-    patch.familia = String(body.familia ?? currentProduct.familia ?? currentProduct.categoria ?? "Sin categoria").trim();
-    patch.familiaSlug = String(body.familiaSlug ?? currentProduct.familiaSlug ?? currentProduct.categoriaSlug ?? slugify(patch.familia)).trim();
-    patch.subfamilia = String(body.subfamilia ?? currentProduct.subfamilia ?? "").trim();
-    patch.subfamiliaSlug = String(body.subfamiliaSlug ?? currentProduct.subfamiliaSlug ?? slugify(patch.subfamilia)).trim();
-    patch.categoria = String(body.categoria ?? "").trim();
-    patch.categoriaSlug = String(body.categoriaSlug ?? "").trim() || slugify(patch.categoria);
-  } else if (hasCategoria || hasCategoriaSlug) {
-    patch.familia = hasCategoria
-      ? String(body.categoria ?? "").trim() || currentProduct.familia || currentProduct.categoria
-      : currentProduct.familia || currentProduct.categoria;
-    patch.familiaSlug = String(body.categoriaSlug ?? "").trim() || currentProduct.familiaSlug || slugify(patch.familia);
-    patch.subfamilia = "";
-    patch.subfamiliaSlug = "";
-    patch.categoria = "";
-    patch.categoriaSlug = "";
+  for (const [field, hasValue, hasSlug] of [
+    ["familia", hasFamilia, hasFamiliaSlug],
+    ["subfamilia", hasSubfamilia, hasSubfamiliaSlug],
+    ["categoria", hasCategoria, hasCategoriaSlug]
+  ]) {
+    if (hasValue) patch[field] = String(body[field] ?? "").trim();
+    if (hasSlug || hasValue) {
+      patch[`${field}Slug`] = hasSlug
+        ? String(body[`${field}Slug`] ?? "").trim()
+        : slugify(patch[field]);
+    }
   }
 
   if (hasStock) {
-    patch.stock = parsePositiveNumber(body.stock, "stock");
+    patch.stock = parseStock(body.stock);
   }
 
   if (hasEstado) {
     patch.estado = normalizeEstado(body.estado);
   }
 
-  if (hasStock && !hasEstado) {
-    patch.estado = patch.stock > 0 ? "disponible" : "sin stock";
-  }
-
-  if (patch.estado === "sin stock") {
-    patch.stock = 0;
-  }
-
-  if (patch.estado === "disponible" && patch.stock === 0) {
-    throw new Error("Un producto disponible debe tener stock mayor a 0.");
-  }
-
-  if (!hasStock && hasEstado && patch.estado === "disponible") {
-    patch.stock = currentProduct.stock > 0 ? currentProduct.stock : 1;
-  }
-
   return patch;
+}
+
+export function buildImportPayload(row = {}) {
+  const rawCode = row?.codigo;
+  if ((typeof rawCode !== "string" && typeof rawCode !== "number") ||
+      !/^[A-Z0-9_-]+$/.test(String(rawCode).trim().toUpperCase().replace(/\s+/g, "-"))) {
+    throw new Error("El codigo es obligatorio y debe identificar el producto sin caracteres descartados.");
+  }
+  const codigo = normalizeCodigo(rawCode);
+  if (codigo.length > 80) throw new Error("El código admite hasta 80 caracteres.");
+  const payload = { codigo };
+  const optionalTextFields = [
+    ["nombre", 200],
+    ["familia"],
+    ["subfamilia"],
+    ["categoria"]
+  ];
+
+  for (const [field, maxLength] of optionalTextFields) {
+    if (!Object.prototype.hasOwnProperty.call(row, field)) continue;
+    const value = String(row[field] ?? "").trim();
+    if (!value) continue;
+    if (maxLength && value.length > maxLength) {
+      throw new Error("El nombre admite hasta 200 caracteres.");
+    }
+    payload[field] = value;
+  }
+
+  for (const field of ["familia", "subfamilia", "categoria"]) {
+    const slugField = `${field}Slug`;
+    if (Object.prototype.hasOwnProperty.call(payload, field)) {
+      const slug = String(row?.[slugField] ?? slugify(payload[field])).trim() || slugify(payload[field]);
+      payload[slugField] = slug;
+    }
+  }
+
+  if (Object.prototype.hasOwnProperty.call(row, "precioCosto") &&
+      row.precioCosto !== null &&
+      String(row.precioCosto).trim() !== "") {
+    payload.precioCosto = parsePositiveNumber(row.precioCosto, "precio costo");
+  }
+  if (Object.prototype.hasOwnProperty.call(row, "stock") &&
+      row.stock !== undefined &&
+      row.stock !== null &&
+      !(typeof row.stock === "string" && row.stock.trim() === "")) {
+    if (typeof row.stock !== "number" &&
+        (typeof row.stock !== "string" || !/^\d+(?:\.\d+)?$/.test(row.stock.trim()))) {
+      throw new Error("El campo stock debe ser un número válido mayor o igual a 0.");
+    }
+    payload.stock = parseStock(row.stock);
+  }
+  return payload;
 }
 
 export const getProducts = async (req, res) => {
@@ -288,71 +316,30 @@ export const getAdminProductById = async (req, res) => {
 };
 
 export const bulkImportProductsController = async (req, res) => {
-  const rows = req.body?.products;
-  if (!Array.isArray(rows) || rows.length === 0 || rows.length > 100) {
-    return res.status(400).json({ error: "Envía entre 1 y 100 productos por lote." });
-  }
-
-  const validRows = [];
-  const errors = [];
-  const codesInBatch = new Set();
-
-  for (const [index, row] of rows.entries()) {
-    const rowNumber = Number(row?.rowNumber) || index + 1;
-    try {
-      const codigo = normalizeCodigo(row?.codigo);
-      const nombre = String(row?.nombre ?? "").trim();
-      const familia = String(row?.familia ?? "").trim();
-      const subfamilia = String(row?.subfamilia ?? "").trim();
-      const categoria = String(row?.categoria ?? "").trim();
-      const precioCosto = parsePositiveNumber(row?.precioCosto, "precio costo");
-      if (!nombre || !familia || !subfamilia) {
-        throw new Error("Nombre, familia y subfamilia son obligatorios.");
-      }
-      if (codigo.length > 80 || nombre.length > 200) {
-        throw new Error("El código admite hasta 80 caracteres y el nombre hasta 200.");
-      }
-      if (codesInBatch.has(codigo)) throw new Error("El código está duplicado en este lote.");
-      codesInBatch.add(codigo);
-      validRows.push({
-        rowNumber,
-        payload: {
-          codigo,
-          nombre,
-          familia,
-          familiaSlug: String(row?.familiaSlug ?? slugify(familia)).trim() || slugify(familia),
-          subfamilia,
-          subfamiliaSlug: String(row?.subfamiliaSlug ?? slugify(subfamilia)).trim() || slugify(subfamilia),
-          categoria,
-          categoriaSlug: String(row?.categoriaSlug ?? slugify(categoria)).trim() || slugify(categoria),
-          precioCosto,
-          imagen: "/assets/images/producto-sin-imagen.svg",
-          stock: 0,
-          estado: "sin stock"
-        }
-      });
-    } catch (error) {
-      errors.push({ row: rowNumber, message: error.message || "Fila inválida." });
-    }
-  }
-
-  let created = 0;
-  let updated = 0;
   try {
-    const results = await bulkUpsertProductsByCode(validRows.map(({ payload }) => payload));
-    for (const result of results) {
-      if (result.created) {
-        created += 1;
-        emitProductEvent("productAdded", withoutCost(result.product));
-      } else {
-        updated += 1;
-        emitProductEvent("productUpdated", withoutCost(result.product));
-      }
+    const { report, events } = await runProductImport(req.body ?? {}, buildImportPayload);
+    for (const result of events) {
+      emitProductEvent(result.created ? "productAdded" : "productUpdated", withoutCost(result.product));
     }
-    return res.json({ created, updated, errors });
+    return res.status(report.complete ? 200 : 207).json(report);
   } catch (error) {
-    console.error("Error importando productos:", error.message);
-    return res.status(500).json({ error: "No se pudo completar la importación." });
+    console.error("Importación no completada; consultar su batchId antes de reintentar.");
+    return res.status(error.status || 503).json({
+      error: error.status ? error.message : "No se pudo confirmar el lote. Consulta su batchId; no lo reenvíes con otra identidad.",
+      code: error.status ? error.code : "BATCH_OUTCOME_UNKNOWN",
+      batchId: req.body?.batchId
+    });
+  }
+};
+
+export const getProductImportController = async (req, res) => {
+  try {
+    return res.json(await getProductImport(req.params.batchId));
+  } catch (error) {
+    return res.status(error.status || 503).json({
+      error: error.status ? error.message : "No se pudo consultar el lote.",
+      code: error.code || "BATCH_UNAVAILABLE"
+    });
   }
 };
 
@@ -368,12 +355,36 @@ export const createProductController = async (req, res) => {
 
     return res.status(201).json(created);
   } catch (error) {
-    return res.status(400).json({ error: error.message || "Datos inválidos." });
+    const mapped = duplicateCodeError(error);
+    return res.status(mapped.status || 400).json({ error: mapped.message || "Datos inválidos.", code: mapped.code });
   }
 };
 
 export const updateProductController = async (req, res) => {
   try {
+    if (!Object.prototype.hasOwnProperty.call(req.body ?? {}, "_expectedUpdatedAt")) {
+      return res.status(428).json({
+        error: "La versión del producto es obligatoria. Actualiza la ficha e inténtalo nuevamente."
+      });
+    }
+    const expectedVersion = req.body._expectedUpdatedAt;
+    let expectedUpdatedAt = null;
+    if (expectedVersion !== null) {
+      const isoTimestamp = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/;
+      const parts = typeof expectedVersion === "string" ? isoTimestamp.exec(expectedVersion) : null;
+      if (!parts) {
+        return res.status(400).json({ error: "La versión del producto no es válida." });
+      }
+      const [, year, month, day, hour, minute, second] = parts.map(Number);
+      const leapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+      const daysInMonth = [31, leapYear ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+      expectedUpdatedAt = new Date(expectedVersion);
+      if (month < 1 || month > 12 || day < 1 || day > daysInMonth[month - 1] ||
+          hour > 23 || minute > 59 || second > 59 || !Number.isFinite(expectedUpdatedAt.getTime())) {
+        return res.status(400).json({ error: "La versión del producto no es válida." });
+      }
+    }
+
     const currentProduct = await findProductById(req.params.id);
     if (!currentProduct) {
       return res.status(404).json({ error: "Producto no encontrado" });
@@ -385,12 +396,16 @@ export const updateProductController = async (req, res) => {
         req.body.relatedProductIds, currentProduct.id, getProductsByIds
       );
     }
-    const updated = await updateProductById(req.params.id, patch);
+    const updated = await updateProductById(req.params.id, patch, expectedUpdatedAt);
+    if (!updated) {
+      return res.status(404).json({ error: "Producto no encontrado" });
+    }
 
     emitProductEvent("productUpdated", withoutCost(updated));
 
     return res.json(updated);
   } catch (error) {
+    if (error?.status) return res.status(error.status).json({ error: error.message, code: error.code });
     return res.status(400).json({ error: error.message || "Datos inválidos." });
   }
 };

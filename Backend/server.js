@@ -11,7 +11,7 @@ import winston from "winston";
 import DailyRotateFile from "winston-daily-rotate-file";
 
 import { applySecurity } from "./middlewares/security.middleware.js";
-import { connectProductsDatabase, syncSeedProducts } from "./data/products.store.js";
+import { connectProductsDatabase } from "./data/products.store.js";
 import { extractBearerToken, verifyJwtToken } from "./middlewares/auth.js";
 import { setSocketServer } from "./realtime/socket.js";
 
@@ -33,15 +33,6 @@ const FRONTEND_INDEX_FILE = path.join(FRONTEND_DIST_DIR, "index.html");
 const hasFrontendBuild = fs.existsSync(FRONTEND_INDEX_FILE);
 const PORT = process.env.PORT || 3000;
 const LOG_DIR = path.join(__dirname, "logs");
-
-function envFlag(name, fallback = false) {
-  const value = process.env[name];
-  if (typeof value !== "string") return fallback;
-  return ["1", "true", "yes", "on"].includes(value.trim().toLowerCase());
-}
-
-const AUTO_SYNC_SEED = envFlag("AUTO_SYNC_SEED", false);
-const AUTO_SYNC_REMOVE_MISSING = envFlag("AUTO_SYNC_REMOVE_MISSING", false);
 
 if (!process.env.VERCEL && !fs.existsSync(LOG_DIR)) {
   fs.mkdirSync(LOG_DIR, { recursive: true });
@@ -192,14 +183,7 @@ export default app;
 // ===============================
 if (process.argv[1] === __filename) {
   connectProductsDatabase()
-    .then(async () => {
-      if (AUTO_SYNC_SEED) {
-        const syncedProducts = await syncSeedProducts({ removeMissing: AUTO_SYNC_REMOVE_MISSING });
-        logger.info(
-          `Seed sincronizado al iniciar: ${syncedProducts.length} productos (removeMissing=${AUTO_SYNC_REMOVE_MISSING})`
-        );
-      }
-
+    .then(() => {
       httpServer.listen(PORT, () => {
         logger.info(`Servidor VGV SPA escuchando en puerto ${PORT}`);
       });

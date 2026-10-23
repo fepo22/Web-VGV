@@ -17,14 +17,16 @@ function normalizeImagePath(image, { backendBase = '' } = {}) {
 }
 
 export function mapProduct(producto, options = {}) {
+	const rawStock = producto.stock;
+	const parsedStock =
+		rawStock === null || rawStock === undefined || rawStock === '' ? null : Number(rawStock);
 	const variantes = Array.isArray(producto.variantes)
-		? producto.variantes
-				.map((variante) => ({
-					sku: String(variante.sku || ''),
-					medida: String(variante.medida || ''),
-					minima: Math.max(1, Number(variante.minima ?? 1))
-				}))
-				.filter((variante) => variante.sku && variante.medida)
+		? producto.variantes.map((variante) => ({
+				...variante,
+				sku: String(variante.sku || ''),
+				medida: String(variante.medida || ''),
+				minima: Math.max(1, Number(variante.minima ?? 1))
+			}))
 		: [];
 
 	return {
@@ -47,10 +49,9 @@ export function mapProduct(producto, options = {}) {
 		subfamiliaSlug: producto.subfamiliaSlug || '',
 		categoria: producto.familia ? producto.categoria || '' : '',
 		categoriaSlug: producto.familia ? producto.categoriaSlug || '' : '',
-		stock: Math.max(0, Number(producto.stock ?? 0)),
-		estado: String(
-			producto.estado || (Number(producto.stock ?? 0) > 0 ? 'disponible' : 'sin stock')
-		),
+		stock:
+			parsedStock !== null && Number.isFinite(parsedStock) && parsedStock >= 0 ? parsedStock : null,
+		estado: String(producto.estado || 'disponible'),
 		variantes
 	};
 }

@@ -2,6 +2,7 @@
 	import { browser } from '$app/environment';
 	import { resolve } from '$app/paths';
 	import { productos as catalogoProductos } from '$lib/data/productos.js';
+	import { cartIdentityError } from '$lib/utils/variant-identity.js';
 	import {
 		agregarAlCarrito,
 		carrito,
@@ -11,6 +12,17 @@
 	} from '$lib/stores/carrito.js';
 
 	let items = $state([]);
+	let cartError = $state('');
+	const identityError = $derived(cartIdentityError(items));
+
+	function addRelated(producto) {
+		cartError = '';
+		try {
+			agregarAlCarrito(producto);
+		} catch (failure) {
+			cartError = failure.message;
+		}
+	}
 
 	$effect(() => {
 		const unsub = carrito.subscribe((value) => {
@@ -72,12 +84,13 @@
 
 <section class="carrito">
 	<h1>Carrito de Compras</h1>
+	{#if cartError || identityError}<p role="alert">{cartError || identityError}</p>{/if}
 
 	{#if items.length === 0}
 		<p class="vacio">Tu carrito está vacío.</p>
 	{:else}
 		<div class="lista">
-			{#each items as item (item.cartKey)}
+			{#each items as item, index (index)}
 				<article class="item">
 					<img
 						src={item.imagen}
@@ -99,17 +112,21 @@
 								type="button"
 								aria-label={`Quitar una unidad de ${item.nombre}`}
 								disabled={item.cantidad <= 1}
-								onclick={() => actualizarCantidad(item.cartKey, item.cantidad - 1)}>-</button
+								onclick={() => actualizarCantidad(item.cartKey, item.cantidad - 1, index)}>-</button
 							>
 							<span>{item.cantidad}</span>
 							<button
 								type="button"
 								aria-label={`Agregar una unidad de ${item.nombre}`}
-								onclick={() => actualizarCantidad(item.cartKey, item.cantidad + 1)}>+</button
+								onclick={() => actualizarCantidad(item.cartKey, item.cantidad + 1, index)}>+</button
 							>
 						</div>
 
-						<button class="eliminar" type="button" onclick={() => eliminarDelCarrito(item.cartKey)}>
+						<button
+							class="eliminar"
+							type="button"
+							onclick={() => eliminarDelCarrito(item.cartKey, index)}
+						>
 							Eliminar
 						</button>
 					</div>
@@ -118,7 +135,8 @@
 		</div>
 
 		<div class="total">
-			<a class="btn-pagar" href={resolve('/checkout')}>Solicitar cotización</a>
+			{#if !identityError}<a class="btn-pagar" href={resolve('/checkout')}>Solicitar cotización</a
+				>{/if}
 			<button class="btn-vaciar" type="button" onclick={vaciarCarrito}>Vaciar carrito</button>
 		</div>
 
@@ -145,7 +163,7 @@
 								<p>{producto.descripcion}</p>
 								<div class="acciones">
 									<a href={resolve(`/producto/${producto.id}`)}>Ver detalle</a>
-									<button type="button" onclick={() => agregarAlCarrito(producto)}>
+									<button type="button" onclick={() => addRelated(producto)}>
 										Agregar al carrito
 									</button>
 								</div>

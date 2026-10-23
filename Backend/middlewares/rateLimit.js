@@ -1,4 +1,5 @@
 import rateLimit from "express-rate-limit";
+import { importRejection } from "../utils/import-rejection.js";
 
 export const contactLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minuto
@@ -21,8 +22,11 @@ export const authLimiter = rateLimit({
 export const adminLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 60,
-  message: {
-    status: 429,
-    error: "Demasiadas solicitudes administrativas. Intenta nuevamente en un minuto."
+  handler: (req, res) => {
+    res.status(429).json({
+      ...importRejection(req),
+      status: 429,
+      error: "Demasiadas solicitudes administrativas. Intenta nuevamente en un minuto."
+    });
   }
 });

@@ -4,6 +4,10 @@
 
 node_modules
 **/node_modules
+.env
+.env.*
+**/.env
+**/.env.*
 
 Backend/logs
 Backend/data/products.sqlite

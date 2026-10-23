@@ -1,4 +1,4 @@
-const ADMIN_TOKEN = process.env.ADMIN_TOKEN || "vgv-admin-token";
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN || "";
 
 export function getAdminToken() {
 	return ADMIN_TOKEN;

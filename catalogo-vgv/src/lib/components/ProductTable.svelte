@@ -35,7 +35,11 @@
 							.join(' / ') || 'Sin clasificar'}
 					</td>
 					<td>$ {Number(product.precioCosto ?? 0).toLocaleString('es-CL')}</td>
-					<td>{Number(product.stock ?? 0)}</td>
+					<td
+						>{product.stock == null
+							? 'Desconocido'
+							: Number(product.stock).toLocaleString('es-CL')}</td
+					>
 					<td>
 						<span class={`status-pill ${product.estado === 'disponible' ? 'available' : 'out'}`}>
 							{product.estado === 'disponible' ? 'Disponible' : 'Sin stock'}

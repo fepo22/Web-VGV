@@ -3,7 +3,11 @@
 	import { familias, normalizeFamiliaSlug } from '$lib/data/categorias.js';
 	import RelatedProductSelector from '$lib/components/RelatedProductSelector.svelte';
 	import { compressProductImage } from '$lib/utils/compress-product-image.js';
-	import { PRODUCT_IMAGE_PLACEHOLDER } from '$lib/utils/save-product.js';
+	import {
+		buildProductPatch,
+		buildStockPatch,
+		PRODUCT_IMAGE_PLACEHOLDER
+	} from '$lib/utils/save-product.js';
 
 	const {
 		product = null,
@@ -23,7 +27,7 @@
 	let subfamiliaSlug = $state('');
 	let categoriaSlug = $state('');
 	let imagen = $state('');
-	let stock = $state('1');
+	let stock = $state('');
 	let estado = $state('disponible');
 	let variantes = $state([]);
 	let relatedProductIds = $state([]);
@@ -105,7 +109,7 @@
 		categoriaSlug = product?.familiaSlug ? (product?.categoriaSlug ?? '') : '';
 		imagen = product?.imagen ?? '';
 		relatedProductIds = [...(product?.relatedProductIds ?? [])].map(String);
-		stock = String(product?.stock ?? 1);
+		stock = product?.stock == null ? '' : String(product.stock);
 		estado = product?.estado === 'sin stock' ? 'sin stock' : 'disponible';
 		variantes = Array.isArray(product?.variantes)
 			? product.variantes.map((variante) => ({
@@ -144,35 +148,38 @@
 		submitting = true;
 		submitError = '';
 		try {
+			const existingProduct = savedProduct || product;
+			const stockPatch = buildStockPatch(existingProduct, stock);
 			const variantesPayload = variantes.map(({ sku, medida, minima }) => ({
 				sku: sku.trim(),
 				medida: medida.trim(),
 				minima: Number(minima)
 			}));
 
-			const result = await onSubmit?.(
-				{
-					nombre: nombre.trim(),
-					codigo: codigo.trim(),
-					descripcion: descripcion.trim(),
-					precioCosto: Number(precioCosto),
-					familia: labelDesdeSlug(familias, familiaSlug),
-					familiaSlug,
-					subfamilia: labelDesdeSlug(findFamilia(familiaSlug)?.subfamilias, subfamiliaSlug),
-					subfamiliaSlug,
-					categoria: labelDesdeSlug(
-						findSubfamilia(familiaSlug, subfamiliaSlug)?.categorias,
-						categoriaSlug
-					),
-					categoriaSlug,
-					imagen: imageFile ? currentImage || PRODUCT_IMAGE_PLACEHOLDER : imagen.trim(),
-					relatedProductIds,
-					stock: Number(stock),
-					estado,
-					...(product || savedProduct || variantes.length ? { variantes: variantesPayload } : {})
-				},
-				imageFile
-			);
+			const draftPayload = {
+				nombre: nombre.trim(),
+				codigo: codigo.trim(),
+				descripcion: descripcion.trim(),
+				precioCosto: Number(precioCosto),
+				familia: labelDesdeSlug(familias, familiaSlug),
+				familiaSlug,
+				subfamilia: labelDesdeSlug(findFamilia(familiaSlug)?.subfamilias, subfamiliaSlug),
+				subfamiliaSlug,
+				categoria: labelDesdeSlug(
+					findSubfamilia(familiaSlug, subfamiliaSlug)?.categorias,
+					categoriaSlug
+				),
+				categoriaSlug,
+				imagen: imageFile ? currentImage || PRODUCT_IMAGE_PLACEHOLDER : imagen.trim(),
+				relatedProductIds,
+				...stockPatch,
+				estado,
+				...(existingProduct || variantes.length ? { variantes: variantesPayload } : {})
+			};
+			const payload = existingProduct?.id
+				? buildProductPatch(existingProduct, draftPayload)
+				: draftPayload;
+			const result = await onSubmit?.(payload, imageFile);
 			if (!destroyed && result?.imageFailed) replaceApproved = false;
 		} catch (failure) {
 			if (!destroyed) submitError = failure?.message || 'No se pudo guardar el producto.';
@@ -285,7 +292,7 @@
 
 		<label>
 			Stock
-			<input bind:value={stock} type="number" min="0" step="1" placeholder="0" required />
+			<input bind:value={stock} type="number" min="0" step="1" placeholder="Desconocido" />
 		</label>
 
 		<label>
