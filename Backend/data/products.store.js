@@ -428,13 +428,18 @@ export async function updateProductById(id, patch, expectedUpdatedAt) {
 	return toProductDTO(updated);
 }
 
-export async function deleteProductById(id) {
-	await ensureReady();
-	const deleted = await ProductModel.findOneAndDelete({ id: String(id) }).lean();
-	if (!deleted) {
-		return null;
+export class ProductReferenceCleanupError extends Error {
+	constructor(deleted) {
+		super("El producto se eliminó, pero quedó pendiente limpiar sus referencias en productos relacionados. Repite la eliminación del mismo id para completar la limpieza.");
+		this.name = "ProductReferenceCleanupError";
+		this.code = "REFERENCE_CLEANUP_PENDING";
+		this.deleted = deleted;
 	}
+}
 
+// Idempotente: solo toca productos que aún referencian el id eliminado.
+export async function cleanupRelatedReferences(id) {
+	await ensureReady();
 	await ProductModel.updateMany(
 		{ relatedProductIds: String(id) },
 		[{
@@ -457,5 +462,40 @@ export async function deleteProductById(id) {
 		}],
 		{ timestamps: false, updatePipeline: true }
 	);
-	return toProductDTO(deleted);
+}
+
+// Solo lectura: ids referenciados en relatedProductIds que ya no existen como producto.
+export async function findDanglingRelatedReferences() {
+	await ensureReady();
+	const referenced = await ProductModel.distinct("relatedProductIds");
+	if (!referenced.length) return [];
+	const existing = await ProductModel.find({ id: { $in: referenced } }, { id: 1, _id: 0 }).lean();
+	const existingIds = new Set(existing.map((product) => String(product.id)));
+	return referenced.map(String).filter((relatedId) => !existingIds.has(relatedId));
+}
+
+export async function deleteProductById(id, expectedUpdatedAt) {
+	await ensureReady();
+	if (expectedUpdatedAt === undefined) {
+		throw new Error("La versión del producto es obligatoria para eliminar.");
+	}
+	const expectedVersion = validateExpectedUpdatedAt(expectedUpdatedAt);
+	const deleted = await ProductModel.findOneAndDelete(
+		{ id: String(id), updatedAt: expectedVersion }
+	).lean();
+	if (!deleted) {
+		const existing = await ProductModel.findOne({ id: String(id) }, { id: 1, _id: 0 }).lean();
+		if (existing) throw new ProductUpdateConflictError();
+		// Recupera una limpieza interrumpida en una eliminación anterior del mismo id.
+		await cleanupRelatedReferences(id);
+		return null;
+	}
+
+	const product = toProductDTO(deleted);
+	try {
+		await cleanupRelatedReferences(id);
+	} catch {
+		throw new ProductReferenceCleanupError(product);
+	}
+	return product;
 }

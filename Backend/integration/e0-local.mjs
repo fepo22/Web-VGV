@@ -323,9 +323,9 @@ export async function createSuite({ mongoose, runId, report, interrupted }) {
 				if (value === undefined) await collection.updateOne({ id: ref.id }, { $unset: { updatedAt: "" } });
 				references.push({ ...ref, updatedAt: value });
 			}
-			assert.equal((await store.deleteProductById(target.id)).id, target.id);
+			assert.equal((await store.deleteProductById(target.id, target.updatedAt)).id, target.id);
 			assert.equal(await read(target.id), null);
-			assert.equal(await store.deleteProductById(ownId("ABSENT")), null);
+			assert.equal(await store.deleteProductById(ownId("ABSENT"), null), null);
 			for (const ref of references) {
 				const final = await read(ref.id);
 				assert.deepEqual(final.relatedProductIds, [ownId("OTHER")]);
@@ -359,7 +359,7 @@ export async function createSuite({ mongoose, runId, report, interrupted }) {
 			});
 			assert.equal(danglingResponse.status, 200);
 			assert.deepEqual(Buffer.from(await danglingResponse.arrayBuffer()), webp);
-			await store.deleteProductById(p.id);
+			await store.deleteProductById(p.id, (await read(p.id)).updatedAt);
 			await assert.rejects(images.deleteUnlinkedImage(imageId), { status: 409 });
 			assert.deepEqual(await bytes(imageId), webp);
 			return { deletionBlocked: true, sharedReferencePreserved: true, bytesExact: true };

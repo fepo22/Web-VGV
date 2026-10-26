@@ -360,30 +360,37 @@ export const createProductController = async (req, res) => {
   }
 };
 
+const ISO_VERSION = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/;
+
+// Devuelve { date } (null = sin versión previa) o { status, error } si falta o es inválida.
+function parseExpectedVersion(body) {
+  if (!Object.prototype.hasOwnProperty.call(body ?? {}, "_expectedUpdatedAt")) {
+    return {
+      status: 428,
+      error: "La versión del producto es obligatoria. Actualiza la ficha e inténtalo nuevamente."
+    };
+  }
+  const expectedVersion = body._expectedUpdatedAt;
+  if (expectedVersion === null) return { date: null };
+  const parts = typeof expectedVersion === "string" ? ISO_VERSION.exec(expectedVersion) : null;
+  const invalid = { status: 400, error: "La versión del producto no es válida." };
+  if (!parts) return invalid;
+  const [, year, month, day, hour, minute, second] = parts.map(Number);
+  const leapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  const daysInMonth = [31, leapYear ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  const date = new Date(expectedVersion);
+  if (month < 1 || month > 12 || day < 1 || day > daysInMonth[month - 1] ||
+      hour > 23 || minute > 59 || second > 59 || !Number.isFinite(date.getTime())) {
+    return invalid;
+  }
+  return { date };
+}
+
 export const updateProductController = async (req, res) => {
   try {
-    if (!Object.prototype.hasOwnProperty.call(req.body ?? {}, "_expectedUpdatedAt")) {
-      return res.status(428).json({
-        error: "La versión del producto es obligatoria. Actualiza la ficha e inténtalo nuevamente."
-      });
-    }
-    const expectedVersion = req.body._expectedUpdatedAt;
-    let expectedUpdatedAt = null;
-    if (expectedVersion !== null) {
-      const isoTimestamp = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/;
-      const parts = typeof expectedVersion === "string" ? isoTimestamp.exec(expectedVersion) : null;
-      if (!parts) {
-        return res.status(400).json({ error: "La versión del producto no es válida." });
-      }
-      const [, year, month, day, hour, minute, second] = parts.map(Number);
-      const leapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
-      const daysInMonth = [31, leapYear ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-      expectedUpdatedAt = new Date(expectedVersion);
-      if (month < 1 || month > 12 || day < 1 || day > daysInMonth[month - 1] ||
-          hour > 23 || minute > 59 || second > 59 || !Number.isFinite(expectedUpdatedAt.getTime())) {
-        return res.status(400).json({ error: "La versión del producto no es válida." });
-      }
-    }
+    const version = parseExpectedVersion(req.body);
+    if (version.error) return res.status(version.status).json({ error: version.error });
+    const expectedUpdatedAt = version.date;
 
     const currentProduct = await findProductById(req.params.id);
     if (!currentProduct) {
@@ -412,7 +419,9 @@ export const updateProductController = async (req, res) => {
 
 export const deleteProductController = async (req, res) => {
   try {
-    const deleted = await deleteProductById(req.params.id);
+    const version = parseExpectedVersion(req.body);
+    if (version.error) return res.status(version.status).json({ error: version.error });
+    const deleted = await deleteProductById(req.params.id, version.date);
     if (!deleted) {
       return res.status(404).json({ error: "Producto no encontrado" });
     }
@@ -424,6 +433,19 @@ export const deleteProductController = async (req, res) => {
 
     return res.json({ ok: true, deleted });
   } catch (error) {
+    if (error?.code === "REFERENCE_CLEANUP_PENDING") {
+      emitProductEvent("productDeleted", {
+        id: error.deleted.id,
+        deletedAt: new Date().toISOString()
+      });
+      return res.json({
+        ok: true,
+        deleted: error.deleted,
+        referencesCleanup: "pending",
+        warning: error.message
+      });
+    }
+    if (error?.status === 409) return res.status(409).json({ error: error.message });
     return res.status(500).json({ error: "No se pudo eliminar el producto." });
   }
 };

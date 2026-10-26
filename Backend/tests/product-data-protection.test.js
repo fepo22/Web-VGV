@@ -6,6 +6,7 @@ import {
 	buildImportPayload,
 	buildUpdatePayload,
 	bulkImportProductsController,
+	deleteProductController,
 	getProducts,
 	updateProductController
 } from "../controllers/products.controller.js";
@@ -13,6 +14,7 @@ import {
 	bulkUpsertProductsByCode,
 	deleteProductById,
 	disconnectProductsDatabase,
+	findDanglingRelatedReferences,
 	getProductById,
 	getProductsByIds,
 	listProducts,
@@ -32,6 +34,7 @@ const methodNames = [
 	"bulkWrite",
 	"findOneAndUpdate",
 	"findOneAndDelete",
+	"distinct",
 	"updateMany",
 	"countDocuments"
 ];
@@ -632,13 +635,131 @@ test("limpieza de referencias usa pipeline atómico con versión monotónica, si
 		let call;
 		ProductModel.findOneAndDelete = () => query({ id: "17", codigo: "SKU", imagen: "/old" });
 		ProductModel.updateMany = async (...args) => { call = args; };
-		await deleteProductById("17");
+		await deleteProductById("17", null);
 		assert.deepEqual(call[0], { relatedProductIds: "17" });
 		assert.deepEqual(call[2], { timestamps: false, updatePipeline: true });
 		const set = call[1][0].$set;
 		assert.deepEqual(Object.keys(set).sort(), ["relatedProductIds", "updatedAt"]);
 		assert.deepEqual(set.updatedAt.$cond[1], { $max: ["$$NOW", { $add: ["$updatedAt", 1] }] });
 		assert.deepEqual(set.relatedProductIds.$filter.cond, { $ne: ["$$relatedId", { $literal: "17" }] });
+	});
+});
+
+test("DELETE sin versión responde 428 y versión inválida 400, sin tocar la base", async () => {
+	await withMockedDatabase(async () => {
+		let writes = 0;
+		ProductModel.findOneAndDelete = () => { writes += 1; return query(null); };
+		ProductModel.updateMany = async () => { writes += 1; };
+		const missing = responseRecorder();
+		await deleteProductController({ params: { id: "17" }, body: {} }, missing);
+		assert.equal(missing.statusCode, 428);
+		const noBody = responseRecorder();
+		await deleteProductController({ params: { id: "17" } }, noBody);
+		assert.equal(noBody.statusCode, 428);
+		const invalid = responseRecorder();
+		await deleteProductController({ params: { id: "17" }, body: { _expectedUpdatedAt: "ayer" } }, invalid);
+		assert.equal(invalid.statusCode, 400);
+		assert.equal(writes, 0);
+	});
+});
+
+test("DELETE con versión obsoleta responde 409 y no elimina ni limpia referencias", async () => {
+	await withMockedDatabase(async () => {
+		let filter;
+		let cleanups = 0;
+		ProductModel.findOneAndDelete = (value) => { filter = value; return query(null); };
+		ProductModel.findOne = () => query({ id: "17" });
+		ProductModel.updateMany = async () => { cleanups += 1; };
+		const response = responseRecorder();
+		await deleteProductController({
+			params: { id: "17" }, body: { _expectedUpdatedAt: "2026-10-23T12:00:00.000Z" }
+		}, response);
+		assert.equal(response.statusCode, 409);
+		assert.equal(filter.id, "17");
+		assert.equal(filter.updatedAt.toISOString(), "2026-10-23T12:00:00.000Z");
+		assert.equal(cleanups, 0);
+	});
+});
+
+test("DELETE con versión correcta elimina, acepta null para productos sin versión y limpia referencias", async () => {
+	await withMockedDatabase(async () => {
+		const filters = [];
+		let cleanups = 0;
+		ProductModel.findOneAndDelete = (value) => { filters.push(value); return query({ id: "17", codigo: "SKU" }); };
+		ProductModel.updateMany = async () => { cleanups += 1; };
+		for (const version of ["2026-10-23T12:00:00.000Z", null]) {
+			const response = responseRecorder();
+			await deleteProductController({ params: { id: "17" }, body: { _expectedUpdatedAt: version } }, response);
+			assert.equal(response.statusCode, 200);
+			assert.equal(response.body.ok, true);
+			assert.equal(response.body.deleted.id, "17");
+			assert.equal(response.body.referencesCleanup, undefined);
+		}
+		assert.equal(filters[0].updatedAt.toISOString(), "2026-10-23T12:00:00.000Z");
+		assert.equal(filters[1].updatedAt, null);
+		assert.equal(cleanups, 2);
+	});
+});
+
+test("DELETE de producto inexistente responde 404", async () => {
+	await withMockedDatabase(async () => {
+		ProductModel.findOneAndDelete = () => query(null);
+		ProductModel.findOne = () => query(null);
+		ProductModel.updateMany = async () => {};
+		const response = responseRecorder();
+		await deleteProductController({ params: { id: "9" }, body: { _expectedUpdatedAt: null } }, response);
+		assert.equal(response.statusCode, 404);
+	});
+});
+
+test("fallo en la limpieza tras eliminar se informa como pendiente y se recupera al repetir el borrado", async () => {
+	await withMockedDatabase(async () => {
+		let failCleanup = true;
+		let cleanups = 0;
+		let exists = true;
+		ProductModel.findOneAndDelete = () => {
+			if (!exists) return query(null);
+			exists = false;
+			return query({ id: "17", codigo: "SKU" });
+		};
+		ProductModel.findOne = () => query(exists ? { id: "17" } : null);
+		ProductModel.updateMany = async () => {
+			cleanups += 1;
+			if (failCleanup) throw new Error("fallo simulado");
+		};
+		const first = responseRecorder();
+		await deleteProductController({ params: { id: "17" }, body: { _expectedUpdatedAt: null } }, first);
+		assert.equal(first.statusCode, 200);
+		assert.equal(first.body.referencesCleanup, "pending");
+		assert.equal(first.body.deleted.id, "17");
+		assert.match(first.body.warning, /referencias/);
+
+		failCleanup = false;
+		const retry = responseRecorder();
+		await deleteProductController({ params: { id: "17" }, body: { _expectedUpdatedAt: null } }, retry);
+		assert.equal(retry.statusCode, 404);
+		assert.equal(cleanups, 2);
+	});
+});
+
+test("detector de referencias colgantes es de solo lectura y reporta ids inexistentes", async () => {
+	await withMockedDatabase(async () => {
+		let writes = 0;
+		for (const name of ["updateOne", "updateMany", "deleteMany", "bulkWrite", "findOneAndUpdate", "findOneAndDelete"]) {
+			ProductModel[name] = async () => { writes += 1; };
+		}
+		ProductModel.distinct = async () => ["1", "2", "3"];
+		ProductModel.find = () => query([{ id: "1" }]);
+		assert.deepEqual(await findDanglingRelatedReferences(), ["2", "3"]);
+		ProductModel.distinct = async () => [];
+		assert.deepEqual(await findDanglingRelatedReferences(), []);
+		assert.equal(writes, 0);
+	});
+});
+
+test("deleteProductById exige versión explícita", async () => {
+	await withMockedDatabase(async () => {
+		await assert.rejects(deleteProductById("17"), /versión/);
 	});
 });
 
