@@ -5,6 +5,8 @@ import { compareIndexes, specsFromSchema } from "../utils/index-verifier.js";
 import {
 	isAuthFailure,
 	isTokenExpired,
+	loginErrorMessage,
+	LOGIN_CONNECTION_MESSAGE,
 	sessionFailureMessage,
 	setSessionFlash,
 	takeSessionFlash,
@@ -20,6 +22,13 @@ test("admin-session: 401/403 y mensajes", () => {
 	assert.equal(sessionFailureMessage(401), SESSION_EXPIRED_MESSAGE);
 	assert.notEqual(sessionFailureMessage(403), SESSION_EXPIRED_MESSAGE);
 	assert.equal(sessionFailureMessage(404), null);
+});
+
+test("login: fallo de red da mensaje en español y los errores de autenticación se conservan", () => {
+	assert.equal(loginErrorMessage(new TypeError("Failed to fetch")), LOGIN_CONNECTION_MESSAGE);
+	assert.doesNotMatch(LOGIN_CONNECTION_MESSAGE, /fetch/i);
+	assert.equal(loginErrorMessage(new Error("Credenciales inválidas.")), "Credenciales inválidas.");
+	assert.equal(loginErrorMessage("x"), "Error inesperado.");
 });
 
 test("admin-session: vencimiento del token", () => {

@@ -931,6 +931,7 @@
 		const nextStatus = product.estado === 'disponible' ? 'sin stock' : 'disponible';
 		actionLoadingId = `${product.id}-status`;
 		error = '';
+		notice = '';
 
 		try {
 			const response = await fetch(backendUrl(`/admin/products/${product.id}`), {
@@ -983,6 +984,7 @@
 
 		actionLoadingId = `${product.id}-delete`;
 		error = '';
+		notice = '';
 
 		try {
 			const response = await fetch(backendUrl(`/admin/products/${product.id}`), {

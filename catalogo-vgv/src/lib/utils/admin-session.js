@@ -22,6 +22,16 @@ export function takeSessionFlash(storage = globalThis.sessionStorage) {
 	}
 }
 
+export const LOGIN_CONNECTION_MESSAGE =
+	'No se pudo conectar con el servidor. Revisa tu conexión e inténtalo nuevamente.';
+
+// fetch rechaza con TypeError ante fallos de red; los errores del servidor llegan como Error con mensaje propio.
+export function loginErrorMessage(error) {
+	if (error instanceof TypeError) return LOGIN_CONNECTION_MESSAGE;
+	if (error instanceof Error && error.message) return error.message;
+	return 'Error inesperado.';
+}
+
 export function isAuthFailure(status) {
 	return status === 401 || status === 403;
 }

@@ -887,56 +887,56 @@ test("filas duplicadas sin identidad de lote no eluden el requisito batchId", as
 		assert.equal(response.statusCode, 428);
 		assert.equal(operations, undefined);
 	});
+});
 
-	test("PUT inexistente devuelve 404 y versión ausente o inválida no consulta ni escribe", async () => {
-		await withMockedDatabase(async () => {
-			let reads = 0;
-			let writes = 0;
-			ProductModel.findOne = () => { reads += 1; return query(null); };
-			ProductModel.findOneAndUpdate = () => { writes += 1; return query(null); };
-			for (const [body, status] of [
-				[{ nombre: "Sin versión" }, 428],
-				[{ nombre: "Inválida", _expectedUpdatedAt: "local date" }, 400],
-				[{ nombre: "No existe", _expectedUpdatedAt: null }, 404]
-			]) {
-				const response = responseRecorder();
-				await updateProductController({ params: { id: "missing" }, body }, response);
-				assert.equal(response.statusCode, status);
-			}
-			assert.equal(reads, 1);
-			assert.equal(writes, 0);
-		});
-	});
-
-	test("lote sin batchId no escribe siquiera la primera fila", async () => {
-		await withMockedDatabase(async () => {
-			const applied = [];
-			ProductModel.find = () => query([]);
-			ProductModel.bulkWrite = async (operations, options) => {
-				assert.equal(options.ordered, true);
-				applied.push(operations[0].insertOne.document.codigo);
-				throw new Error("second write failed");
-			};
+test("PUT inexistente devuelve 404 y versión ausente o inválida no consulta ni escribe", async () => {
+	await withMockedDatabase(async () => {
+		let reads = 0;
+		let writes = 0;
+		ProductModel.findOne = () => { reads += 1; return query(null); };
+		ProductModel.findOneAndUpdate = () => { writes += 1; return query(null); };
+		for (const [body, status] of [
+			[{ nombre: "Sin versión" }, 428],
+			[{ nombre: "Inválida", _expectedUpdatedAt: "local date" }, 400],
+			[{ nombre: "No existe", _expectedUpdatedAt: null }, 404]
+		]) {
 			const response = responseRecorder();
-			await bulkImportProductsController({ body: { products: ["ONE", "TWO"].map((codigo) => ({
-				codigo, nombre: codigo, familia: "Familia", subfamilia: "Sub", precioCosto: 10
-			})) } }, response);
-			assert.equal(response.statusCode, 428);
-			assert.deepEqual(applied, []);
-			assert.equal(Object.hasOwn(response.body, "created"), false);
-		});
+			await updateProductController({ params: { id: "missing" }, body }, response);
+			assert.equal(response.statusCode, status);
+		}
+		assert.equal(reads, 1);
+		assert.equal(writes, 0);
 	});
+});
 
-	test("resultado de escritura sin confirmación o producto borrado al releer no genera éxito ficticio", async () => {
-		await withMockedDatabase(async () => {
-			for (const confirmation of [undefined, { matchedCount: 1 }]) {
-				let reads = 0;
-				ProductModel.find = () => query(++reads === 1 ? [{ id: "17", codigo: "SKU", updatedAt: null }] : []);
-				ProductModel.bulkWrite = async () => confirmation;
-				await assert.rejects(bulkUpsertProductsByCode([{ codigo: "SKU", nombre: "Cambio" }]), {
-					status: 500, partialPossible: true
-				});
-			}
-		});
+test("lote sin batchId no escribe siquiera la primera fila", async () => {
+	await withMockedDatabase(async () => {
+		const applied = [];
+		ProductModel.find = () => query([]);
+		ProductModel.bulkWrite = async (operations, options) => {
+			assert.equal(options.ordered, true);
+			applied.push(operations[0].insertOne.document.codigo);
+			throw new Error("second write failed");
+		};
+		const response = responseRecorder();
+		await bulkImportProductsController({ body: { products: ["ONE", "TWO"].map((codigo) => ({
+			codigo, nombre: codigo, familia: "Familia", subfamilia: "Sub", precioCosto: 10
+		})) } }, response);
+		assert.equal(response.statusCode, 428);
+		assert.deepEqual(applied, []);
+		assert.equal(Object.hasOwn(response.body, "created"), false);
+	});
+});
+
+test("resultado de escritura sin confirmación o producto borrado al releer no genera éxito ficticio", async () => {
+	await withMockedDatabase(async () => {
+		for (const confirmation of [undefined, { matchedCount: 1 }]) {
+			let reads = 0;
+			ProductModel.find = () => query(++reads === 1 ? [{ id: "17", codigo: "SKU", updatedAt: null }] : []);
+			ProductModel.bulkWrite = async () => confirmation;
+			await assert.rejects(bulkUpsertProductsByCode([{ codigo: "SKU", nombre: "Cambio" }]), {
+				status: 500, partialPossible: true
+			});
+		}
 	});
 });

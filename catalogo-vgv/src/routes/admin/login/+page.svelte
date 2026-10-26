@@ -6,6 +6,7 @@
 	import { backendUrl } from '$lib/utils/backend-url.js';
 	import {
 		isTokenExpired,
+		loginErrorMessage,
 		SESSION_EXPIRED_MESSAGE,
 		takeSessionFlash
 	} from '$lib/utils/admin-session.js';
@@ -58,7 +59,7 @@
 			storeToken(data.token);
 			goto(resolve('/admin/dashboard'));
 		} catch (loginError) {
-			error = loginError instanceof Error ? loginError.message : 'Error inesperado.';
+			error = loginErrorMessage(loginError);
 		} finally {
 			loading = false;
 		}
