@@ -20,6 +20,96 @@ Impactos aprobados y no desplegados: bulk requiere batchId (428 si falta); 207 n
 
 No se añadieron dependencias ni se modificó el esquema Product; sí metadatos técnicos GridFS y colección de recibos autorizados. Prueba de índice exclusivamente en base local desechable; **no hay migración comercial ejecutada**. La autorización comercial definitiva de campos importables sigue pendiente.
 
+## 0. Actualización de prioridades (decisión de VGV, 26-10-2026)
+
+Esta sección **prevalece** sobre las clasificaciones anteriores de este plan y del [roadmap B2B](./PLAN_EVOLUCION_VGV_TIENDA.md). No autoriza cambios funcionales: el plan debe revisarse y aprobarse antes de implementar.
+
+### 0.1 Alcance de la etapa actual
+E0 pasa a ser la etapa de **estabilización y cierre técnico del catálogo público y su administración**: catálogo, panel admin, alta/edición/importación/eliminación de productos, imágenes, seguridad e integridad de datos y pruebas para publicar una versión estable. No se amplía el alcance.
+
+**Decisiones:**
+- **Un solo usuario operativo: el administrador.** Se mantiene su autenticación y se protegen todas las operaciones administrativas. La decisión de sesión, CSRF y revocación se limita a asegurar a ese administrador; no hay multiusuario, invitaciones, roles, permisos ni gestión de cuentas ahora. La arquitectura debe seguir siendo extensible (por ejemplo, el claim `role` del JWT y el `authMiddleware` único en un punto).
+- **Cotizaciones fuera de alcance.** No se implementan flujos, notificaciones, reintentos, outbox ni idempotencia. No se elimina código ni se rompen rutas existentes. Solo se documentan dependencias compartidas con el catálogo y vulnerabilidades de seguridad global con su corrección mínima.
+- **Sin cambios destructivos ni operaciones sobre producción** sin autorización expresa. Sin reconciliaciones históricas, índices comerciales ni limpieza de imágenes sin respaldo verificado y autorización específica.
+
+### 0.2 Roadmap actualizado
+
+| Etapa | Contenido | Estado |
+|---|---|---|
+| **Actual: Catálogo y administración (E0)** | Catálogo público estable, panel admin funcional, productos e imágenes seguros, importación confiable, autenticación de un administrador, pruebas, seguridad y preparación de publicación | En curso |
+| Posterior: Evolución de usuarios | Múltiples usuarios, roles y permisos, gestión de cuentas, administración avanzada de accesos (antes E2) | **POSTERIOR** |
+| Posterior: Cotizaciones y gestión comercial | Solicitudes, validación de productos y cantidades, gestión, notificaciones y seguimiento, idempotencia y recuperación (antes E0-Q y E5) | **POSTERIOR** |
+| Futuras: Evolución B2B | E1, E3, E4, E6 del roadmap, sin adelantarlas ni mezclarlas | **FUERA DEL ALCANCE ACTUAL** |
+
+### 0.3 Clasificación de tareas y hallazgos
+
+Categorías: **BLOQ** = bloqueante para el catálogo; **PUB** = necesaria para publicar; **POST** = importante, pero posterior; **FUERA** = fuera del alcance actual. "Aprobación" indica una decisión de VGV pendiente. Los IDs H1–H9 y D-xx son los de [E0_ITERACION_1_AUDITORIA_Y_PROCEDIMIENTOS.md](./E0_ITERACION_1_AUDITORIA_Y_PROCEDIMIENTOS.md); H10–H12 son nuevos (ver §0.4).
+
+| Elemento | Clase | Motivo |
+|---|---|---|
+| H1 borrado sin control de versión (concurrencia y atomicidad) | **BLOQ** | Destruye datos y evade E0-B; es una operación admin del catálogo. Requiere D-04 (aprobación). |
+| H2 índices/colecciones implícitos al conectar (`autoIndex`) | **BLOQ** | Puede escribir al leer y fallar con duplicados; decide la seguridad de B3. Confirmar primero en copia aislada; D-11 (aprobación). |
+| H10 detalle de producto trata errores 5xx como "no encontrado" | **BLOQ** | Falla silenciosa del catálogo (E0-D incompleto). |
+| H11 carrito sugiere productos desde datos estáticos de demostración | **PUB** | Muestra productos que pueden no existir; contradice "sin demostración". Corrección mínima sin tocar el flujo de cotización. |
+| H12 token admin en `localStorage` | **PUB** | Exposición ante XSS; evaluar en la decisión de sesión del administrador (D-05 acotada). |
+| H7 sesión: expiración y revocación del admin único | **PUB** | Limitado a un solo administrador; sin CSRF mientras se use cabecera Bearer. |
+| H6 `JWT_SECRET` con valor de desarrollo | **PUB** | Verificar entorno efectivo y fallar cerrado fuera de desarrollo. |
+| H5 Socket.IO `origin "*"` | **PUB** | Seguridad global de bajo costo; corrección mínima. |
+| H9 rutas admin protegidas | Resuelto | Se mantiene bajo prueba. |
+| H3 modelo `Customer` registrado por importación | **PUB** | Dependencia compartida a documentar; solo afecta H2. No eliminar código. |
+| H4 cotización sin idempotencia ni recuperación de avisos | **POST** | Cotizaciones; fuera de alcance. |
+| H8 versión de MongoDB (compose 7, local 8.0.16, Atlas sin verificar) | **PUB** | Registrar versión efectiva en B2. |
+| E0-A lecturas y seed; E0-B edición/importación; E0-C stock/estado; E0.1 imágenes; E0.2 códigos; E0.3 parciales | **PUB** (verificar) | Implementados localmente; falta evidencia en copia aislada y pruebas de navegador. |
+| Recuperación manual de `unknown`/locks, conservación de recibos | **PUB** | Importación confiable; sin liberar ambigüedades automáticamente. |
+| E2E de navegador (login, CRUD, importación parcial, 409, sesión expirada) | **PUB** | Criterio de finalización. |
+| Build completo, Node 20 y lint | **PUB** | Criterio de finalización. |
+| B1 respaldo, B2 restauración aislada, B3 lecturas, B4 concurrencia, B5 reversión | **PUB** | Requisito previo a publicar. |
+| Reconciliación histórica de códigos, índice comercial, limpieza de huérfanos | **POST** | Solo propuesta; con respaldo y autorización específicos. |
+| D-01 seed, D-02 campos importables, D-03 concurrencia, D-04 borrado, D-05 sesión (acotada), D-06 disponibilidad, D-10 RPO/RTO, D-11 `autoIndex`, D-12 entorno, D-13 autorizaciones | **Aprobación** requerida | Bloquean tareas BLOQ/PUB. |
+| D-07 líneas ambiguas, D-08 avisos pendientes, D-09 idempotencia | **POST** (cotizaciones) | No se deciden ahora. |
+| E0-Q solicitudes/notificaciones honestas | **POST** | Cotizaciones. |
+| E2 cuentas, roles y permisos; multiusuario | **POST** | Evolución de usuarios. |
+| E5 gestión de cotizaciones; E1, E3, E4, E6 | **FUERA** | Evolución B2B y comercial. |
+
+### 0.4 Hallazgos nuevos de esta revisión (solo lectura)
+- **H10:** [producto/[id]/+page.js](../catalogo-vgv/src/routes/producto/%5Bid%5D/+page.js) devuelve `{ producto: null }` ante cualquier respuesta no OK y ante excepciones, por lo que un fallo del servidor se presenta como producto inexistente. Falta distinguir 404 de error.
+- **H11:** [carrito/+page.svelte](../catalogo-vgv/src/routes/carrito/+page.svelte) importa `productos` de `src/lib/data/productos.js` (lista estática) para "vistos recientemente" y "complementarios". Es un uso de datos de demostración fuera de la lectura real; no toca el envío de cotización.
+- **H12:** el token administrativo se guarda en `localStorage` (`admin/login/+page.svelte`, `admin/dashboard/+page.svelte`); el dashboard no envía `_expectedUpdatedAt` en `DELETE` (línea de `deleteProduct`), consistente con H1. El manejo de 401 existe; para 403 solo se trata en importación.
+
+### 0.5 Lista priorizada de trabajo (sin implementar hasta su aprobación)
+
+Cada tarea requiere prueba de regresión previa, cambio mínimo y ejecución de `npm.cmd --prefix Backend test`, `npm.cmd --prefix catalogo-vgv run lint`, build y `git diff --check`.
+
+| # | Tarea | Clase | Depende de | Riesgo | Prueba de aceptación |
+|---|---|---|---|---|---|
+| 1 | Autorización del entorno aislado, propietario de DB y RPO/RTO (D-10, D-12) | Aprobación | — | Bloquea 4, 6, 12 | Entorno identificado por alias y aprobado por escrito |
+| 2 | Decidir D-04 (borrado) y D-11 (`autoIndex`) | Aprobación | — | Cambia el contrato de `DELETE` | Decisión registrada |
+| 3 | Confirmar H2 en una base local desechable (listar índices/colecciones antes y después de conectar y leer), sin tocar datos reales | BLOQ | — | Bajo | Informe con comandos y resultado observado |
+| 4 | B1/B2: respaldo y restauración ensayada en el entorno aislado, con integridad de productos y GridFS | PUB | 1 | Alto si el destino es ambiguo | Acta firmada; conteos, índices y referencias conciliados |
+| 5 | Borrado seguro: precondición `_expectedUpdatedAt` y atomicidad de la limpieza de relacionados, según D-04; actualizar el dashboard | BLOQ | 2 | Contrato de `DELETE` con clientes externos | Tests de conflicto 409/428 y de fallo intermedio; E2E de borrado |
+| 6 | Aplicar la decisión de `autoIndex` (si se aprueba) con alta de índices por procedimiento explícito | BLOQ | 2, 3 | Índices dejan de crearse solos | Test de conexión sin creación; revisión de índices requeridos |
+| 7 | Catálogo: distinguir 404 de error en detalle (H10), cobertura de errores de lista/detalle/proxies y estados de carga | BLOQ | — | Bajo | Tests unitarios de `+page.js`/proxies; E2E con backend caído |
+| 8 | Carrito: reemplazar datos estáticos de sugerencias por lectura real o suprimir sugerencias (H11), sin tocar el envío | PUB | Aprobación menor | Bajo | Sin importación de `data/productos.js`; prueba de render |
+| 9 | Autenticación del administrador: manejo de 401/403 uniforme, expiración, destino del token (H12), fallo cerrado de secretos (H6), Socket.IO (H5) | PUB | D-05 acotada | Cambiar el almacenamiento obliga a coordinar cliente y servidor | Tests de login, expiración y acceso denegado; revisión de entorno efectivo sin imprimir secretos |
+| 10 | Importación: recuperación manual segura de `unknown`/locks, mensajes de éxito/error/parcial y política de recibos | PUB | D-02 | Medio | Tests de reintento selectivo; E2E de importación parcial |
+| 11 | Imágenes: verificar integridad (archivo ↔ chunks ↔ referencia), alta/borrado y mensajes; sin limpieza de huérfanos | PUB | 4 | Medio | Tests y comprobación en copia aislada |
+| 12 | B3/B4 en la copia restaurada: lecturas sin escritura y concurrencia (edición, edición/importación, legacy sin `updatedAt`, lote parcial) | PUB | 4, 5, 6 | Medio | Resultados esperado y observado por caso |
+| 13 | E2E de navegador del panel y del catálogo | PUB | 5, 7, 9, 10 | Medio | Suite estable con sesión expirada, 409 y operaciones parciales |
+| 14 | Build completo y ensayo en Node 20 (Dockerfile) | PUB | — | Bajo | Salida de `npm.cmd --prefix catalogo-vgv run build` y ejecución en Node 20 con código 0 |
+| 15 | Verificar clientes externos de `PUT`, `DELETE` y bulk (428/409/207/503) | PUB | 5 | Medio | Lista de consumidores confirmada por VGV |
+| 16 | B5 reversión aprobada y B6 informe de cierre firmado | PUB | 4–15 | — | Aprobaciones técnica y comercial registradas |
+
+**Orden recomendado:** primero 1–3 (sin riesgo de datos), luego 5–9 en paralelo cuando haya decisión, después 10–11, 4 y 12–16. Ninguna tarea del §0.5 depende de cotizaciones ni de multiusuario.
+
+### 0.6 Dependencias compartidas con cotizaciones (documentadas, sin cambios)
+- `cotizar.controller.js` importa `connectProductsDatabase` de `products.store.js` y `getCustomerFromRequest` del módulo de clientes: cualquier cambio de conexión (D-11/H2) afecta también a cotizaciones y debe probarse en `/api/cotizar`.
+- `authMiddleware` protege `GET` y `PATCH /api/cotizar`; no cambiar su contrato al ajustar la sesión del administrador.
+- El carrito comparte `$lib/data/productos.js` y el almacén local del carrito; la tarea 8 no debe alterar el flujo de solicitud.
+- Vulnerabilidades de seguridad global (H5, H6) se corrigen con el cambio mínimo, sin ampliar cotizaciones.
+
+### 0.7 Criterio de finalización de la etapa
+Catálogo público funcional; administrador gestiona productos de forma confiable; imágenes sin inconsistencias conocidas; importaciones correctas ante errores y conflictos; autenticación y operaciones admin protegidas; pruebas automatizadas, de integración y de navegador aprobadas; build de producción validado; respaldo, restauración y reversión con evidencia; riesgos bloqueantes resueltos o aceptados formalmente. **E0 sigue NO COMPLETADA** hasta tener esa evidencia.
+
 ## 1. Alcance mínimo y límites
 
 E0 protege catálogo, variantes, imágenes, stock y solicitudes existentes antes de añadir funcionalidad B2B. Mantener stack y contratos útiles; dividir en cambios pequeños revisables. La ejecución inicial usó mocks; el seguimiento posterior indicado arriba añadió pruebas contra MongoDB local real exclusivamente sintético. No se conectó a Atlas/producción ni se operó sobre datos comerciales o despliegues.

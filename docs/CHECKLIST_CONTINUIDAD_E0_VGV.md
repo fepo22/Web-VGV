@@ -1,6 +1,9 @@
 # Checklist de continuidad: mejoras e implementación VGV WEB
 
-Basada en [PLAN_IMPLEMENTACION_E0_VGV.md](./PLAN_IMPLEMENTACION_E0_VGV.md) y [AUDITORIA_COMPATIBILIDAD_E0_VGV.md](./AUDITORIA_COMPATIBILIDAD_E0_VGV.md). Estado: E0 **NO COMPLETADA**; el código local avanzó, falta evidencia operacional y aprobaciones.
+Basada en [PLAN_IMPLEMENTACION_E0_VGV.md](./PLAN_IMPLEMENTACION_E0_VGV.md) y [AUDITORIA_COMPATIBILIDAD_E0_VGV.md](./AUDITORIA_COMPATIBILIDAD_E0_VGV.md).
+
+> **Prioridades vigentes (26-10-2026):** solo catálogo público y panel admin. Las secciones de cotizaciones, multiusuario y E1–E6 son POSTERIORES o fuera de alcance. El orden y la clasificación vigentes están en [PLAN_IMPLEMENTACION_E0_VGV.md §0](./PLAN_IMPLEMENTACION_E0_VGV.md); esta lista debe leerse bajo ese criterio.
+Estado: E0 **NO COMPLETADA**; el código local avanzó, falta evidencia operacional y aprobaciones.
 
 ## 0. Avance clasificado en 3 etapas (revisión 2026-10-26)
 

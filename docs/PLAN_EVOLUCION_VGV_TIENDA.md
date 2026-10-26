@@ -6,6 +6,8 @@
 
 **Base:** [auditoría anterior](./AUDITORIA_VGV_WEB.md), contrastada con el código de trabajo sobre el commit `074b9df`.
 
+> **Actualización de prioridades (26-10-2026):** la etapa actual se limita al catálogo público y su administración (E0). Multiusuario, roles y permisos (E2), y cotizaciones y gestión comercial (E5 y flujos de solicitud) pasan a etapas **POSTERIORES**; E1, E3, E4 y E6 quedan **fuera del alcance actual**. Ver [PLAN_IMPLEMENTACION_E0_VGV.md §0](./PLAN_IMPLEMENTACION_E0_VGV.md). Este documento se conserva sin otros cambios.
+
 ## 1. Resumen ejecutivo
 
 Se recomienda evolucionar la aplicación existente como **monolito modular**, conservando SvelteKit, Express, MongoDB/Mongoose, GridFS y Nodemailer. No hay necesidad demostrada de una reescritura, microservicios, proveedor de pagos ni ERP completo.
