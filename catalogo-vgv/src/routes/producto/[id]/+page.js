@@ -1,14 +1,5 @@
-export async function load({ params, fetch }) {
-	try {
-		const respuesta = await fetch(`/api/products/${params.id}`);
-		if (!respuesta.ok) {
-			return { producto: null };
-		}
+import { loadProductDetail } from '$lib/utils/product-detail.js';
 
-		const producto = await respuesta.json();
-		return { producto };
-	} catch (error) {
-		console.error('Error cargando detalle de producto:', error);
-		return { producto: null };
-	}
+export async function load({ params, fetch }) {
+	return loadProductDetail(fetch, params.id);
 }

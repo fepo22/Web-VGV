@@ -1,5 +1,6 @@
 <script>
 	import { browser } from '$app/environment';
+	import { invalidateAll } from '$app/navigation';
 	import { agregarAlCarrito } from '$lib/stores/carrito.js';
 	import ProductCard from '$lib/components/ProductCard.svelte';
 	import { variantChoices } from '$lib/utils/variant-identity.js';
@@ -13,7 +14,11 @@
 		Array.isArray(producto?.relatedProducts) ? producto.relatedProducts : []
 	);
 	const seoTitle = $derived(
-		producto ? `${producto.nombre} | VGV SPA Talcahuano` : 'Producto no encontrado | VGV SPA'
+		producto
+			? `${producto.nombre} | VGV SPA Talcahuano`
+			: data?.loadError
+				? 'Error al cargar el producto | VGV SPA'
+				: 'Producto no encontrado | VGV SPA'
 	);
 	const seoDescription = $derived(
 		producto
@@ -169,6 +174,11 @@
 			</div>
 		</section>
 	{/if}
+{:else if data?.loadError}
+	<section class="empty" role="alert">
+		<p>{data.loadError}</p>
+		<button class="btn" type="button" onclick={() => invalidateAll()}>Reintentar</button>
+	</section>
 {:else}
 	<p class="empty">No se encontró el producto.</p>
 {/if}
