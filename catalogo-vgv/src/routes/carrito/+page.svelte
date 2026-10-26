@@ -1,7 +1,7 @@
 <script>
 	import { browser } from '$app/environment';
 	import { resolve } from '$app/paths';
-	import { productos as catalogoProductos } from '$lib/data/productos.js';
+	import { selectCartSuggestions } from '$lib/utils/cart-suggestions.js';
 	import { cartIdentityError } from '$lib/utils/variant-identity.js';
 	import {
 		agregarAlCarrito,
@@ -44,29 +44,31 @@
 		}
 	}
 
-	const categoriasEnCarrito = $derived(
-		new Set(items.map((item) => item.categoriaSlug || item.categoria))
+	let catalogoReal = $state([]);
+	let sugerenciasCargadas = false;
+
+	$effect(() => {
+		if (!browser || sugerenciasCargadas || items.length === 0) return;
+		sugerenciasCargadas = true;
+		fetch('/api/products')
+			.then((respuesta) => (respuesta.ok ? respuesta.json() : []))
+			.then((lista) => {
+				catalogoReal = Array.isArray(lista) ? lista : [];
+			})
+			.catch(() => {
+				catalogoReal = [];
+			});
+	});
+
+	const sugerencias = $derived(
+		selectCartSuggestions({
+			catalogo: catalogoReal,
+			items,
+			viewedIds: leerProductosVistos()
+		})
 	);
-	const productosVistosRecientemente = $derived(
-		leerProductosVistos()
-			.map((id) => catalogoProductos.find((producto) => producto.id === id))
-			.filter(Boolean)
-			.filter((producto) => !items.some((item) => item.id === producto.id))
-			.slice(0, 2)
-	);
-	const productosComplementarios = $derived(
-		items.length === 0
-			? []
-			: catalogoProductos
-					.filter((producto) => !items.some((item) => item.id === producto.id))
-					.filter(
-						(producto) => !productosVistosRecientemente.some((item) => item.id === producto.id)
-					)
-					.filter((producto) =>
-						categoriasEnCarrito.has(producto.categoriaSlug || producto.categoria)
-					)
-					.slice(0, 3)
-	);
+	const productosVistosRecientemente = $derived(sugerencias.vistos);
+	const productosComplementarios = $derived(sugerencias.complementarios);
 	const productosRelacionados = $derived([
 		...productosVistosRecientemente,
 		...productosComplementarios
