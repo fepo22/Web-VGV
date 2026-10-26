@@ -11,6 +11,14 @@
 	import { familias } from '$lib/data/categorias.js';
 	import { backendUrl, getBackendUrl } from '$lib/utils/backend-url.js';
 	import { saveProductWithImage, shouldRefreshSavedProduct } from '$lib/utils/save-product.js';
+	import { buildDeleteBody, interpretDeleteResponse } from '$lib/utils/delete-product.js';
+	import {
+		isAuthFailure,
+		isTokenExpired,
+		sessionFailureMessage,
+		setSessionFlash,
+		SESSION_EXPIRED_MESSAGE
+	} from '$lib/utils/admin-session.js';
 	import { parseExcelNumber } from '$lib/utils/import-number.js';
 	import {
 		importRecoveryState,
@@ -187,12 +195,20 @@
 			goto(resolve('/admin/login'));
 			return;
 		}
+		if (isTokenExpired(token)) {
+			logout(SESSION_EXPIRED_MESSAGE);
+			return;
+		}
 
 		void loadProducts().finally(() => {
 			setupSocket();
 		});
 		void loadQuotations();
 		refreshTimer = window.setInterval(() => {
+			if (isTokenExpired(token)) {
+				logout(SESSION_EXPIRED_MESSAGE);
+				return;
+			}
 			void loadProducts();
 			void loadQuotations();
 		}, 30_000);
@@ -206,7 +222,9 @@
 	function logout(message = '') {
 		if (browser) {
 			localStorage.removeItem(STORAGE_KEY);
+			setSessionFlash(message);
 		}
+		teardownSocket();
 		teardownSocket();
 		products = [];
 		quotations = [];
@@ -262,8 +280,8 @@
 			const response = await fetch(backendUrl('/api/cotizar'), {
 				headers: { Authorization: `Bearer ${token}` }
 			});
-			if (response.status === 401) {
-				logout('Tu sesión expiró. Vuelve a iniciar sesión.');
+			if (isAuthFailure(response.status)) {
+				logout(sessionFailureMessage(response.status));
 				return;
 			}
 			if (!response.ok) throw new Error('No se pudieron cargar las cotizaciones.');
@@ -295,7 +313,7 @@
 				headers: { 'content-type': 'application/json', Authorization: `Bearer ${token}` },
 				body: JSON.stringify({ estado })
 			});
-			if (response.status === 401) return logout('Tu sesión expiró. Vuelve a iniciar sesión.');
+			if (isAuthFailure(response.status)) return logout(sessionFailureMessage(response.status));
 			const data = await response.json().catch(() => ({}));
 			if (!response.ok) throw new Error(data.error || 'No se pudo cambiar el estado.');
 			quotations = quotations.map((entry) => (entry._id === data._id ? data : entry));
@@ -793,9 +811,10 @@
 				}
 			});
 
-			if (response.status === 401) {
-				logout('Tu sesión expiró. Vuelve a iniciar sesión.');
-				if (throwOnError) throw new Error('Tu sesión expiró. Vuelve a iniciar sesión.');
+			if (isAuthFailure(response.status)) {
+				const sessionMessage = sessionFailureMessage(response.status);
+				logout(sessionMessage);
+				if (throwOnError) throw new Error(sessionMessage);
 				return;
 			}
 
@@ -926,8 +945,8 @@
 				})
 			});
 
-			if (response.status === 401) {
-				logout('Tu sesión expiró. Vuelve a iniciar sesión.');
+			if (isAuthFailure(response.status)) {
+				logout(sessionFailureMessage(response.status));
 				return;
 			}
 
@@ -968,26 +987,42 @@
 		try {
 			const response = await fetch(backendUrl(`/admin/products/${product.id}`), {
 				method: 'DELETE',
+				body: buildDeleteBody(product),
 				headers: {
+					'content-type': 'application/json',
 					Authorization: `Bearer ${token}`
 				}
 			});
 
-			if (response.status === 401) {
-				logout('Tu sesión expiró. Vuelve a iniciar sesión.');
+			if (isAuthFailure(response.status)) {
+				logout(sessionFailureMessage(response.status));
 				return;
 			}
 
 			const data = await response.json().catch(() => ({}));
-			if (!response.ok) {
-				throw new Error(data?.error || 'No se pudo eliminar el producto.');
+			const outcome = interpretDeleteResponse(response.status, data);
+			if (outcome.kind === 'conflict' || outcome.kind === 'missing') {
+				try {
+					await loadProducts({ throwOnError: true });
+					error = outcome.message;
+				} catch {
+					error = `${outcome.message} No se pudo actualizar la lista; recarga el panel antes de reintentar.`;
+				}
+				return;
+			}
+			if (outcome.kind === 'error') {
+				throw new Error(outcome.message);
 			}
 
 			products = products.filter((item) => String(item.id) !== String(product.id));
 			if (editingProduct?.id && String(editingProduct.id) === String(product.id)) {
 				editingProduct = null;
 			}
-			notice = 'Producto eliminado correctamente.';
+			if (data?.referencesCleanup === 'pending') {
+				error = outcome.message;
+			} else {
+				notice = outcome.message;
+			}
 		} catch (deleteError) {
 			error = deleteError instanceof Error ? deleteError.message : 'Error eliminando producto.';
 		} finally {

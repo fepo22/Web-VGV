@@ -4,6 +4,11 @@
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { backendUrl } from '$lib/utils/backend-url.js';
+	import {
+		isTokenExpired,
+		SESSION_EXPIRED_MESSAGE,
+		takeSessionFlash
+	} from '$lib/utils/admin-session.js';
 
 	const STORAGE_KEY = 'vgv_admin_token';
 
@@ -15,8 +20,15 @@
 	onMount(() => {
 		if (!browser) return;
 
-		if (localStorage.getItem(STORAGE_KEY)) {
+		const stored = localStorage.getItem(STORAGE_KEY);
+		const flash = takeSessionFlash();
+		if (stored && isTokenExpired(stored)) {
+			localStorage.removeItem(STORAGE_KEY);
+			error = flash || SESSION_EXPIRED_MESSAGE;
+		} else if (stored) {
 			goto(resolve('/admin/dashboard'));
+		} else if (flash) {
+			error = flash;
 		}
 	});
 

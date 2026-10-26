@@ -16,7 +16,7 @@ function extractBearerToken(authorization = "") {
 }
 
 export function verifyJwtToken(token) {
-  return jwt.verify(token, getJwtSecret());
+  return jwt.verify(token, getJwtSecret(), { algorithms: ["HS256"] });
 }
 
 export const authMiddleware = (req, res, next) => {
