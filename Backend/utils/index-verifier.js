@@ -13,21 +13,28 @@ export function specsFromSchema(schema, extra = []) {
 		key,
 		unique: options.unique === true,
 		sparse: options.sparse === true,
+		partial: Boolean(options.partialFilterExpression),
 		collation: options.collation || null
 	}));
-	const idSpec = { name: "_id_", key: { _id: 1 }, unique: false, sparse: false, collation: null };
-	return [idSpec, ...fromSchema, ...extra.map((spec) => ({ unique: false, sparse: false, collation: null, ...spec }))];
+	const idSpec = { name: "_id_", key: { _id: 1 }, unique: false, sparse: false, partial: false, collation: null };
+	return [idSpec, ...fromSchema, ...extra.map((spec) => ({ unique: false, sparse: false, partial: false, collation: null, ...spec }))];
 }
 
 function describeDifferences(expected, present) {
 	const diffs = [];
 	if (!SAME_KEY(expected.key, present.key)) diffs.push("clave distinta");
+	if (present.name !== expected.name) diffs.push(`nombre esperado=${expected.name}, presente=${present.name}`);
 	if ((present.unique === true) !== expected.unique) diffs.push(`unique esperado=${expected.unique}`);
 	if ((present.sparse === true) !== expected.sparse) diffs.push(`sparse esperado=${expected.sparse}`);
-	if (Boolean(present.collation) !== Boolean(expected.collation)) diffs.push("collation distinta");
-	else if (expected.collation && present.collation) {
-		for (const [field, value] of Object.entries(expected.collation)) {
-			if (present.collation[field] !== value) diffs.push(`collation.${field} esperado=${value}`);
+	if (Boolean(present.partialFilterExpression) !== Boolean(expected.partial)) diffs.push(`partialFilterExpression esperado=${Boolean(expected.partial)}`);
+	// La colación "simple" equivale a no declararla.
+	const normalize = (collation) => (!collation || collation.locale === "simple" ? null : collation);
+	const expectedCollation = normalize(expected.collation);
+	const presentCollation = normalize(present.collation);
+	if (Boolean(presentCollation) !== Boolean(expectedCollation)) diffs.push("collation distinta");
+	else if (expectedCollation && presentCollation) {
+		for (const [field, value] of Object.entries(expectedCollation)) {
+			if (presentCollation[field] !== value) diffs.push(`collation.${field} esperado=${value}`);
 		}
 	}
 	return diffs;

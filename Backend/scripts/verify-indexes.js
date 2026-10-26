@@ -6,6 +6,7 @@ import "dotenv/config";
 import mongoose from "mongoose";
 import { CODE_INDEX_NAME } from "../utils/product-code.js";
 import { compareIndexes, specsFromSchema } from "../utils/index-verifier.js";
+import { checkCodeIndex } from "../utils/code-index-check.js";
 
 const uri = process.env.MONGO_URI || process.env.MONGODB_URI;
 if (!uri) {
@@ -52,13 +53,18 @@ try {
 	for (const [name, specs] of Object.entries(expected)) {
 		console.log(`- ${name}: ${specs.length} índices requeridos, ${present[name] ? present[name].length : 0} presentes`);
 	}
+	const codeCheck = checkCodeIndex(present.products ?? null);
+	console.log(`Índice ${CODE_INDEX_NAME} (exigido por requireCodeIndex): ${codeCheck.approved ? "APROBADO" : "NO APROBADO"}`);
+	if (!codeCheck.collectionExists) console.log("  - la colección products no existe");
+	for (const item of codeCheck.checks) console.log(`  - ${item.ok ? "OK " : "FALLA"} ${item.check}`);
+	for (const item of codeCheck.candidates) console.log(`  - otro índice sobre codigo: ${JSON.stringify(item)}`);
 	if (report.length === 0) {
 		console.log("Sin discrepancias.");
 	} else {
 		console.log(`Discrepancias (${report.length}):`);
 		for (const item of report) console.log(JSON.stringify(item));
 	}
-	process.exitCode = report.length ? 1 : 0;
+	process.exitCode = report.length || !codeCheck.approved ? 1 : 0;
 } catch (error) {
 	console.error(`Error del verificador: ${error.message.replace(/mongodb(\+srv)?:\/\/[^@\s]+@/gi, "mongodb://***@")}`);
 	process.exitCode = 2;

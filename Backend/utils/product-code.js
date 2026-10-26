@@ -38,6 +38,14 @@ export function diagnoseProductCodes(products) {
 		.map(([canonical, products]) => ({ canonical, products })) };
 }
 
+// Única definición del índice aprobado; la usan la guardia de escritura y los verificadores.
+export function isApprovedCodeIndex(index) {
+	return index.name === CODE_INDEX_NAME && index.unique === true &&
+		Object.keys(index.key).length === 1 && index.key.codigo === 1 &&
+		!index.sparse && !index.partialFilterExpression &&
+		(!index.collation || index.collation.locale === "simple");
+}
+
 export async function requireCodeIndex(model) {
 	let indexes;
 	try {
@@ -46,12 +54,7 @@ export async function requireCodeIndex(model) {
 		if (error.code !== 26) throw error;
 		indexes = [];
 	}
-	if (!indexes.some((index) =>
-		index.name === CODE_INDEX_NAME && index.unique === true &&
-		Object.keys(index.key).length === 1 && index.key.codigo === 1 &&
-		!index.sparse && !index.partialFilterExpression &&
-		(!index.collation || index.collation.locale === "simple")
-	)) {
+	if (!indexes.some(isApprovedCodeIndex)) {
 		throw new ProductWriteError("Altas y cambios de código bloqueados: falta el índice único aprobado.", 503, "CODE_INDEX_REQUIRED");
 	}
 	// PCRE absolute anchors reject trailing newlines; $ can match before one.
