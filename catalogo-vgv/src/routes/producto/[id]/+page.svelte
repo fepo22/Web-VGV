@@ -3,6 +3,7 @@
 	import { invalidateAll } from '$app/navigation';
 	import { agregarAlCarrito } from '$lib/stores/carrito.js';
 	import ProductCard from '$lib/components/ProductCard.svelte';
+	import SocialMeta from '$lib/components/SocialMeta.svelte';
 	import { variantChoices } from '$lib/utils/variant-identity.js';
 
 	const { data } = $props();
@@ -95,6 +96,13 @@
 		ultimoProductoRegistrado = producto.id;
 	});
 </script>
+
+<SocialMeta
+	title={seoTitle}
+	description={seoDescription}
+	image={producto?.imagen ?? ''}
+	type={producto ? 'product' : 'website'}
+/>
 
 <svelte:head>
 	<title>{seoTitle}</title>

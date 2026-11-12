@@ -14,6 +14,9 @@
 
 <svelte:head>
 	<link rel="icon" href="/favicon.ico" sizes="any" />
+	{#if isAdminRoute}
+		<meta name="robots" content="noindex, nofollow" />
+	{/if}
 </svelte:head>
 
 {#if !isAdminRoute && !isContactRoute}

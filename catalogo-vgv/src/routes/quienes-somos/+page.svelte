@@ -1,6 +1,12 @@
 <script>
 	import { resolve } from '$app/paths';
+	import SocialMeta from '$lib/components/SocialMeta.svelte';
 </script>
+
+<SocialMeta
+	title="VGV SPA | Materiales de construcción en Talcahuano"
+	description="Conoce VGV SPA, empresa especializada en soluciones para construcción, canalización, calefacción, baño y cocina, encuentranos en Talcahuano"
+/>
 
 <svelte:head>
 	<title>VGV SPA | Materiales de construcción en Talcahuano</title>

@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
 	import { familias } from '$lib/data/categorias.js';
+	import SocialMeta from '$lib/components/SocialMeta.svelte';
 
 	const familiasPortada = familias.filter((familia) => familia.slug !== 'consumibles-obra');
 
@@ -241,6 +242,11 @@
 		};
 	});
 </script>
+
+<SocialMeta
+	title="Tuberías, calefacción y materiales de construcción | VGV SPA"
+	description="Encuentra tuberías y fittings, calefacción, grifería, baño, cocina y materiales para construcción. Cotiza con VGV SPA en Talcahuano, Región del Biobío."
+/>
 
 <svelte:head>
 	<title>Tuberías, calefacción y materiales de construcción | VGV SPA</title>

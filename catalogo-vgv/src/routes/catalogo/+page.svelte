@@ -4,6 +4,7 @@
 	import { page } from '$app/stores';
 	import { familias, normalizeFamiliaSlug } from '$lib/data/categorias.js';
 	import Loader from '$lib/components/Loader.svelte';
+	import SocialMeta from '$lib/components/SocialMeta.svelte';
 	import ProductGrid from '$lib/components/ProductGrid.svelte';
 
 	let productos = $state([]);
@@ -88,6 +89,8 @@
 		void cargarProductos();
 	});
 </script>
+
+<SocialMeta title={seoTitle} description={seoDescription} />
 
 <svelte:head>
 	<title>{seoTitle}</title>

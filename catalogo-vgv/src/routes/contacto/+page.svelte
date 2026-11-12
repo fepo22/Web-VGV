@@ -2,6 +2,7 @@
 	import { onDestroy } from 'svelte';
 	import { resolve } from '$app/paths';
 	import { backendUrl } from '$lib/utils/backend-url.js';
+	import SocialMeta from '$lib/components/SocialMeta.svelte';
 
 	function createToken() {
 		if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -130,6 +131,11 @@
 		}
 	}
 </script>
+
+<SocialMeta
+	title="Contacto y cotizaciones | VGV SPA Talcahuano"
+	description="Contacta a VGV SPA en Talcahuano para consultas y cotizaciones de tuberías, calefacción, grifería y materiales de construcción. Escríbenos o visítanos."
+/>
 
 <svelte:head>
 	<title>Contacto y cotizaciones | VGV SPA Talcahuano</title>
