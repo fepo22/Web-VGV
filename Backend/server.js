@@ -13,6 +13,7 @@ import DailyRotateFile from "winston-daily-rotate-file";
 import { applySecurity } from "./middlewares/security.middleware.js";
 import { connectProductsDatabase } from "./data/products.store.js";
 import { extractBearerToken, verifyJwtToken } from "./middlewares/auth.js";
+import { getSitemap } from "./controllers/sitemap.controller.js";
 import { setSocketServer } from "./realtime/socket.js";
 
 import authRoutes from "./routes/auth.routes.js";
@@ -124,6 +125,8 @@ app.use("/api/clientes", (_req, res) => {
 app.get("/health", (req, res) => {
   res.json({ ok: true, service: "vgv-backend" });
 });
+
+app.get("/sitemap.xml", getSitemap);
 
 app.get(/^(?!\/api\/).*/, (req, res) => {
   if (hasFrontendBuild) {

@@ -22,6 +22,7 @@
     { "source": "/auth/(.*)", "destination": { "service": "backend" } },
     { "source": "/admin/products(.*)", "destination": { "service": "backend" } },
     { "source": "/health", "destination": { "service": "backend" } },
+    { "source": "/sitemap.xml", "destination": { "service": "backend" } },
     { "source": "/(.*)", "destination": { "service": "catalogo-vgv" } }
   ]
 }
