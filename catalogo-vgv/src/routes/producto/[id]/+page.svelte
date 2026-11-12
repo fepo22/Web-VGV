@@ -102,6 +102,16 @@
 	description={seoDescription}
 	image={producto?.imagen ?? ''}
 	type={producto ? 'product' : 'website'}
+	jsonLd={producto
+		? {
+				'@context': 'https://schema.org',
+				'@type': 'Product',
+				name: producto.nombre ?? seoTitle,
+				description: seoDescription,
+				...(producto.imagen ? { image: producto.imagen } : {}),
+				brand: { '@type': 'Brand', name: 'VGV SPA' }
+			}
+		: null}
 />
 
 <svelte:head>

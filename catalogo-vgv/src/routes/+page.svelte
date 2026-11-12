@@ -246,6 +246,19 @@
 <SocialMeta
 	title="Tuberías, calefacción y materiales de construcción | VGV SPA"
 	description="Encuentra tuberías y fittings, calefacción, grifería, baño, cocina y materiales para construcción. Cotiza con VGV SPA en Talcahuano, Región del Biobío."
+	jsonLd={{
+		'@context': 'https://schema.org',
+		'@type': 'HardwareStore',
+		name: 'VGV SPA',
+		url: 'https://www.vgv.cl',
+		image: 'https://www.vgv.cl/assets/Logo-preview.png',
+		address: {
+			'@type': 'PostalAddress',
+			addressLocality: 'Talcahuano',
+			addressRegion: 'Biobío',
+			addressCountry: 'CL'
+		}
+	}}
 />
 
 <svelte:head>

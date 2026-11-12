@@ -3,12 +3,20 @@
 
 	const SITE_URL = 'https://www.vgv.cl';
 
-	const { title, description, image = '', type = 'website' } = $props();
+	const { title, description, image = '', type = 'website', jsonLd = null } = $props();
+
+	const jsonLdTag = $derived(
+		jsonLd
+			? `<script type="application/ld+json">${JSON.stringify(jsonLd).replace(/</g, '\\u003c')}<\/script>`
+			: ''
+	);
 
 	const url = $derived(`${SITE_URL}${page.url.pathname}`);
-	const imageUrl = $derived(
-		image ? (/^https?:\/\//i.test(image) ? image : `${SITE_URL}${image}`) : ''
-	);
+	const DEFAULT_IMAGE = '/assets/Logo-preview.png';
+	const imageUrl = $derived.by(() => {
+		const src = image || DEFAULT_IMAGE;
+		return /^https?:\/\//i.test(src) ? src : `${SITE_URL}${src}`;
+	});
 </script>
 
 <svelte:head>
@@ -25,4 +33,5 @@
 		<meta property="og:image" content={imageUrl} />
 		<meta name="twitter:image" content={imageUrl} />
 	{/if}
+	{#if jsonLdTag}{@html jsonLdTag}{/if}
 </svelte:head>
