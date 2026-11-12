@@ -49,7 +49,7 @@ Si usas la integracion MongoDB Atlas de Vercel, esta inyecta `MONGODB_URI` y no 
 
 El frontend genera funciones SSR con `adapter-vercel` solo en Vercel; el build Docker conserva `adapter-static`. Socket.IO necesita un servidor persistente: en Vercel el dashboard consulta las actualizaciones cada 30 segundos y mantiene la actualizacion manual. Para probar las rutas y bindings localmente: `npx vercel dev -L` (requiere MongoDB y SMTP para pruebas completas de datos y envio).
 
-Las cuentas de clientes requieren `CUSTOMER_JWT_SECRET` (distinto de `JWT_SECRET`) y `SITE_URL` con el origen publico, por ejemplo `https://web-vgv.vercel.app`. Para habilitar Google, crear un OAuth Client ID de tipo Web con el dominio autorizado y configurar ese mismo ID como `GOOGLE_CLIENT_ID` (backend) y `VITE_GOOGLE_CLIENT_ID` (frontend, durante build). Sin este ID, el acceso por Google permanece oculto. Registro y recuperacion por email tambien necesitan las variables SMTP. Nunca subir secretos de estas variables a Git.
+Las cuentas de clientes requieren `CUSTOMER_JWT_SECRET` (distinto de `JWT_SECRET`) y `SITE_URL` con el origen publico, por ejemplo `https://www.vgv.cl`. Para habilitar Google, crear un OAuth Client ID de tipo Web con el dominio autorizado y configurar ese mismo ID como `GOOGLE_CLIENT_ID` (backend) y `VITE_GOOGLE_CLIENT_ID` (frontend, durante build). Sin este ID, el acceso por Google permanece oculto. Registro y recuperacion por email tambien necesitan las variables SMTP. Nunca subir secretos de estas variables a Git.
 
 ## Auditoria de dependencias del frontend
 

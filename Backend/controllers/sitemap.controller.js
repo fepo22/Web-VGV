@@ -16,7 +16,7 @@ export function buildSitemapXml(siteUrl, productIds = []) {
 }
 
 export const getSitemap = async (req, res) => {
-  const siteUrl = process.env.SITE_URL || "https://web-vgv.vercel.app";
+  const siteUrl = process.env.SITE_URL || "https://www.vgv.cl";
   let ids = [];
   try {
     const products = await listProducts();

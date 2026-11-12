@@ -6,4 +6,4 @@ Disallow: /carrito
 Disallow: /checkout
 Disallow: /cuenta
 
-Sitemap: https://web-vgv.vercel.app/sitemap.xml
+Sitemap: https://www.vgv.cl/sitemap.xml
