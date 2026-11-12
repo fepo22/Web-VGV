@@ -102,7 +102,7 @@ export async function getPublicProductImage(req, res) {
 		res.set({
 			"Content-Type": "image/webp",
 			"Content-Length": String(file.length),
-			"Cache-Control": "no-store",
+			"Cache-Control": "public, max-age=31536000, immutable",
 			"Cross-Origin-Resource-Policy": "cross-origin",
 			"X-Content-Type-Options": "nosniff"
 		});

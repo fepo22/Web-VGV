@@ -22,6 +22,13 @@ COPY --from=build /app/Backend /app/Backend
 COPY --from=build /app/public /app/public
 COPY --from=build /app/public_html /app/public_html
 
+RUN mkdir -p /app/Backend/logs && chown -R node:node /app/Backend/logs
+
+USER node
+
 EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"
 
 CMD ["node", "Backend/server.js"]
